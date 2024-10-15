@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Diff Tester</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #diffContainer {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background-color: #f9f9f9;
+    }
+    .text-input {
+      width: 100%;
+      height: 100px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<h1>Text Diff Tester</h1>
+<p>Enter the original and updated text to see the differences:</p>
+
+<textarea id="oldText" class="text-input" placeholder="Enter the original text here..."></textarea>
+<textarea id="newText" class="text-input" placeholder="Enter the updated text here..."></textarea>
+
+<button onclick="showDiff()">Show Diff</button>
+
+<div id="diffContainer"></div>
+
+<script>
+  function getTextDiffSimple(oldText, newText) {
+    const oldWords = oldText.split(/\s+/);
+    const newWords = newText.split(/\s+/);
+    let resultHtml = '';
+
+    newWords.forEach((word) => {
+      if (!oldWords.includes(word)) {
+        resultHtml += `<span style="color: green">${word} </span>`;
+      } else {
+        resultHtml += `<span style="color: black">${word} </span>`;
+      }
+    });
+
+    oldWords.forEach((word) => {
+      if (!newWords.includes(word)) {
+        resultHtml = resultHtml.replace(
+                `<span style="color: black">${word} </span>`,
+                `<span style="color: red; text-decoration: line-through">${word}</span>`
+        );
+      }
+    });
+
+    return resultHtml;
+  }
+
+  function showDiff() {
+    const oldText = document.getElementById('oldText').value;
+    const newText = document.getElementById('newText').value;
+    const diffOutput = getTextDiffSimple(oldText, newText);
+    document.getElementById('diffContainer').innerHTML = diffOutput;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  </script>
+  <title>PrompTeX options</title>
+  <link rel="stylesheet" type="text/css" href="../styles/options.css">
+  <link rel="stylesheet" type="text/css" href="../styles/bootstrap.min.css">
+</head>
+<body>
+<div class="jumbotron">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6 col-md-2">
+        <img class="logo" src="../images/128.png">
+      </div>
+      <div class="col-sm-6 col-md-10">
+        <h2 class="title">PrompTex configuration</h2>
+      </div>
+    </div>
+    <br/>
+    <br/>
+    <div class="card">
+      <div class="card-header card-header bg-dark text-white">Large Language Model selection</div>
+      <div class="card-body">
+        <div class="form-check">
+          <label for="LLMDropdown">Select your Large Language Model</label>
+          <select class="form-control" id="LLMDropdown">
+            <option value="anthropic" selected="selected">Anthropic</option>
+            <option value="openAI">OpenAI</option>
+          </select>
+        </div>
+        <!-- Model Selection -->
+        <div id="modelSelectionContainer" style="display:none;">
+          <label for="modelDropdown">Select a Model:</label>
+          <select class="form-control" id="modelDropdown"></select>
+        </div>
+        <br>
+        <div id="anthropic-ApiKeyContainer" class="APIKey-Configuration">
+          <label>Paste here your Anthropic API key:</label>
+          <input type="text" id="anthropic-APIKey"/>
+          <button id="anthropic-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+        </div>
+        <div id="openAI-ApiKeyContainer" class="APIKey-Configuration">
+          <label>Paste here your OpenAI API Plus key:</label>
+          <input type="text" id="openAI-APIKey" />
+          <button id="openAI-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+        </div>
+      </div >
+    </div>
+    <br/>
+  </div>
+   </div>
+</div>
+</script>
+<script src="../scripts/options.js">
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+/* Sidebar styles */
+#criteriaSidebar {
+  width: 355px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  right: 0;
+  background-color: #f1f1f1;
+  padding: 10px;
+  z-index: 9999;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  overflow-y: auto; /* Allows vertical scrolling */
+  max-height: 100vh; /* Set max height for the sidebar */
+}
+
+.custom-loading-popup {
+  z-index: 9999 !important;
+}
+
+/* Sidebar header */
+#criteriaSidebar h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.outline-header2 {
+  background-color: #2f3a4c;
+  border-bottom: 1px solid #2f3a4c;
+  border-top: 1px solid #2f3a4c;
+  display: flex;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+header.outline-header.opened h4 {
+  display: block; /* Make sure it's not set to 'none' */
+  visibility: visible; /* Ensure it's visible */
+}
+
+body[data-loading="true"] {
+  pointer-events: none;  /* Disable all interaction */
+  overflow: hidden;      /* Disable scrolling */
+}
+
+/* Loading overlay */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);  /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  visibility: hidden;  /* Hidden by default */
+}
+
+/* Show the overlay when data-loading is true */
+body[data-loading="true"] #loading-overlay {
+  visibility: visible;  /* Show overlay */
+}
+
+.outline-header-name2 {
+  color: #fff;
+  display: inline-block;
+  flex-grow: 1;
+  flex-shrink: 1;
+  font-family: Lato,sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#panel-outline {
+  height: 50%; /* Set the height of the outline panel to 50% */
+  min-height: 64px; /* Update the minimum height to 64px */
+  overflow: auto; /* Ensure the content is scrollable */
+}
+
+.outline-pane {
+ height: 50%;
+}
+
+/* Dropdown, Import, and +Category in the same line */
+#dropdown-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px; /* Add space between buttons */
+  margin-bottom: 10px; /* Add space below */
+}
+
+/* Add margin to separate Import and Category buttons */
+#addCategoryBtn, #importCriteriaBtn {
+  padding: 5px 10px;
+  border: 1px solid #007bff;
+  background-color: transparent; /* No background */
+  color: #007bff; /* Blue text */
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Change button on hover to give it an effect */
+#addCategoryBtn:hover, #importCriteriaBtn:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Criteria button styles */
+.criteria-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Space between buttons */
+}
+
+.criteria-button {
+  flex: 1 1 calc(100% - 10px); /* Two buttons per row with gap adjustment */
+  padding: 10px;
+  background-color: #e0e0e0;
+  border: 1px solid black;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  white-space: nowrap; /* Keep text in a single line */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Show ellipsis if text overflows */
+}
+
+/* Category header styling */
+.criteria-category h3 {
+  margin-right: 10px;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* Horizontal line between categories */
+.category-separator {
+  border: 1px solid #ccc;
+  margin: 15px 0; /* Add some space above and below the line */
+}
+
+/* Context menu styles */
+#contextMenu {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 9999;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+#contextMenu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#contextMenu ul li {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+#contextMenu ul li:hover {
+  background-color: #f1f1f1;
+}

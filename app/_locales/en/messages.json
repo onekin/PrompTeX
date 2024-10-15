@@ -1,0 +1,22 @@
+{
+  "appName": {
+    "message": "PrompTeX for Overleaf",
+    "description": "The name of the application"
+  },
+  "appShortName": {
+    "message": "PrompTeX for Overleaf",
+    "description": "The short_name (maximum of 12 characters recommended) is a short version of the app's name."
+  },
+  "appDescription": {
+    "message": "An extension for enhancing the writing by integrating LLMs to assist users meeting research standards in Overleaf.",
+    "description": "The description of the application"
+  },
+  "browserActionTitle": {
+    "message": "PrompTeX",
+    "description": "The title of the browser action button"
+  },
+  "pageActionTitle": {
+    "message": "PrompTeX",
+    "description": "The title of the browser action button"
+  }
+}
