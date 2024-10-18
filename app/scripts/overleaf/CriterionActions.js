@@ -39,13 +39,32 @@ class CriterionActions {
               return cleanedExcerpt
             })
             console.log(cleanExcerpts)
+            let foundExcerpts = []
             cleanExcerpts.forEach(excerpt => {
               if (documents.includes(excerpt)) {
                 console.log(`Excerpt found: "${excerpt}"`)
+                foundExcerpts.push(excerpt)
               } else {
                 console.log(`Excerpt not found: "${excerpt}"`)
               }
             })
+
+            if (foundExcerpts.length === 0) {
+              Alerts.showWarningWindow('No excerpt found in the document for ' + criterionLabel)
+            } else {
+              // Create an HTML list of the found excerpts with improved styling
+              const excerptList = foundExcerpts
+                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                .join('')
+              const htmlContent = `<ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+
+              Alerts.infoAlert({
+                text: ` ${htmlContent}`,
+                title: 'Excerpt(s) found:',
+                showCancelButton: false,
+                html: true // Enable HTML rendering in the alert
+              })
+            }
             let suggestion = json.suggestionForImprovement
             let sentiment = json.sentiment
             let effortLevel = json.effortLevel
@@ -85,7 +104,7 @@ class CriterionActions {
             callback: callback
           })
         } else {
-          Alerts.showErrorToast('No API key found for ' + llm)
+          Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
         }
       })
     })

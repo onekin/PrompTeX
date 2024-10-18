@@ -128,84 +128,84 @@ const DefaultSchemas = {
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes Sites in Rich Detail': {
+      'Rich Site Description': {
         'Description': 'Describes the site(s) in rich detail.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes Researcher-Host Relationship': {
+      'Researcher-Host Relationship': {
         'Description': 'Describes the relationship between the researcher and the host organization.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes Intervention in Detail': {
+      'Detailed Intervention': {
         'Description': 'Describes the intervention(s) in detail.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes How Interventions Were Determined': {
+      'Intervention Determination': {
         'Description': 'Describes how interventions were determined (e.g. by management, researchers, or a participative/co-determination process).',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Explains Intervention Evaluation': {
+      'Intervention Evaluation': {
         'Description': 'Explains how the interventions are evaluated.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes Longitudinal Dimension': {
+      'Longitudinal Design': {
         'Description': 'Describes the longitudinal dimension of the research design (including the length of the study).',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Describes Researcher-Host Interactions': {
+      'Researcher-Host Interactions': {
         'Description': 'Describes the interactions between researcher(s) and host organization(s).',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Explains Research Cycles or Phases': {
+      'Research Cycles/Phases': {
         'Description': 'Explains research cycles or phases, if any, and their relationship to the intervention(s).',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Presents Clear Chain of Evidence': {
+      'Clear Evidence Chain': {
         'Description': 'Presents a clear chain of evidence from observations to findings.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Reports Participant or Stakeholder Reactions': {
+      'Stakeholder Reactions': {
         'Description': 'Reports participant or stakeholder reactions to interventions.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Reports Lessons Learned': {
+      'Lessons Learned': {
         'Description': 'Reports lessons learned by the organization.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Researchers Reflect on Biases': {
+      'Researcher Bias Reflection': {
         'Description': 'Researchers reflect on their own possible biases.',
         'Assessment': null,
         'EffortValue': null,
@@ -214,35 +214,35 @@ const DefaultSchemas = {
       }
     },
     'Desirable Attributes': {
-      'Provides Supplemental Materials': {
+      'Supplemental Materials': {
         'Description': 'Provides supplemental materials such as interview guide(s), coding schemes, coding examples, decision rules, or extended chain-of-evidence tables.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Uses Direct Quotations Extensively': {
+      'Extensive Quotations': {
         'Description': 'Uses direct quotations extensively.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Validates Results Using Member Checking': {
+      'Member Checking': {
         'Description': 'Validates results using member checking, dialogical interviewing, feedback from non-participant practitioners or research audits of coding by advisors or other researchers.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Findings Transferable to Other Contexts': {
+      'Transferable Findings': {
         'Description': 'Findings plausibly transferable to other contexts.',
         'Assessment': null,
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
       },
-      'Triangulation Across Data Types': {
+      'Data Triangulation': {
         'Description': 'Triangulation across quantitative and qualitative data.',
         'Assessment': null,
         'EffortValue': null,
@@ -251,7 +251,7 @@ const DefaultSchemas = {
       }
     },
     'Extraordinary Attributes': {
-      'Research Team with Triangulation': {
+      'Team Triangulation': {
         'Description': 'Research team with triangulation across researchers to mitigate researcher bias.',
         'Assessment': null,
         'EffortValue': null,

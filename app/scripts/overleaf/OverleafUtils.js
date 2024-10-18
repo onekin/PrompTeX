@@ -391,63 +391,67 @@ class OverleafUtils {
         }
       }
     }
+    if (!promptexCommands) {
+      console.log('No annotations found in the document')
+      callback(null)
+    } else {
+      // For each \promptex command, extract the criterion label and the excerpt (second argument)
+      const criterionAnnotations = promptexCommands.map(command => {
+        // Updated regex pattern to capture the label, number, and excerpt
+        const match = command.match(/\\promptex{\\textit{([^}]*)::(\d+)}}{([^}]*)}/)
 
-    // For each \promptex command, extract the criterion label and the excerpt (second argument)
-    const criterionAnnotations = promptexCommands.map(command => {
-      // Updated regex pattern to capture the label, number, and excerpt
-      const match = command.match(/\\promptex{\\textit{([^}]*)::(\d+)}}{([^}]*)}/)
-
-      return {
-        label: match ? match[1] : null, // Capture the criterion label (part before "::")
-        number: match ? match[2] : null, // Capture the number (part after "::")
-        excerpt: match ? match[3] : null // Capture the excerpt (second argument)
-      }
-    }).filter(item => item.label !== null && item.excerpt !== null)
-
-    // Add the annotations to the database only for the currentCriteriaList category
-    criterionAnnotations.forEach(({ label, excerpt }) => {
-      if (db[currentCriteriaList]) {
-        for (let attributeType in db[currentCriteriaList]) {
-          if (db[currentCriteriaList][attributeType][label]) {
-            // Push the excerpt into the Annotations array
-            db[currentCriteriaList][attributeType][label].Annotations.push(excerpt)
-          }
+        return {
+          label: match ? match[1] : null, // Capture the criterion label (part before "::")
+          number: match ? match[2] : null, // Capture the number (part after "::")
+          excerpt: match ? match[3] : null // Capture the excerpt (second argument)
         }
-      }
-    })
+      }).filter(item => item.label !== null && item.excerpt !== null)
 
-    const outlineContent = {}
-    window.promptex.storageManager.client.updateSchemas(window.promptex._overleafManager._project, db)
-      .then(() => {
-        console.log('Annotations updated successfully')
-        // Iterate through each attribute type (e.g., 'Essential Attributes', 'Desirable Attributes')
+      // Add the annotations to the database only for the currentCriteriaList category
+      criterionAnnotations.forEach(({ label, excerpt }) => {
         if (db[currentCriteriaList]) {
           for (let attributeType in db[currentCriteriaList]) {
-            // Iterate through each criterion in the attribute type
-            for (let criterion in db[currentCriteriaList][attributeType]) {
-              const criterionData = db[currentCriteriaList][attributeType][criterion]
-              const annotationCount = criterionData.Annotations.length
-              // If the criterion has annotations, we add it to the corresponding category in outlineContent
-              if (annotationCount > 0) {
-                // If the category doesn't exist in outlineContent yet, initialize it as an array
-                if (!outlineContent[attributeType]) {
-                  outlineContent[attributeType] = []
-                }
-                // Add the criterion with its annotation count to the category in outlineContent
-                outlineContent[attributeType].push(`${criterion} (${annotationCount})`)
-              }
+            if (db[currentCriteriaList][attributeType][label]) {
+              // Push the excerpt into the Annotations array
+              db[currentCriteriaList][attributeType][label].Annotations.push(excerpt)
             }
           }
         }
+      })
 
-        // Return the resulting outlineContent
-        if (_.isFunction(callback)) {
-          callback(outlineContent)
-        }
-      })
-      .catch(err => {
-        console.error('Failed to update annotations:', err)
-      })
+      const outlineContent = {}
+      window.promptex.storageManager.client.updateSchemas(window.promptex._overleafManager._project, db)
+        .then(() => {
+          console.log('Annotations updated successfully')
+          // Iterate through each attribute type (e.g., 'Essential Attributes', 'Desirable Attributes')
+          if (db[currentCriteriaList]) {
+            for (let attributeType in db[currentCriteriaList]) {
+              // Iterate through each criterion in the attribute type
+              for (let criterion in db[currentCriteriaList][attributeType]) {
+                const criterionData = db[currentCriteriaList][attributeType][criterion]
+                const annotationCount = criterionData.Annotations.length
+                // If the criterion has annotations, we add it to the corresponding category in outlineContent
+                if (annotationCount > 0) {
+                  // If the category doesn't exist in outlineContent yet, initialize it as an array
+                  if (!outlineContent[attributeType]) {
+                    outlineContent[attributeType] = []
+                  }
+                  // Add the criterion with its annotation count to the category in outlineContent
+                  outlineContent[attributeType].push(`${criterion} (${annotationCount})`)
+                }
+              }
+            }
+          }
+
+          // Return the resulting outlineContent
+          if (_.isFunction(callback)) {
+            callback(outlineContent)
+          }
+        })
+        .catch(err => {
+          console.error('Failed to update annotations:', err)
+        })
+    }
   }
 }
 

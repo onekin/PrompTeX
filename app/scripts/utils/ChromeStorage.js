@@ -38,6 +38,15 @@ class ChromeStorage {
       }
     })
   }
+
+  static removeData (namespace, storageArea, callback) {
+    storageArea.remove(namespace, () => {
+      // Execute callback and return error if happened
+      if (_.isFunction(callback)) {
+        callback(chrome.runtime.lastError)
+      }
+    })
+  }
 }
 
 ChromeStorage.local = chrome.storage.local

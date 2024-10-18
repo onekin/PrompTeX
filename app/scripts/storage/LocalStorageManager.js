@@ -73,10 +73,9 @@ class LocalStorageManager {
     })
   }
 
-  // Clean the criterion schema database for a specific project (reset to default)
   cleanDatabase (projectId, callback) {
     const storageKey = `db.${projectId}` // Unique storage key for each project
-    ChromeStorage.setData(storageKey, 1, ChromeStorage.local, (err) => {
+    ChromeStorage.removeData(storageKey, ChromeStorage.local, (err) => {
       if (_.isFunction(callback)) {
         if (err) {
           callback(err)

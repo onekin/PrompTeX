@@ -174,7 +174,7 @@ class OverleafManager {
     checkCriteriaButton.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
         <i class='fa fa-check-square-o fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Ask PrompTeX</p>
+        <p class='toolbar-label'>Prompt Panel</p>
       </button>
     `
     // Locate the toolbar where the button should be added
@@ -550,96 +550,100 @@ class OverleafManager {
           return li
         }
         OverleafUtils.generateOutlineContent(async (outlineContent) => {
-          // Iterate through the content to build the outline
-          Object.keys(outlineContent).forEach((category) => {
-            // Create a parent item for each category
-            const categoryLi = document.createElement('li')
-            categoryLi.classList.add('outline-item')
-            categoryLi.setAttribute('role', 'treeitem')
-            categoryLi.setAttribute('aria-expanded', 'true')
+          if (!outlineContent) {
+            Alerts.infoAlert({ title: 'No annotations found', text: 'No annotation found in the document.' })
+          } else {
+            // Iterate through the content to build the outline
+            Object.keys(outlineContent).forEach((category) => {
+              // Create a parent item for each category
+              const categoryLi = document.createElement('li')
+              categoryLi.classList.add('outline-item')
+              categoryLi.setAttribute('role', 'treeitem')
+              categoryLi.setAttribute('aria-expanded', 'true')
 
-            const categoryDiv = document.createElement('div')
-            categoryDiv.classList.add('outline-item-row')
+              const categoryDiv = document.createElement('div')
+              categoryDiv.classList.add('outline-item-row')
 
-            // Add expand/collapse button
-            const categoryButton = document.createElement('button')
-            categoryButton.classList.add('outline-item-expand-collapse-btn')
-            categoryButton.setAttribute('aria-label', 'Collapse')
-            categoryButton.setAttribute('aria-expanded', 'true') // Initially expanded
+              // Add expand/collapse button
+              const categoryButton = document.createElement('button')
+              categoryButton.classList.add('outline-item-expand-collapse-btn')
+              categoryButton.setAttribute('aria-label', 'Collapse')
+              categoryButton.setAttribute('aria-expanded', 'true') // Initially expanded
 
-            const categoryIcon = document.createElement('span')
-            categoryIcon.classList.add('material-symbols', 'outline-caret-icon')
-            categoryIcon.textContent = 'keyboard_arrow_down' // Default to expanded
-            categoryButton.appendChild(categoryIcon)
+              const categoryIcon = document.createElement('span')
+              categoryIcon.classList.add('material-symbols', 'outline-caret-icon')
+              categoryIcon.textContent = 'keyboard_arrow_down' // Default to expanded
+              categoryButton.appendChild(categoryIcon)
 
-            const categoryTitle = document.createElement('button')
-            categoryTitle.classList.add('outline-item-link')
-            categoryTitle.textContent = category
+              const categoryTitle = document.createElement('button')
+              categoryTitle.classList.add('outline-item-link')
+              categoryTitle.textContent = category
 
-            categoryDiv.appendChild(categoryButton)
-            categoryDiv.appendChild(categoryTitle)
-            categoryLi.appendChild(categoryDiv)
+              categoryDiv.appendChild(categoryButton)
+              categoryDiv.appendChild(categoryTitle)
+              categoryLi.appendChild(categoryDiv)
 
-            // Add sub-items (attributes)
-            const subList = document.createElement('ul')
-            subList.classList.add('outline-item-list')
-            subList.setAttribute('role', 'group')
+              // Add sub-items (attributes)
+              const subList = document.createElement('ul')
+              subList.classList.add('outline-item-list')
+              subList.setAttribute('role', 'group')
 
-            outlineContent[category].forEach((subItem) => {
-              subList.appendChild(createListItem(subItem))
+              outlineContent[category].forEach((subItem) => {
+                subList.appendChild(createListItem(subItem))
+              })
+
+              categoryLi.appendChild(subList)
+              rootList.appendChild(categoryLi)
+
+              // Toggle sub-list visibility on category click
+              categoryButton.addEventListener('click', () => {
+                const isExpanded = categoryLi.getAttribute('aria-expanded') === 'true'
+                categoryLi.setAttribute('aria-expanded', isExpanded ? 'false' : 'true')
+                subList.style.display = isExpanded ? 'none' : 'block'
+                categoryIcon.textContent = isExpanded ? 'keyboard_arrow_right' : 'keyboard_arrow_down'
+                categoryButton.setAttribute('aria-expanded', isExpanded ? 'false' : 'true') // Update aria-expanded
+              })
             })
-
-            categoryLi.appendChild(subList)
-            rootList.appendChild(categoryLi)
-
-            // Toggle sub-list visibility on category click
-            categoryButton.addEventListener('click', () => {
-              const isExpanded = categoryLi.getAttribute('aria-expanded') === 'true'
-              categoryLi.setAttribute('aria-expanded', isExpanded ? 'false' : 'true')
-              subList.style.display = isExpanded ? 'none' : 'block'
-              categoryIcon.textContent = isExpanded ? 'keyboard_arrow_right' : 'keyboard_arrow_down'
-              categoryButton.setAttribute('aria-expanded', isExpanded ? 'false' : 'true') // Update aria-expanded
+            let treeDiv = document.getElementById('panel-file-tree')
+            // Change the data-panel-size attribute
+            treeDiv.setAttribute('data-panel-size', '80.5') // You can set it to any value
+            // Change the flex style property
+            treeDiv.style.flex = '80.5 1 0px' // Update the first number to match the new panel size
+            let separator = treeDiv.nextElementSibling
+            // Change the 'data-panel-resize-handle-enabled' attribute to 'true'
+            separator.setAttribute('data-panel-resize-handle-enabled', 'true')
+            // Change the 'aria-valuenow' attribute to '55'
+            separator.setAttribute('aria-valuenow', '80')
+            // Select the inner div with the class 'vertical-resize-handle'
+            const innerHandle = separator.querySelector('.vertical-resize-handle')
+            // Mouse down starts the resizing
+            let isResizing = false
+            innerHandle.addEventListener('mousedown', (e) => {
+              isResizing = true
+              document.body.style.cursor = 'row-resize' // Change the cursor when resizing
             })
-          })
-          let treeDiv = document.getElementById('panel-file-tree')
-          // Change the data-panel-size attribute
-          treeDiv.setAttribute('data-panel-size', '80.5') // You can set it to any value
-          // Change the flex style property
-          treeDiv.style.flex = '80.5 1 0px' // Update the first number to match the new panel size
-          let separator = treeDiv.nextElementSibling
-          // Change the 'data-panel-resize-handle-enabled' attribute to 'true'
-          separator.setAttribute('data-panel-resize-handle-enabled', 'true')
-          // Change the 'aria-valuenow' attribute to '55'
-          separator.setAttribute('aria-valuenow', '80')
-          // Select the inner div with the class 'vertical-resize-handle'
-          const innerHandle = separator.querySelector('.vertical-resize-handle')
-          // Mouse down starts the resizing
-          let isResizing = false
-          innerHandle.addEventListener('mousedown', (e) => {
-            isResizing = true
-            document.body.style.cursor = 'row-resize' // Change the cursor when resizing
-          })
-          document.addEventListener('mousemove', (e) => {
-            if (isResizing) {
-              const panelOutline = document.getElementById('panel-outline')
-              const newSize = e.clientY // Use the Y position of the mouse to calculate the new size
-              panelOutline.style.flex = `${newSize} 1 0px` // Adjust flex-grow// property dynamically
-              panelOutline.setAttribute('data-panel-size', newSize) // Update the data attribute
-            }
-          })
-          document.addEventListener('mouseup', () => {
-            isResizing = false
-            document.body.style.cursor = 'default' // Reset the cursor
-          })
-          // Add the 'vertical-resize-handle-enabled' class to the inner div
-          innerHandle.classList.add('vertical-resize-handle-enabled')
-          let panelOutline = separator.nextElementSibling
-          // Change the 'data-panel-size' attribute to '44.8'
-          panelOutline.setAttribute('data-panel-size', '44.8')
-          // Change the 'flex' value in the style property
-          panelOutline.style.flex = '44.8 1 0px'
-          // Add the outline body to the pane, and let it push content down
-          newOutlinePane.appendChild(outlineBody)
+            document.addEventListener('mousemove', (e) => {
+              if (isResizing) {
+                const panelOutline = document.getElementById('panel-outline')
+                const newSize = e.clientY // Use the Y position of the mouse to calculate the new size
+                panelOutline.style.flex = `${newSize} 1 0px` // Adjust flex-grow// property dynamically
+                panelOutline.setAttribute('data-panel-size', newSize) // Update the data attribute
+              }
+            })
+            document.addEventListener('mouseup', () => {
+              isResizing = false
+              document.body.style.cursor = 'default' // Reset the cursor
+            })
+            // Add the 'vertical-resize-handle-enabled' class to the inner div
+            innerHandle.classList.add('vertical-resize-handle-enabled')
+            let panelOutline = separator.nextElementSibling
+            // Change the 'data-panel-size' attribute to '44.8'
+            panelOutline.setAttribute('data-panel-size', '44.8')
+            // Change the 'flex' value in the style property
+            panelOutline.style.flex = '44.8 1 0px'
+            // Add the outline body to the pane, and let it push content down
+            newOutlinePane.appendChild(outlineBody)
+          }
         })
       } else {
         newHeader.classList.replace('opened', 'closed')
@@ -769,14 +773,29 @@ class OverleafManager {
           <button class='addCriterionBtn' style='margin-left: auto;'>+</button>
         </div>
         <div class='criteria-buttons-container' style='display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;'></div>
-      `
+      `;
         contentDiv.appendChild(categoryDiv) // Append category to the main content
 
         // Get the container for the buttons
         let buttonsContainer = categoryDiv.querySelector('.criteria-buttons-container')
 
-        // Add buttons for each criterion under this category
-        for (const criterionLabel in database[listName][category]) {
+        // Sort criteria based on their Assessment
+        const sortedCriteria = Object.keys(database[listName][category]).sort((a, b) => {
+          const assessmentOrder = {
+            'green': 1,
+            'yellow': 2,
+            'red': 3,
+            '': 4 // For criteria without assessment (grey)
+          };
+
+          const aAssessment = (database[listName][category][a].Assessment || '').toLowerCase()
+          const bAssessment = (database[listName][category][b].Assessment || '').toLowerCase()
+
+          return (assessmentOrder[aAssessment] || 4) - (assessmentOrder[bAssessment] || 4)
+        })
+
+        // Add buttons for each sorted criterion under this category
+        for (const criterionLabel of sortedCriteria) {
           const criterion = database[listName][category][criterionLabel]
           let button = document.createElement('button')
           button.classList.add('criteria-button')
