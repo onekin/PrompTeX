@@ -715,8 +715,19 @@ class OverleafManager {
 
       // Add event listener for 'Add Category' button
       let addCategoryBtn = document.getElementById('addCategoryBtn')
-      addCategoryBtn.addEventListener('click', () => {
-        this.addNewCategory()
+      addCategoryBtn.addEventListener('click', (event) => {
+        event.preventDefault()
+        const newCategoryName = prompt('Enter the new category name:')
+        if (newCategoryName) {
+          window.promptex.storageManager.client.createCategory(this._currentCriteriaList, newCategoryName, (error, message) => {
+            if (error) {
+              alert('Error: ' + error.message)
+            } else {
+              alert(message)
+              window.promptex._overleafManager._sidebar.remove()
+            }
+          })
+        }
       })
 
       // Add close functionality to the sidebar
@@ -770,10 +781,12 @@ class OverleafManager {
         // Create a category container and append it to the main content div
         let categoryDiv = document.createElement('div')
         categoryDiv.classList.add('criteria-category')
+        let categoryTitle = category.replaceAll(' ', '')
         categoryDiv.innerHTML = `
         <div style='display: flex; align-items: center'>
           <h3 style='display: inline-block; margin-right: 10px;'>${category}</h3>
           <button class='addCriterionBtn' style='margin-left: auto;'>+</button>
+          <button id='categoryBtn_${categoryTitle}' class='editCategory' style='margin-left: auto;'>Edit</button>
         </div>
         <div class='criteria-buttons-container' style='display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;'></div>
       `
@@ -847,7 +860,60 @@ class OverleafManager {
         addCriterionBtn.addEventListener('click', () => {
           this.addNewCriterion(listName, category)
         })
+
+        let editCategoryBtn = categoryDiv.querySelector('#categoryBtn_' + categoryTitle)
+        // Add right-click (contextmenu) functionality to the criterion button
+        editCategoryBtn.addEventListener('click', (event) => {
+          this.editCategory(listName, category)
+        })
       }
+    }
+  }
+
+  // Function to handle criterion editing
+  editCategory (listName, category) {
+    let newCategory
+    Alerts.threeOptionsAlert({
+      title: 'Modifying name for category ' + category,
+      html: '<div>' +
+        '<input id="categoryName" class="swal2-input customizeInput" value="' + category + '"/>' +
+        '</div>',
+      preConfirm: () => {
+        // Retrieve values from inputs
+        newCategory = document.getElementById('categoryName').value
+      },
+      callback: () => {
+        // Revise to execute only when OK button is pressed or criteria name and descriptions are not undefined
+        if (!_.isUndefined(newCategory)) {
+          window.promptex.storageManager.client.modifyCategory(listName, category, newCategory, () => {
+            window.promptex._overleafManager._sidebar.remove()
+          })
+        }
+      },
+      denyButtonText: 'Delete',
+      denyButtonColor: '#d33',
+      denyCallback: () => {
+        this.deleteCategory(listName, category, () => {
+          window.promptex._overleafManager._sidebar.remove()
+        })
+      }
+    })
+  }
+
+  // Function to handle criterion deletion
+  deleteCategory (listName, category) {
+    const confirmed = confirm(`Are you sure you want to delete '${category}'?`)
+    if (confirmed) {
+      window.promptex.storageManager.client.deleteCategory(listName, category, (err, message) => {
+        if (err) {
+          console.error('Failed to delete criterion:', err)
+          alert('Failed to delete criterion')
+        } else {
+          // console.log('Criterion deleted successfully:', message)
+          alert('Criterion deleted successfully')
+          window.promptex._overleafManager._sidebar.remove()
+        }
+      })
     }
   }
 
@@ -971,6 +1037,7 @@ class OverleafManager {
         } else {
           // console.log('Criterion deleted successfully:', message)
           alert('Criterion deleted successfully')
+          window.promptex._overleafManager._sidebar.remove()
         }
       })
     }
@@ -1027,6 +1094,8 @@ class OverleafManager {
               if (err) {
                 console.error('Failed to create criterion:', err)
                 alert('Failed to create criterion')
+              } else {
+                window.promptex._overleafManager._sidebar.remove()
               }
             })
           }

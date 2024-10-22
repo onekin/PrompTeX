@@ -225,6 +225,90 @@ class CriteriaDatabaseClient {
     })
   }
 
+  modifyCategory (listName, oldCategoryName, newCategoryName, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list exists
+    if (!this.projectDatabase.criterionSchemas[listName]) {
+      return callback(new Error(`Criteria list '${listName}' does not exist.`))
+    }
+
+    // Check if the old category exists
+    if (!this.projectDatabase.criterionSchemas[listName][oldCategoryName]) {
+      return callback(new Error(`Category '${oldCategoryName}' does not exist in '${listName}'.`))
+    }
+
+    // Check if the new category name already exists to avoid duplicates
+    if (this.projectDatabase.criterionSchemas[listName][newCategoryName]) {
+      return callback(new Error(`Category '${newCategoryName}' already exists in '${listName}'.`))
+    }
+
+    // Rename the category
+    this.projectDatabase.criterionSchemas[listName][newCategoryName] = this.projectDatabase.criterionSchemas[listName][oldCategoryName]
+    delete this.projectDatabase.criterionSchemas[listName][oldCategoryName]
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Category '${oldCategoryName}' renamed to '${newCategoryName}' successfully.`)
+      }
+    })
+  }
+
+  createCategory (listName, categoryName, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list exists
+    if (!this.projectDatabase.criterionSchemas[listName]) {
+      return callback(new Error(`Criteria list '${listName}' does not exist.`))
+    }
+
+    // Check if the category already exists
+    if (this.projectDatabase.criterionSchemas[listName][categoryName]) {
+      return callback(new Error(`Category '${categoryName}' already exists in '${listName}'.`))
+    }
+
+    // Create the new category
+    this.projectDatabase.criterionSchemas[listName][categoryName] = {}
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Category '${categoryName}' created successfully in '${listName}'.`)
+      }
+    })
+  }
+
+  deleteCategory (listName, categoryName, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list exists
+    if (!this.projectDatabase.criterionSchemas[listName]) {
+      return callback(new Error(`Criteria list '${listName}' does not exist.`))
+    }
+
+    // Check if the category exists
+    if (!this.projectDatabase.criterionSchemas[listName][categoryName]) {
+      return callback(new Error(`Category '${categoryName}' does not exist in '${listName}'.`))
+    }
+
+    // Delete the category
+    delete this.projectDatabase.criterionSchemas[listName][categoryName]
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Category '${categoryName}' deleted successfully from '${listName}'.`)
+      }
+    })
+  }
+
   cleanCriterionValues (projectId) {
     return new Promise((resolve, reject) => {
       try {
