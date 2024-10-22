@@ -674,7 +674,7 @@ class OverleafManager {
         <select id='criteriaSelector'>
           ${Object.keys(window.promptex.storageManager.client.getSchemas()).map(list => `<option value='${list}'>${list}</option>`).join('')}
         </select>
-        <button id='importCriteriaBtn'>Import</button>
+        <button id='createNewList'>Create</button>
         <button id='addCategoryBtn'>+Category</button>
       </div>
       <div id='criteriaContent'></div>
@@ -707,12 +707,6 @@ class OverleafManager {
         this.loadCriteriaList(this._currentCriteriaList, window.promptex.storageManager.client.getSchemas())
       }
 
-      // Add event listener for 'Import' button
-      let importBtn = document.getElementById('importCriteriaBtn')
-      importBtn.addEventListener('click', () => {
-        document.getElementById('importForm').style.display = 'block' // Show the import form
-      })
-
       // Add event listener for 'Add Category' button
       let addCategoryBtn = document.getElementById('addCategoryBtn')
       addCategoryBtn.addEventListener('click', (event) => {
@@ -737,9 +731,9 @@ class OverleafManager {
       })
 
       // Handle submitting new criteria
-      let submitNewCriteriaBtn = document.getElementById('submitNewCriteria')
-      submitNewCriteriaBtn.addEventListener('click', () => {
-        this.importNewCriteriaList()
+      let createListBtn = document.getElementById('createNewList')
+      createListBtn.addEventListener('click', () => {
+        this.createNewList()
       })
 
       // Add event listener for 'Reset Database' button
@@ -1104,34 +1098,19 @@ class OverleafManager {
     })
   }
 
-  importNewCriteriaList () {
-    /* let newListName = document.getElementById('newListName').value.trim()
-    let newCategories = document.getElementById('newCategories').value.trim()
-
-    if (newListName && newCategories) {
-      // Parse the categories and criteria
-      let parsedData = {}
-      newCategories.split(';').forEach(categoryBlock => {
-        let [category, criteria] = categoryBlock.split(':')
-        if (category && criteria) {
-          parsedData[category.trim()] = criteria.split(',').map(c => c.trim())
+  createNewList () {
+    const newListName = prompt('Enter the name of the new criteria list:')
+    if (newListName) {
+      window.promptex.storageManager.client.createCriteriaList(newListName, (error, message) => {
+        if (error) {
+          alert('Error: ' + error.message)
+        } else {
+          alert(message)
+          // Update the dropdown to include the new list
+          window.promptex._overleafManager._sidebar.remove()
         }
       })
-
-      // Add the new list to the criteria database
-      this.criteriaDatabase[newListName] = parsedData
-
-      // Reload the dropdown to include the new list
-      let selector = document.getElementById('criteriaSelector')
-      selector.innerHTML = Object.keys(this.criteriaDatabase).map(list => `<option value='${list}'>${list}</option>`).join('')
-
-      // Hide the import form and reset its values
-      document.getElementById('importForm').style.display = 'none'
-      document.getElementById('newListName').value = ''
-      document.getElementById('newCategories').value = ''
-    } else {
-      alert('Please enter a list name and at least one category with criteria.')
-    } */
+    }
   }
 
   // Helper function to generate random background color (optional)

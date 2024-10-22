@@ -309,6 +309,28 @@ class CriteriaDatabaseClient {
     })
   }
 
+  // Create a new, empty criteria list
+  createCriteriaList (listName, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list already exists
+    if (this.projectDatabase.criterionSchemas[listName]) {
+      return callback(new Error(`Criteria list '${listName}' already exists.`))
+    }
+
+    // Create an empty criteria list
+    this.projectDatabase.criterionSchemas[listName] = {}
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Criteria list '${listName}' created successfully.`)
+      }
+    })
+  }
+
   cleanCriterionValues (projectId) {
     return new Promise((resolve, reject) => {
       try {
