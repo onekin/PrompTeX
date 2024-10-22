@@ -34,8 +34,10 @@ class CriterionActions {
             Alerts.closeLoadingWindow()
             console.log(json)
             const cleanExcerpts = json.claims.map(claim => {
-              // Replace multiple backslashes with a single one
-              let cleanedExcerpt = claim.excerpt.replace(/\\\\+/g, '\\')
+              // Convert the excerpt into a string with escape characters interpreted
+              let cleanedExcerpt = JSON.stringify(claim.excerpt)
+                .replace(/\\\\/g, '\\') // Replace double backslashes with a single backslash
+                .slice(1, -1) // Remove the quotes added by JSON.stringify
               return cleanedExcerpt
             })
             console.log(cleanExcerpts)
@@ -93,7 +95,6 @@ class CriterionActions {
                   }
                 }).catch(err => {
                   console.error('Failed to update criterion:', err)
-                  console.log('Failed to update criterion')
                 })
               })
           }

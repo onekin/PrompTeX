@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="../scripts/promptConfiguration.js"></script>
+    <link rel="stylesheet" type="text/css" href="../styles/options.css">
+
+    <title>PrompTeX Prompts definition</title>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <header></header>
+
+    <!-- Container -->
+    <div id="main-container" class="container">
+
+        <div class="jumbotron">
+            </br></br>
+            <img alt="PrompTeX logo" title="Review and go logo" class="logo" src="../images/32.png">
+            <h2 class="title">AnnotateGPT Prompt Configuration</h2>
+            <div class="card">
+                <div class="card-header card-header bg-dark text-white">Criterion-based prompts</div>
+                <div class="card-body">
+                    <div id="annotatePromptContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Annotate Prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
+                        <div class="form-check">
+                            <br>
+                            <textarea id="annotatePrompt" class="promptTextArea" rows="10"></textarea>
+                            <div id="annotatePromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <br><br>
+                            <button id="annotatePromptButton" class="savePromptButtonClass btn btn-secondary">Get default prompt</button>
+                            <button id="annotatePromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save prompt</button>
+                            <label id="annotatePromptMessage"></label>
+                        </div>
+                    </div>
+                </div >
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

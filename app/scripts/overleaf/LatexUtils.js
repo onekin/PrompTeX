@@ -1,4 +1,5 @@
 const Utils = require('../utils/Utils')
+const Alerts = require('../utils/Alerts')
 
 class LatexUtils {
   static ensurePromptexCommandExists (latexText) {
@@ -56,27 +57,44 @@ class LatexUtils {
     return cleanedLatex.trim()
   }
 
-  // Make this method static to call within the static askCriterionAssessment method
   static processTexDocument (documents) {
     // Split the content into lines
     let lines = documents.split('\n')
 
     // Remove lines starting with '%'
     lines = lines.filter(line => !line.trim().startsWith('%'))
+    lines = lines.filter(line => !line.trim().startsWith('\\section{'))
+    lines = lines.filter(line => !line.trim().startsWith('\\subsection{'))
+    lines = lines.filter(line => !line.trim().startsWith('\\subsubsection{'))
+    lines = lines.filter(line => !line.trim().startsWith('\\begin{figure}'))
+    lines = lines.filter(line => !line.trim().startsWith('\\end{figure}'))
 
     // Join the lines back to form the document content without comments
     let processedContent = lines.join('\n')
 
-    // Use regex to remove the content between \begin{abstract} and \end{abstract}
+    // Define regex for abstract, keywords, figures, and sections
     const abstractRegex = /\\begin\{abstract\}[\s\S]*?\\end\{abstract\}/
+    const keywordsRegex = /\\keywords[\s\S]*?(?=\\|$)/
 
-    // Remove the abstract section from the content
-    processedContent = processedContent.replace(abstractRegex, '')
+    // Check for the presence of the keywords section
+    const keywordsMatch = processedContent.match(keywordsRegex)
+    const abstractMatch = processedContent.match(abstractRegex)
+
+    if (keywordsMatch) {
+      // If a keywords section is found, remove everything before and including it
+      processedContent = processedContent.substring(keywordsMatch.index + keywordsMatch[0].length)
+    } else if (abstractMatch) {
+      // If an abstract is found and no keywords section, remove everything before and including the abstract section
+      processedContent = processedContent.substring(abstractMatch.index + abstractMatch[0].length)
+    } else {
+      // If neither keywords nor abstract is found, display an alert
+      Alerts.info({ title: 'No abstract or keywords found for the paper', text: 'Please ensure that the paper contains an abstract or keywords section.' })
+    }
 
     // Remove excessive newlines (keep at most one consecutive newline)
     processedContent = processedContent.replace(/\n\s*\n/g, '\n')
 
-    // Return the processed content without lines starting with '%' and the abstract section
+    // Return the processed content trimmed
     return processedContent.trim()
   }
 
@@ -98,14 +116,12 @@ class LatexUtils {
         const maintainedLines = changedContent.filter(line => standardizedContent.includes(line))
         const newLines = changedContent.filter(line => !standardizedContent.includes(line))
         const deletedLines = standardizedContent.filter(line => !changedContent.includes(line))
-
         diffResult.push({
           title,
           maintainedLines,
           newLines,
           deletedLines
         })
-
         // Remove the section from the map to track remaining standardized sections
         standardizedMap.delete(title)
       } else {

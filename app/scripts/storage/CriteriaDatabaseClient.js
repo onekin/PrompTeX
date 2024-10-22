@@ -48,10 +48,10 @@ class CriteriaDatabaseClient {
     return new Promise((resolve, reject) => {
       try {
         // Merge or replace the existing schemas with the provided newSchemas
-        this.database = { ...this.database, ...newSchemas }
+        this.projectDatabase.criterionSchemas = { ...this.projectDatabase.criterionSchemas, ...newSchemas }
 
         // Save the updated database
-        this.manager.saveDatabase(project, this.database, (err) => {
+        this.manager.saveDatabase(project, this.projectDatabase, (err) => {
           if (err) {
             return reject(err)
           } else {
@@ -135,6 +135,93 @@ class CriteriaDatabaseClient {
           resolve(`Criterion '${criterionLabel}' updated successfully.`)
         }
       })
+    })
+  }
+
+  // Update an existing criterion in a category
+  modifyCriterion (listName, criterionLabel, category, oldCriterionLabel, description) {
+    let projectID = window.promptex._overleafManager._project
+    return new Promise((resolve, reject) => {
+      // Check if the list exists
+      if (!this.projectDatabase.criterionSchemas[listName]) {
+        return reject(new Error(`Criteria list '${listName}' does not exist.`))
+      }
+
+      let criterion = this.findCriterionInSchema(listName, oldCriterionLabel)
+      let criterionList = this.projectDatabase.criterionSchemas[listName][category]
+
+      // If criterion is not found, reject
+      if (!criterion) {
+        return reject(new Error(`Criterion '${criterionLabel}' does not exist in any category of '${listName}'.`))
+      }
+      // Update the criterion with the provided values
+      criterion.Description = description
+      console.log(this.projectDatabase.criterionSchemas[listName][category])
+      // Check if the old key exists
+      if (criterionList.hasOwnProperty(oldCriterionLabel)) {
+        // Copy the value of the old key to the new key
+        criterionList[criterionLabel] = criterionList[oldCriterionLabel]
+        // Delete the old key to complete the renaming
+        delete criterionList[oldCriterionLabel]
+      }
+      // Save the updated database
+      this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+        if (err) {
+          return reject(err)
+        } else {
+          resolve(`Criterion '${criterionLabel}' modified successfully.`)
+        }
+      })
+    })
+  }
+
+  // Create a new criterion in a category
+  createCriterion (listName, category, criterionLabel, description, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list exists
+    if (!this.projectDatabase.criterionSchemas[listName]) {
+      return callback(new Error(`Criteria list '${listName}' does not exist.`))
+    }
+
+    // Check if the category exists within the list
+    let criterionList = this.projectDatabase.criterionSchemas[listName][category]
+    if (!criterionList) {
+      return callback(new Error(`Category '${category}' does not exist in '${listName}'.`))
+    }
+
+    // Check if the criterion already exists
+    if (criterionList.hasOwnProperty(criterionLabel)) {
+      return callback(new Error(`Criterion '${criterionLabel}' already exists in '${category}' of '${listName}'.`))
+    }
+
+    // Create the new criterion with the provided description
+    criterionList[criterionLabel] = { Description: description }
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Criterion '${criterionLabel}' created successfully in '${category}' of '${listName}'.`)
+      }
+    })
+  }
+
+  deleteCriterion (listName, category, criterionLabel, callback) {
+    let projectID = window.promptex._overleafManager._project
+    let criterionList = this.projectDatabase.criterionSchemas[listName][category]
+    // Check if the old key exists
+    if (criterionList.hasOwnProperty(criterionLabel)) {
+      delete criterionList[criterionLabel]
+    }
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        callback(err, null)
+      } else {
+        callback(null, `Criterion '${criterionLabel}' deleted successfully.`)
+      }
     })
   }
 

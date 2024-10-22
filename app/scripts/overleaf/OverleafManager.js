@@ -108,33 +108,31 @@ class OverleafManager {
             // Add tooltip to the element
             // if right-clicked, show a context menu
             let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
-            element.title = 'This highlight is associated with ' + criterion + '<br><br><br>'
+            element.title = ''
             if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
               element.title += 'Assessment(' + criterionElement.Assessment + '): ' + criterionElement.AssessmentDescription + '<br>'
             }
             if (criterionElement && criterionElement.Suggestion) {
               element.title += 'This is a suggestion for improvement: ' + criterionElement.Suggestion + '<br><br><br>'
               if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                element.title += '\nEffort Level: ' + criterionElement.EffortValue + '<br>'
-                element.title += '\nEffort Description: ' + criterionElement.EffortDescription
+                element.title += '\nEffort(' + criterionElement.EffortValue + '):' + criterionElement.EffortDescription
               }
             }
             element.addEventListener('contextmenu', function (event) {
               event.preventDefault() // Prevent the default right-click menu
               let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
-              let info = 'This highlight is associated with ' + criterion + '<br><br><br>'
+              let info = ''
               if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
                 info += 'Assessment(' + criterionElement.Assessment + '): ' + criterionElement.AssessmentDescription + '<br>'
               }
               if (criterionElement && criterionElement.Suggestion) {
                 info += 'Suggestion: ' + criterionElement.Suggestion + '<br><br><br>'
                 if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                  info += '\nEffort Level: ' + criterionElement.EffortValue + '<br>'
-                  info += criterionElement.EffortDescription
+                  info += '\nEffort(' + criterionElement.EffortValue + '):' + criterionElement.EffortDescription
                 }
               }
               // Show alert with the tooltip message
-              Alerts.infoAlert({ title: 'Criterion Information', text: info })
+              Alerts.infoAlert({ title: criterion, text: info })
               return false // Additional return to ensure default action is canceled
             })
           }
@@ -689,6 +687,7 @@ class OverleafManager {
         <button id='submitNewCriteria'>Save</button>
       </div>
       <hr>
+      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button>
       <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Reset Database</button>
     `
 
@@ -749,6 +748,10 @@ class OverleafManager {
           }
         })
       })
+      let promptConfigurationBtn = document.getElementById('promptConfigurationBtn')
+      promptConfigurationBtn.addEventListener('click', () => {
+        window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
+      })
     }
   }
 
@@ -773,7 +776,7 @@ class OverleafManager {
           <button class='addCriterionBtn' style='margin-left: auto;'>+</button>
         </div>
         <div class='criteria-buttons-container' style='display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;'></div>
-      `;
+      `
         contentDiv.appendChild(categoryDiv) // Append category to the main content
 
         // Get the container for the buttons
@@ -786,7 +789,7 @@ class OverleafManager {
             'yellow': 2,
             'red': 3,
             '': 4 // For criteria without assessment (grey)
-          };
+          }
 
           const aAssessment = (database[listName][category][a].Assessment || '').toLowerCase()
           const bAssessment = (database[listName][category][b].Assessment || '').toLowerCase()
@@ -905,7 +908,7 @@ class OverleafManager {
     })
 
     document.getElementById('editCriterion').addEventListener('click', () => {
-      this.editCriterion(listName, category, criterionLabel)
+      this.editCriterion(listName, category, criterion, criterionLabel)
       menu.remove() // Remove menu after selection
     })
 
@@ -924,24 +927,52 @@ class OverleafManager {
   }
 
   // Function to handle criterion editing
-  editCriterion (listName, category, criterion) {
-    let newCriterionName = prompt(`Edit criterion '${criterion}':`, criterion)
-    if (newCriterionName && newCriterionName !== criterion) {
-      const index = window.promptex.storageManager.client.getSchemas()[listName][category].indexOf(criterion)
-      window.promptex.storageManager.client.getSchemas()[listName][category][index] = newCriterionName
-      this.loadCriteriaList(listName, window.promptex.storageManager.client.getSchemas()) // Reload the list to reflect changes
-    }
+  editCriterion (listName, category, criterion, criterionLabel) {
+    let newCriterionLabel
+    let criteriaDescription = criterion.Description
+    Alerts.threeOptionsAlert({
+      title: 'Modifying name and description for criterion ' + criterionLabel,
+      html: '<div>' +
+        '<input id="criteriaName" class="swal2-input customizeInput" value="' + criterionLabel + '"/>' +
+        '</div>' +
+        '<div>' +
+        '<textarea id="criteriaDescription" class="swal2-input customizeInput" placeholder="Description">' + criteriaDescription + '</textarea>' +
+        '</div>',
+      preConfirm: () => {
+        // Retrieve values from inputs
+        newCriterionLabel = document.getElementById('criteriaName').value
+        criteriaDescription = document.getElementById('criteriaDescription').value
+      },
+      callback: () => {
+        // Revise to execute only when OK button is pressed or criteria name and descriptions are not undefined
+        if (!_.isUndefined(criterionLabel) && !_.isUndefined(criteriaDescription)) {
+          window.promptex.storageManager.client.modifyCriterion(listName, newCriterionLabel, category, criterionLabel, criteriaDescription)
+            .then(() => {
+              window.promptex._overleafManager._sidebar.remove()
+            })
+        }
+      },
+      denyButtonText: 'Delete',
+      denyButtonColor: '#d33',
+      denyCallback: () => {
+        this.deleteCriterion(listName, category, criterionLabel)
+      }
+    })
   }
 
   // Function to handle criterion deletion
-  deleteCriterion (listName, category, criterion) {
-    const confirmed = confirm(`Are you sure you want to delete '${criterion}'?`)
+  deleteCriterion (listName, category, criterionLabel) {
+    const confirmed = confirm(`Are you sure you want to delete '${criterionLabel}'?`)
     if (confirmed) {
-      const index = window.promptex.storageManager.client.getSchemas()[listName][category].indexOf(criterion)
-      if (index > -1) {
-        window.promptex.storageManager.client.getSchemas()[listName][category].splice(index, 1) // Remove the criterion
-        this.loadCriteriaList(listName, window.promptex.storageManager.client.getSchemas()) // Reload the list to reflect changes
-      }
+      window.promptex.storageManager.client.deleteCriterion(listName, category, criterionLabel, (err, message) => {
+        if (err) {
+          console.error('Failed to delete criterion:', err)
+          alert('Failed to delete criterion')
+        } else {
+          // console.log('Criterion deleted successfully:', message)
+          alert('Criterion deleted successfully')
+        }
+      })
     }
   }
 
@@ -965,27 +996,43 @@ class OverleafManager {
 
   // Function to add a new criterion to a category
   addNewCriterion (listName, category) {
-    let newCriterionName = prompt(`Enter a new criterion name for the category '${category}':`)
-    if (!newCriterionName) {
-      alert('Criterion name cannot be empty.')
-      return
-    }
-
-    let newCriterionDescription = prompt(`Enter a description for the criterion '${newCriterionName}':`)
-    if (!newCriterionDescription) {
-      alert('Criterion description cannot be empty.')
-      return
-    }
-
-    // Call CriteriaDatabaseClient to add the new criterion with name and description
-    window.promptex.storageManager.client.addCriterionToCategory(listName, category, newCriterionName, newCriterionDescription)
-      .then(() => {
-        alert('Criterion added successfully')
-      })
-      .catch(err => {
-        console.error('Failed to add criterion:', err)
-        alert('Failed to add criterion')
-      })
+    let criteriaName
+    let criteriaDescription
+    Alerts.multipleInputAlert({
+      title: 'Creating a new criterion for category ' + category,
+      html: '<div>' +
+        '<input id="criteriaName" class="swal2-input customizeInput" placeholder="Type your criterion name..."/>' +
+        '</div>' +
+        '<div>' +
+        '<textarea id="criteriaDescription" class="swal2-input customizeInput" placeholder="Type your criteria description..."></textarea>' +
+        '</div>',
+      preConfirm: () => {
+        // Retrieve values from inputs
+        criteriaName = document.getElementById('criteriaName').value
+        criteriaDescription = document.getElementById('criteriaDescription').value
+        // Find if criteria name already exists
+        let criteriaExists = false
+        if (criteriaExists) {
+          const swal = require('sweetalert2')
+          swal.showValidationMessage('A criteria with that name already exists.')
+        }
+      },
+      callback: (err) => {
+        if (err) {
+          Alerts.infoAlert({ text: 'Unable to create this custom criteria, try it again.' })
+        } else {
+          // Check if not selected cancel or esc
+          if (criteriaName) {
+            window.promptex.storageManager.client.createCriterion(listName, category, criteriaName, criteriaDescription, () => {
+              if (err) {
+                console.error('Failed to create criterion:', err)
+                alert('Failed to create criterion')
+              }
+            })
+          }
+        }
+      }
+    })
   }
 
   importNewCriteriaList () {
