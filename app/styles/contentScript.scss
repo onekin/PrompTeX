@@ -1,6 +1,6 @@
 /* Sidebar styles */
 #criteriaSidebar {
-  width: 355px;
+  width: 365px;
   height: 100%;
   position: fixed;
   top: 0;
@@ -95,7 +95,7 @@ body[data-loading="true"] #loading-overlay {
 }
 
 /* Add margin to separate Import and Category buttons */
-#addCategoryBtn, #importCriteriaBtn {
+.createButton {
   padding: 5px 10px;
   border: 1px solid #007bff;
   background-color: transparent; /* No background */

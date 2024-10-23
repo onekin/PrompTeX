@@ -351,12 +351,6 @@ class OverleafManager {
           Alerts.closeLoadingWindow()
           this.downloadSummaryAsHTML(summary)
         })
-        /* OverleafUtils.removeContent(() => {
-          if (window.promptex._overleafManager._sidebar) {
-            window.promptex._overleafManager._sidebar.remove()
-          }
-          OverleafUtils.insertContent(documents)
-        }) */
       })
     }
   }
@@ -674,8 +668,8 @@ class OverleafManager {
         <select id='criteriaSelector'>
           ${Object.keys(window.promptex.storageManager.client.getSchemas()).map(list => `<option value='${list}'>${list}</option>`).join('')}
         </select>
-        <button id='createNewList'>Create</button>
-        <button id='addCategoryBtn'>+Category</button>
+        <button id='createNewList' class='createButton'>+Schema</button>
+        <button id='addCategoryBtn' class='createButton'>+Category</button>
       </div>
       <div id='criteriaContent'></div>
       <div id='importForm' style='display: none'>
@@ -954,7 +948,6 @@ class OverleafManager {
     <ul style='list-style-type: none; padding: 0; margin: 0;'>
       <li style='padding: 5px 10px; cursor: pointer;' id='assessCriterion'>Ask PrompTeX</li>
       <li style='padding: 5px 10px; cursor: pointer;' id='editCriterion'>Edit</li>
-      <li style='padding: 5px 10px; cursor: pointer;' id='deleteCriterion'>Delete</li>
     </ul>
   `
 
@@ -969,12 +962,6 @@ class OverleafManager {
 
     document.getElementById('editCriterion').addEventListener('click', () => {
       this.editCriterion(listName, category, criterion, criterionLabel)
-      menu.remove() // Remove menu after selection
-    })
-
-    document.getElementById('deleteCriterion').addEventListener('click', async () => {
-      // this.deleteCriterion(listName, category, criterionLabel)
-      // const documents = await OverleafUtils.getAllEditorContent()
       menu.remove() // Remove menu after selection
     })
 
