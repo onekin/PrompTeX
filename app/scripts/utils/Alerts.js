@@ -183,6 +183,40 @@ class Alerts {
     }
   }
 
+  static infoAnswerAlert ({text = chrome.i18n.getMessage('expectedInfoMessageNotFound'), title = 'Info', callback, confirmButtonText = 'OK', cancelButtonText = 'Cancel', showCancelButton = true}) {
+    Alerts.tryToLoadSwal()
+    if (_.isNull(swal)) {
+      if (_.isFunction(callback)) {
+        callback(new Error('Unable to load swal'))
+      }
+    } else {
+      swal.fire({
+        type: 'info',
+        title: title,
+        showCancelButton: showCancelButton,
+        cancelButtonText: cancelButtonText,
+        confirmButtonText: confirmButtonText,
+        html: text,
+        onBeforeOpen: () => {
+          // Add event listeners to the buttons after they are rendered
+          let element = document.querySelector('.swal2-popup')
+          element.style.width = '800px'
+          // Make the text smaller
+          const content = element.querySelector('.swal2-html-container')
+          if (content) {
+            content.style.fontSize = '0.8em' // Adjust to the desired font size
+          }
+        }
+      }).then((result) => {
+        if (result.value) {
+          if (_.isFunction(callback)) {
+            callback(null, result.value)
+          }
+        }
+      })
+    }
+  }
+
   static infoAlert ({text = chrome.i18n.getMessage('expectedInfoMessageNotFound'), title = 'Info', callback, confirmButtonText = 'OK', cancelButtonText = 'Cancel', showCancelButton = true}) {
     Alerts.tryToLoadSwal()
     if (_.isNull(swal)) {
@@ -198,9 +232,14 @@ class Alerts {
         confirmButtonText: confirmButtonText,
         html: text,
         onBeforeOpen: () => {
+          // Add event listeners to the buttons after they are rendered
           let element = document.querySelector('.swal2-popup')
           element.style.width = '800px'
-          // Add event listeners to the buttons after they are rendered
+          // Make the text smaller
+          const content = element.querySelector('.swal2-html-container')
+          if (content) {
+            content.style.fontSize = '0.8em' // Adjust to the desired font size
+          }
         }
       }).then((result) => {
         if (result.value) {

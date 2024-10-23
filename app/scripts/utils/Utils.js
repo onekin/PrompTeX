@@ -10,6 +10,17 @@ class Utils {
   static sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
+  // Function to return an HTML representation of a colored face based on the value
+  static getColoredFace (value) {
+    if (value.toLowerCase() === 'green') {
+      return '🟢' // Green face emoji
+    } else if (value.toLowerCase() === 'yellow') {
+      return '🟡' // Yellow face emoji
+    } else if (value.toLowerCase() === 'red') {
+      return '🔴' // Red face emoji
+    }
+    return '' // Default to an empty string if the value doesn't match
+  }
   // Helper function to darken a color
   static darkenColor (color, percentage) {
     let f = parseInt(color.slice(1), 16)
