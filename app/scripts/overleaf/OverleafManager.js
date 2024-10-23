@@ -6,6 +6,7 @@ const _ = require('lodash')
 const LatexUtils = require('./LatexUtils')
 const LLMClient = require('../llm/LLMClient')
 const Config = require('../Config')
+const Utils = require('../utils/Utils')
 
 class OverleafManager {
   constructor () {
@@ -105,34 +106,25 @@ class OverleafManager {
               // Hide the punctuation element by setting display to 'none'
               punctuationElement.style.display = 'none'
             })
-            // Add tooltip to the element
-            // if right-clicked, show a context menu
-            let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
-            element.title = ''
-            if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-              element.title += 'Assessment(' + criterionElement.Assessment + '): ' + criterionElement.AssessmentDescription + '<br>'
-            }
-            if (criterionElement && criterionElement.Suggestion) {
-              element.title += 'This is a suggestion for improvement: ' + criterionElement.Suggestion + '<br><br><br>'
-              if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                element.title += '\nEffort(' + criterionElement.EffortValue + '):' + criterionElement.EffortDescription
-              }
-            }
             element.addEventListener('contextmenu', function (event) {
               event.preventDefault() // Prevent the default right-click menu
               let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
               let info = ''
               if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-                info += 'Assessment(' + criterionElement.Assessment + '): ' + criterionElement.AssessmentDescription + '<br>'
+                const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
+                info += 'Assessment(' + assessmentFace + '): ' + criterionElement.AssessmentDescription + '<br>'
               }
+
               if (criterionElement && criterionElement.Suggestion) {
                 info += 'Suggestion: ' + criterionElement.Suggestion + '<br><br><br>'
+
                 if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                  info += '\nEffort(' + criterionElement.EffortValue + '):' + criterionElement.EffortDescription
+                  const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
+                  info += '\nEffort(' + effortFace + '): ' + criterionElement.EffortDescription
                 }
               }
               // Show alert with the tooltip message
-              Alerts.infoAlert({ title: criterion, text: info })
+              Alerts.infoAnswerAlert({ title: criterion, text: info })
               return false // Additional return to ensure default action is canceled
             })
           }
@@ -217,7 +209,7 @@ class OverleafManager {
     })
   }
 
-  async stabilizeContent () {
+  static async stabilizeContent () {
     let standarized = window.promptex.storageManager.client.getStandardizedStatus()
     if (standarized) {
       // If already standardized, show a message
@@ -260,30 +252,27 @@ class OverleafManager {
               let newLinesString = ''
               let prompt = ''
               let typeOfChange = ''
-
+              let sectionTitle = section.title
+              let document = LatexUtils.processTexDocument(documents)
               if (section.newSection) {
                 typeOfChange = 'New Section'
                 let newLines = section.content
                 if (newLines.length > 0) {
                   newLinesString = newLines.join('\n')
                 }
-                prompt = 'RESEARCH PAPER: ' + LatexUtils.processTexDocument(documents) + '\n' +
-                  'DO: Act as a writer of a research paper. For the above research paper, the following section is new:\n' +
-                  section.title + '\n content is' + newLinesString + '\n' +
-                  'Please review the rest of the sections and provide a comment about how the writer should propagate and accommodate the new content in the rest of the research paper to not destabilize the overall manuscript, maintaining coherence and harmony.' +
-                  'identify the changes made during the improvement process, recognizing where these adjustments impact terminology, criteria, structural decisions, or comparative analysis. Revise the relevant sections of the document to ensure that the updated elements replace outdated information or align with new standards. Adjust related content, such as analysis, visuals, or discussions, to integrate the implications of these changes and maintain consistency throughout. Finally, reflect the updated focus or criteria in summary and conclusion sections, ensuring that the overall narrative of the document accurately represents the improvements made. This systematic approach ensures that changes are thoroughly embedded, maintaining coherence and clarity across the entire work.' +
-                  'Provide the answer in a JSON format with the following structure: {comment: "Your comment here", changes: "Changes that should be propagated to other sections", spot:"what places in the manuscript can be affected"} Please, just provide the JSON, do not write anything else in the answer.'
+                prompt = Config.prompts.newSectionPrompt
+                prompt = prompt.replace('[C_DOCUMENT]', document)
+                prompt = prompt.replace('[C_TITLE]', sectionTitle)
+                prompt = prompt.replace('[C_NEWLINES]', newLinesString)
               } else if (section.deletedSection) {
                 typeOfChange = 'Deleted Section'
                 let deletedLines = section.content
                 if (deletedLines.length > 0) {
                   deletedLinesString = deletedLines.join('\n')
-                  prompt = 'RESEARCH PAPER: ' + LatexUtils.processTexDocument(documents) + '\n' +
-                    'DO: Act as a writer of a research paper. For the above research paper, the following section has been deleted:\n' +
-                    section.title + '\n content was' + deletedLinesString + '\n' +
-                    'Please review the rest of the sections and provide a comment about how deleting the section has affected or not the rest of the research paper to not destabilize the overall manuscript, maintaining coherence and harmony.' +
-                    ' identify the changes made during the improvement process, recognizing where these adjustments impact terminology, criteria, structural decisions, or comparative analysis. Revise the relevant sections of the document to ensure that the updated elements replace outdated information or align with new standards. Adjust related content, such as analysis, visuals, or discussions, to integrate the implications of these changes and maintain consistency throughout. Finally, reflect the updated focus or criteria in summary and conclusion sections, ensuring that the overall narrative of the document accurately represents the improvements made. This systematic approach ensures that changes are thoroughly embedded, maintaining coherence and clarity across the entire work.' +
-                    'Provide the answer in a JSON format with the following structure: {comment: "Your comment here", changes: "Changes that should be propagated to other sections", spot:"what places in the manuscript can be affected"} Please, just provide the JSON, do not write anything else in the answer.'
+                  prompt = Config.prompts.deletedSectionPrompt
+                  prompt = prompt.replace('[C_DOCUMENT]', document)
+                  prompt = prompt.replace('[C_TITLE]', sectionTitle)
+                  prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
                 }
               } else if (!(section.deletedSection || section.newSection)) {
                 typeOfChange = 'Modified Section'
@@ -299,13 +288,12 @@ class OverleafManager {
 
                   foundSection = changedArray.find(s => s.title === section.title)
                   combinedContent = foundSection ? foundSection.content.join('\n') : ''
-                  prompt = 'RESEARCH PAPER: ' + LatexUtils.processTexDocument(documents) + '\n' +
-                    'DO: Act as a writer of a research paper. For the above research paper, the following section has been modified:\n' +
-                    section.title + '\n the content is this' + combinedContent + '\n' +
-                    'added lines were' + newLinesString + '\n' + 'deleted lines were' + deletedLinesString + '\n' +
-                    'Please review the rest of the sections and provide a comment about how the modifications have affected or not the rest of the research paper to maintain coherence and harmony.' +
-                    'identify the changes made during the improvement process, recognizing where these adjustments impact terminology, criteria, structural decisions, or comparative analysis. Revise the relevant sections of the document to ensure that the updated elements replace outdated information or align with new standards. Adjust related content, such as analysis, visuals, or discussions, to integrate the implications of these changes and maintain consistency throughout. Finally, reflect the updated focus or criteria in summary and conclusion sections, ensuring that the overall narrative of the document accurately represents the improvements made. This systematic approach ensures that changes are thoroughly embedded, maintaining coherence and clarity across the entire work.' +
-                    'Provide the answer in a JSON format with the following structure: {comment: "Your comment here", changes: "Changes that should be propagated to other sections", spot:"what places in the manuscript can be affected"} Please, just provide the JSON, do not write anything else in the answer.'
+                  prompt = Config.prompts.modifiedSectionPrompt
+                  prompt = prompt.replace('[C_DOCUMENT]', document)
+                  prompt = prompt.replace('[C_TITLE]', sectionTitle)
+                  prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
+                  prompt = prompt.replace('[C_NEWLINES]', newLinesString)
+                  prompt = prompt.replace('[C_COMBINED_CONTENT]', combinedContent)
                 }
               }
 
@@ -351,12 +339,6 @@ class OverleafManager {
           Alerts.closeLoadingWindow()
           this.downloadSummaryAsHTML(summary)
         })
-        /* OverleafUtils.removeContent(() => {
-          if (window.promptex._overleafManager._sidebar) {
-            window.promptex._overleafManager._sidebar.remove()
-          }
-          OverleafUtils.insertContent(documents)
-        }) */
       })
     }
   }
@@ -913,19 +895,22 @@ class OverleafManager {
 
   // New method to display criterion details
   showCriterionDetails (label, criterionElement) {
-    let info = 'This highlight is associated with ' + label + '<br><br><br>'
+    let info = ''
     if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-      info += 'Assessment (' + criterionElement.Assessment + '): ' + criterionElement.AssessmentDescription + '<br><br>'
+      const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
+      info += 'Assessment(' + assessmentFace + '): ' + criterionElement.AssessmentDescription + '<br>'
     }
+
     if (criterionElement && criterionElement.Suggestion) {
       info += 'Suggestion: ' + criterionElement.Suggestion + '<br><br><br>'
+
       if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-        info += '\nEffort Level: ' + criterionElement.EffortValue + '<br>'
-        info += criterionElement.EffortDescription
+        const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
+        info += '\nEffort(' + effortFace + '): ' + criterionElement.EffortDescription
       }
     }
     // Show alert with the tooltip message
-    Alerts.infoAlert({ title: 'Criterion Information', text: info })
+    Alerts.infoAnswerAlert({ title: 'Criterion Information', text: info })
   }
 
   // Function to show the context menu
@@ -954,7 +939,6 @@ class OverleafManager {
     <ul style='list-style-type: none; padding: 0; margin: 0;'>
       <li style='padding: 5px 10px; cursor: pointer;' id='assessCriterion'>Ask PrompTeX</li>
       <li style='padding: 5px 10px; cursor: pointer;' id='editCriterion'>Edit</li>
-      <li style='padding: 5px 10px; cursor: pointer;' id='deleteCriterion'>Delete</li>
     </ul>
   `
 
@@ -971,13 +955,6 @@ class OverleafManager {
       this.editCriterion(listName, category, criterion, criterionLabel)
       menu.remove() // Remove menu after selection
     })
-
-    document.getElementById('deleteCriterion').addEventListener('click', async () => {
-      // this.deleteCriterion(listName, category, criterionLabel)
-      // const documents = await OverleafUtils.getAllEditorContent()
-      menu.remove() // Remove menu after selection
-    })
-
     // Close the context menu if clicked outside
     document.addEventListener('click', () => {
       if (menu) {
@@ -1022,6 +999,7 @@ class OverleafManager {
 
   // Function to handle criterion deletion
   deleteCriterion (listName, category, criterionLabel) {
+    window.promptex._overleafManager._sidebar.remove()
     const confirmed = confirm(`Are you sure you want to delete '${criterionLabel}'?`)
     if (confirmed) {
       window.promptex.storageManager.client.deleteCriterion(listName, category, criterionLabel, (err, message) => {
@@ -1031,7 +1009,6 @@ class OverleafManager {
         } else {
           // console.log('Criterion deleted successfully:', message)
           alert('Criterion deleted successfully')
-          window.promptex._overleafManager._sidebar.remove()
         }
       })
     }
@@ -1111,12 +1088,6 @@ class OverleafManager {
         }
       })
     }
-  }
-
-  // Helper function to generate random background color (optional)
-  getRandomColor () {
-    const colors = ['#f8c1c1', '#f9e09f', '#9fc9f8', '#f8c1f8', '#c1c1f8', '#d2c1a1', '#d1a19f', '#9fc1d2', '#c1f1c2', '#f8c7c1', '#a1c9f8']
-    return colors[Math.floor(Math.random() * colors.length)]
   }
 
   getProject () {
