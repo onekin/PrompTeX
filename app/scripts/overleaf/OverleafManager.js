@@ -112,15 +112,15 @@ class OverleafManager {
               let info = ''
               if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
                 const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-                info += 'Assessment(' + assessmentFace + '): ' + criterionElement.AssessmentDescription + '<br>'
+                info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
               }
 
               if (criterionElement && criterionElement.Suggestion) {
-                info += 'Suggestion: ' + criterionElement.Suggestion + '<br><br><br>'
+                info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
 
                 if (criterionElement.EffortValue && criterionElement.EffortDescription) {
                   const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                  info += '\nEffort' + effortFace + ': ' + criterionElement.EffortDescription
+                  info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
                 }
               }
               // Show alert with the tooltip message
@@ -209,7 +209,7 @@ class OverleafManager {
     })
   }
 
-  static async stabilizeContent () {
+  async stabilizeContent () {
     let standarized = window.promptex.storageManager.client.getStandardizedStatus()
     if (standarized) {
       // If already standardized, show a message
@@ -302,19 +302,28 @@ class OverleafManager {
                   if (apiKey !== null && apiKey !== '') {
                     let callback = (json) => {
                       Alerts.closeLoadingWindow()
+                      // Extracting details from the JSON
                       const comment = json.comment
-                      summary += 'Section (' + typeOfChange + ') ' + section.title + '\n'
-                      if (comment) {
-                        summary += '\tComment: ' + comment + '\n\n'
+                      const identifiedChanges = json.identifiedChanges
+                      const affectedSpots = json.affectedSpots
+
+                      // Constructing the summary content
+                      let summary = sectionTitle + ' - ' + typeOfChange + '\n\n'
+                      summary += `Comment: ${comment}\n\n`;
+                      summary += "Identified Changes:\n";
+
+                      // Adding details for each identified change
+                      for (const [key, value] of Object.entries(identifiedChanges)) {
+                        summary += `- ${key}: ${value}\n`
                       }
-                      const changes = json.changes
-                      if (changes) {
-                        summary += '\tChanges: ' + changes + '\n\n'
-                      }
-                      const spot = json.spot
-                      if (spot) {
-                        summary += '\tSpot: ' + spot + '\n\n'
-                      }
+
+                      summary += "\nAffected Spots:\n";
+
+                      // Adding affected spots details
+                      affectedSpots.forEach((spot, index) => {
+                        summary += `  ${index + 1}. Affected Section: ${spot.affectedSection}\n`
+                        summary += `     Reason: ${spot.reason}\n`
+                      })
                       resolve() // Resolve the promise when the API call is done
                     }
                     LLMClient.simpleQuestion({
@@ -346,7 +355,7 @@ class OverleafManager {
   // Function to download the summary as an HTML file
   downloadSummaryAsHTML (summary) {
     const htmlContent = `
-    <!DOCTYPE html>
+      <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
@@ -898,15 +907,15 @@ class OverleafManager {
     let info = ''
     if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
       const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-      info += 'Assessment' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br>'
+      info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
     }
 
     if (criterionElement && criterionElement.Suggestion) {
-      info += 'Suggestion: ' + criterionElement.Suggestion + '<br><br><br>'
+      info += '<b>Suggestion:</b> ' + criterionElement.Suggestion + '<br><br>'
 
       if (criterionElement.EffortValue && criterionElement.EffortDescription) {
         const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-        info += '\nEffort' + effortFace + ': ' + criterionElement.EffortDescription
+        info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
       }
     }
     // Show alert with the tooltip message

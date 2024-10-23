@@ -61,7 +61,7 @@ const Config = {
       'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
       'ContentEnrichment: Details of new content and how it affects other sections.' +
       '},' +
-      'affectedSpots: List the sections or areas in the manuscript that need adjustments or review, with reasons for each.' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason]' +
       '}' +
       'Important: Only provide the JSON response, without any additional commentary.',
     deletedSectionPrompt: 'RESEARCH PAPER: [C_DOCUMENT]' + '\n' +
@@ -81,7 +81,7 @@ const Config = {
       'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
       'ContentEnrichment: Details of new content and how it affects other sections.' +
       '},' +
-      'affectedSpots: List the sections or areas in the manuscript that need adjustments or review, with reasons for each.' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason]' +
       '}' +
       'Important: Only provide the JSON response, without any additional commentary.',
     modifiedSectionPrompt: 'RESEARCH PAPER: [C_DOCUMENT]' + '\n' +
@@ -102,7 +102,7 @@ const Config = {
       'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
       'ContentEnrichment: Details of new content and how it affects other sections.' +
       '},' +
-      'affectedSpots: List the sections or areas in the manuscript that need adjustments or review, with reasons for each.' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason]' +
       '}' +
       'Important: Only provide the JSON response, without any additional commentary.'
   }

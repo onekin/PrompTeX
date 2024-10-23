@@ -201,10 +201,12 @@ class Alerts {
           // Add event listeners to the buttons after they are rendered
           let element = document.querySelector('.swal2-popup')
           element.style.width = '800px'
-          // Make the text smaller
+
+          // Make the text smaller and justified
           const content = element.querySelector('.swal2-html-container')
           if (content) {
             content.style.fontSize = '0.8em' // Adjust to the desired font size
+            content.style.textAlign = 'justify' // Add text justification
           }
         }
       }).then((result) => {
@@ -235,10 +237,12 @@ class Alerts {
           // Add event listeners to the buttons after they are rendered
           let element = document.querySelector('.swal2-popup')
           element.style.width = '800px'
-          // Make the text smaller
+
+          // Make the text smaller and justified
           const content = element.querySelector('.swal2-html-container')
           if (content) {
             content.style.fontSize = '0.8em' // Adjust to the desired font size
+            content.style.textAlign = 'justify' // Add text justification
           }
         }
       }).then((result) => {
