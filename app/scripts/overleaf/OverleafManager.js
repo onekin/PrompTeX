@@ -120,7 +120,7 @@ class OverleafManager {
 
                 if (criterionElement.EffortValue && criterionElement.EffortDescription) {
                   const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                  info += '\nEffort(' + effortFace + '): ' + criterionElement.EffortDescription
+                  info += '\nEffort' + effortFace + ': ' + criterionElement.EffortDescription
                 }
               }
               // Show alert with the tooltip message
@@ -898,7 +898,7 @@ class OverleafManager {
     let info = ''
     if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
       const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-      info += 'Assessment(' + assessmentFace + '): ' + criterionElement.AssessmentDescription + '<br>'
+      info += 'Assessment' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br>'
     }
 
     if (criterionElement && criterionElement.Suggestion) {
@@ -906,7 +906,7 @@ class OverleafManager {
 
       if (criterionElement.EffortValue && criterionElement.EffortDescription) {
         const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-        info += '\nEffort(' + effortFace + '): ' + criterionElement.EffortDescription
+        info += '\nEffort' + effortFace + ': ' + criterionElement.EffortDescription
       }
     }
     // Show alert with the tooltip message
