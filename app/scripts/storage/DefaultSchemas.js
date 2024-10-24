@@ -1,6 +1,6 @@
 const DefaultSchemas = {
   'Engineering Research': {
-    'Essential Attributes': {
+    'Criteria': {
       'Artifact Detail': {
         'Description': 'Describes the proposed artifact in adequate detail.',
         'Assessment': null,
@@ -56,9 +56,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Desirable Attributes': {
+      },
       'Supplementary Materials': {
         'Description': 'Provides supplementary materials such as source code, description of the artifact, or input datasets.',
         'Assessment': null,
@@ -100,9 +98,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Extraordinary Attributes': {
+      },
       'Design Practices': {
         'Description': 'Contributes to understanding of design practices or principles.',
         'Assessment': null,
@@ -120,7 +116,7 @@ const DefaultSchemas = {
     }
   },
   'Action Research': {
-    'Essential Attributes': {
+    'Criteria': {
       'Justifies Site Selection': {
         'Description': 'Justifies the selection of the site(s) that was(were) studied.',
         'Assessment': null,
@@ -211,9 +207,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Desirable Attributes': {
+      },
       'Supplemental Materials': {
         'Description': 'Provides supplemental materials such as interview guide(s), coding schemes, coding examples, decision rules, or extended chain-of-evidence tables.',
         'Assessment': null,
@@ -248,9 +242,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Extraordinary Attributes': {
+      },
       'Team Triangulation': {
         'Description': 'Research team with triangulation across researchers to mitigate researcher bias.',
         'Assessment': null,
@@ -261,7 +253,7 @@ const DefaultSchemas = {
     }
   },
   'Qualitative Studies': {
-    'Essential Attributes': {
+    'Criteria': {
       'Explains How Interviewees Were Selected': {
         'Description': 'Explains how interviewees were selected.',
         'Assessment': null,
@@ -317,9 +309,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Desirable Attributes': {
+      },
       'Provides Supplemental Materials': {
         'Description': 'Provides supplemental materials including interview guide(s), coding schemes, coding examples, decision rules, or extended chain-of-evidence table(s).',
         'Assessment': null,
@@ -417,9 +407,7 @@ const DefaultSchemas = {
         'EffortValue': null,
         'EffortDescription': null,
         'Annotations': []
-      }
-    },
-    'Extraordinary Attributes': {
+      },
       'Employs Multiple Methods of Data Analysis': {
         'Description': 'Employs multiple methods of data analysis (e.g. open coding vs. process coding; manual coding vs. automated sentiment analysis) with method-triangulation.',
         'Assessment': null,

@@ -9,42 +9,51 @@ window.onload = () => {
 
 class PromptConfiguration {
   init () {
+    // Initialize each prompt configuration
+    this.setupPrompt('annotatePrompt', this.checkAnnotatePrompt)
+    this.setupPrompt('newSectionPrompt', this.checkGeneralPrompt)
+    this.setupPrompt('deletedSectionPrompt', this.checkGeneralPrompt)
+    this.setupPrompt('modifiedSectionPrompt', this.checkGeneralPrompt)
+    this.setupPrompt('createTODOPrompt', this.checkGeneralPrompt)
+  }
+
+  setupPrompt (type, validateFunction) {
     // Extract the prompt from the config
-    const fullPrompt = Config.prompts.annotatePrompt
-    const splitIndex = fullPrompt.indexOf('The format should be as follows:')
+    const fullPrompt = Config.prompts[type]
+    const splitIndex = fullPrompt.indexOf('The format should be as follows (ensure no extra text is added before or after the JSON):')
 
     // Split the prompt into editable and static parts
     const editablePart = fullPrompt.substring(0, splitIndex)
     const staticPart = fullPrompt.substring(splitIndex)
 
     // Set up the textarea and static display div
-    const promptTextArea = document.querySelector('#annotatePrompt')
-    const staticPartDiv = document.querySelector('#annotatePromptStatic')
+    const promptTextArea = document.querySelector(`#${type}`)
+    const staticPartDiv = document.querySelector(`#${type}Static`)
 
     // Set initial values for the editable and static parts
     promptTextArea.value = editablePart
     staticPartDiv.innerHTML = this.formatWithLineBreaks(staticPart)
 
     // Event listener for resetting to default
-    document.querySelector('#annotatePromptButton').addEventListener('click', () => {
-      let messageLabel = document.querySelector('#annotatePromptMessage')
+    document.querySelector(`#${type}Button`).addEventListener('click', () => {
+      let messageLabel = document.querySelector(`#${type}Message`)
       promptTextArea.value = editablePart // Reset only the editable part
-      this.setPrompt('annotatePrompt', editablePart + staticPart)
+      this.setPrompt(type, editablePart + staticPart)
       messageLabel.innerHTML = 'Prompt reset to default.'
     })
 
     // Event listener for saving the prompt
-    document.querySelector('#annotatePromptSaveButton').addEventListener('click', () => {
+    document.querySelector(`#${type}SaveButton`).addEventListener('click', () => {
       let updatedEditablePart = promptTextArea.value
-      let messageLabel = document.querySelector('#annotatePromptMessage')
+      let messageLabel = document.querySelector(`#${type}Message`)
 
       // Validate the prompt
-      if (this.checkAnnotatePrompt(updatedEditablePart)) {
+      if (validateFunction(updatedEditablePart)) {
         const newFullPrompt = updatedEditablePart + staticPart
-        this.setPrompt('annotatePrompt', newFullPrompt)
+        this.setPrompt(type, newFullPrompt)
         messageLabel.innerHTML = 'Prompt saved.'
       } else {
-        messageLabel.innerHTML = 'Invalid prompt. Please include [C_DESCRIPTION] and [C_NAME].'
+        messageLabel.innerHTML = 'Invalid prompt. Please include the necessary placeholders.'
       }
     })
 
@@ -52,16 +61,14 @@ class PromptConfiguration {
     chrome.runtime.sendMessage({
       scope: 'prompt',
       cmd: 'getPrompt',
-      data: { type: 'annotatePrompt' }
+      data: { type: type }
     }, ({ prompt }) => {
       if (prompt && prompt.includes('The format should be as follows:')) {
-        // Extract and display the editable part
         const existingEditablePart = prompt.substring(0, prompt.indexOf('The format should be as follows:'))
         promptTextArea.value = existingEditablePart
       } else {
-        // Use the default if no prompt is found
         promptTextArea.value = editablePart
-        this.setPrompt('annotatePrompt', editablePart + staticPart)
+        this.setPrompt(type, editablePart + staticPart)
       }
     })
   }
@@ -83,6 +90,11 @@ class PromptConfiguration {
 
   checkAnnotatePrompt (prompt) {
     return prompt.includes('[C_DESCRIPTION]') && prompt.includes('[C_NAME]')
+  }
+
+  checkGeneralPrompt (prompt) {
+    // Add custom validation logic for other prompts if needed
+    return prompt.length > 0 // Example: ensure it is not empty
   }
 
   formatWithLineBreaks (text) {

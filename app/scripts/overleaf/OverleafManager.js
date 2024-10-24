@@ -163,8 +163,8 @@ class OverleafManager {
     checkCriteriaButton.classList.add('toolbar-item')
     checkCriteriaButton.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
-        <i class='fa fa-check-square-o fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Prompt Panel</p>
+        <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
+        <p class='toolbar-label'>Improvement</p>
       </button>
     `
     // Locate the toolbar where the button should be added
@@ -189,8 +189,8 @@ class OverleafManager {
     stabilizeButton.classList.add('toolbar-item')
     stabilizeButton.innerHTML = `
     <button type='button' class='btn btn-full-height' id='stabilizeBtn'>
-      <i class='fa fa-balance-scale fa-fw' aria-hidden='true'></i>
-      <p class='toolbar-label'>Stabilize</p>
+      <i class='fa fa-compress fa-fw' aria-hidden='true'></i>
+      <p class='toolbar-label'>Consolidate</p>
     </button>
   `
     // Locate the toolbar where the button should be added
@@ -222,13 +222,15 @@ class OverleafManager {
       if (editor === 'Visual Editor') {
         OverleafUtils.toggleEditor()
       }
-      let documents = await OverleafUtils.getAllEditorContent()
-      documents = LatexUtils.removeCommentsFromLatex(documents)
+      const originalDocument = await OverleafUtils.getAllEditorContent()
+      let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
       const changedArray = OverleafUtils.extractSections(documents)
       let summary = 'The content has been stabilized:\n'
       window.promptex.storageManager.client.cleanCriterionValues(this._project).then(() => {
         console.log('changed array:')
         console.log(changedArray)
+        let titles = changedArray.map(section => section.title)
+        let titlesString = titles.join(',')
         console.log('standarized array:')
         const standardizedArray = window.promptex.storageManager.client.getStandardizedVersion() // The previous version.
         console.log(standardizedArray)
@@ -264,6 +266,7 @@ class OverleafManager {
                 prompt = prompt.replace('[C_DOCUMENT]', document)
                 prompt = prompt.replace('[C_TITLE]', sectionTitle)
                 prompt = prompt.replace('[C_NEWLINES]', newLinesString)
+                prompt = prompt.replace('C_TITLES', titlesString)
               } else if (section.deletedSection) {
                 typeOfChange = 'Deleted Section'
                 let deletedLines = section.content
@@ -273,6 +276,7 @@ class OverleafManager {
                   prompt = prompt.replace('[C_DOCUMENT]', document)
                   prompt = prompt.replace('[C_TITLE]', sectionTitle)
                   prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
+                  prompt = prompt.replace('C_TITLES', titlesString)
                 }
               } else if (!(section.deletedSection || section.newSection)) {
                 typeOfChange = 'Modified Section'
@@ -294,6 +298,7 @@ class OverleafManager {
                   prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
                   prompt = prompt.replace('[C_NEWLINES]', newLinesString)
                   prompt = prompt.replace('[C_COMBINED_CONTENT]', combinedContent)
+                  prompt = prompt.replace('C_TITLES', titlesString)
                 }
               }
 
@@ -308,16 +313,16 @@ class OverleafManager {
                       const affectedSpots = json.affectedSpots
 
                       // Constructing the summary content
-                      let summary = sectionTitle + ' - ' + typeOfChange + '\n\n'
-                      summary += `Comment: ${comment}\n\n`;
-                      summary += "Identified Changes:\n";
+                      summary += sectionTitle + ' - ' + typeOfChange + '\n'
+                      summary += `Comment: ${comment}\n`
+                      summary += 'Identified Changes:\n'
 
                       // Adding details for each identified change
                       for (const [key, value] of Object.entries(identifiedChanges)) {
                         summary += `- ${key}: ${value}\n`
                       }
 
-                      summary += "\nAffected Spots:\n";
+                      summary += '\nAffected Spots:\n'
 
                       // Adding affected spots details
                       affectedSpots.forEach((spot, index) => {
@@ -347,6 +352,13 @@ class OverleafManager {
           await Promise.all(processingPromises)
           Alerts.closeLoadingWindow()
           this.downloadSummaryAsHTML(summary)
+          Alerts.infoAlert({
+            title: 'Stabilization Complete',
+            text: 'Do you want to add TODOs in the document?',
+            callback: () => {
+              this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
+            }
+          })
         })
       })
     }
@@ -426,6 +438,75 @@ class OverleafManager {
     URL.revokeObjectURL(link.href)
   }
 
+  async addTODOs (summary, documents, llmProvider, originalDocument, llm) {
+    let prompt = Config.prompts.createTODOPrompt
+    prompt = prompt.replace('[C_DOCUMENT]', documents)
+    prompt = prompt.replace('[C_REVIEW]', summary)
+
+    // Get the API key for the LLM provider
+    chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
+      if (apiKey !== null && apiKey !== '') {
+        // Define the callback function to handle the LLM response
+        let callback = (json) => {
+          Alerts.closeLoadingWindow()
+          console.log('Raw LLM response:', json) // Debugging line
+
+          try {
+            // Ensure JSON parsing only when the response is a valid string
+            if (json.sections && Array.isArray(json.sections)) {
+              // Insert TODOs into the LaTeX document based on the response
+              let updatedDocument = this.insertTODOsIntoLatex(originalDocument, json.sections)
+              console.log('Updated LaTeX document with TODOs:', updatedDocument)
+              OverleafUtils.removeContent(() => {
+                window.promptex._overleafManager._sidebar.remove()
+                OverleafUtils.insertContent(updatedDocument)
+              })
+              // You may want to save or use the updated document here
+            } else {
+              console.error('Invalid response format. Expected JSON with "sections" array.')
+              Alerts.showErrorToast('Invalid LLM response format.')
+            }
+          } catch (error) {
+            console.error('Failed to parse LLM response:', error)
+            Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
+          }
+        }
+
+        // Send the prompt to the LLM using the LLM client
+        LLMClient.simpleQuestion({
+          apiKey: apiKey,
+          prompt: prompt,
+          llm: llm,
+          callback: callback
+        })
+      } else {
+        Alerts.showErrorToast('No API key found for ' + llm)
+      }
+    })
+  }
+
+  // Function to insert TODOs into the LaTeX content
+  insertTODOsIntoLatex (document, sections) {
+    let updatedDocument = document
+    // Iterate through each section from the JSON response
+    sections.forEach(section => {
+      const sectionName = section.name
+      const todos = section.todo.split(',')
+
+      // Create the TODO lines for this section
+      const todoLines = todos.map(todo => `%%TODO: ${todo.trim()}`).join('\n')
+
+      // Regex pattern to find the specific section in the LaTeX document
+      const sectionPattern = new RegExp(`\\\\section\\{${sectionName}\\}`, 'i')
+      // Find and replace the section with the TODOs added after it
+      updatedDocument = updatedDocument.replace(
+        sectionPattern,
+        `\\section{${sectionName}}\n${todoLines}`
+      )
+    })
+    return updatedDocument
+  }
+
   addOutlineButton () {
     // Create the container for the new outline
     const outlineContainer = document.querySelector('.outline-container')
@@ -451,7 +532,7 @@ class OverleafManager {
 
     const headerTitle = document.createElement('h4')
     headerTitle.classList.add('outline-header-name2')
-    headerTitle.textContent = 'Content outline' // Update title to "Foundation outline"
+    headerTitle.textContent = 'Improvement outline' // Update title to "Foundation outline"
 
     // Append the caret and title to the header button, and the button to the header
     headerButton.appendChild(caretIcon)
@@ -657,7 +738,7 @@ class OverleafManager {
       sidebar.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <br>
-        <h2 style="margin: 0; flex-grow: 1;">Ask PrompTeX</h2>
+        <h2 style="margin: 0; flex-grow: 1;">Improvement</h2>
         <button id='closeSidebar' style="background-color: transparent; border: none; font-size: 16px; cursor: pointer; align-self: flex-start;">X</button>
         <hr>
       </div>
@@ -666,7 +747,7 @@ class OverleafManager {
           ${Object.keys(window.promptex.storageManager.client.getSchemas()).map(list => `<option value='${list}'>${list}</option>`).join('')}
         </select>
         <button id='createNewList' class='createButton'>+Schema</button>
-        <button id='addCategoryBtn' class='createButton'>+Category</button>
+        <!--<button id='addCategoryBtn' class='createButton'>+Category</button>-->
       </div>
       <div id='criteriaContent'></div>
       <div id='importForm' style='display: none'>
@@ -678,7 +759,7 @@ class OverleafManager {
         <button id='submitNewCriteria'>Save</button>
       </div>
       <hr>
-      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button>
+      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button></br>
       <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Reset Database</button>
     `
 
@@ -697,23 +778,6 @@ class OverleafManager {
       } else {
         this.loadCriteriaList(this._currentCriteriaList, window.promptex.storageManager.client.getSchemas())
       }
-
-      // Add event listener for 'Add Category' button
-      let addCategoryBtn = document.getElementById('addCategoryBtn')
-      addCategoryBtn.addEventListener('click', (event) => {
-        event.preventDefault()
-        const newCategoryName = prompt('Enter the new category name:')
-        if (newCategoryName) {
-          window.promptex.storageManager.client.createCategory(this._currentCriteriaList, newCategoryName, (error, message) => {
-            if (error) {
-              alert('Error: ' + error.message)
-            } else {
-              alert(message)
-              window.promptex._overleafManager._sidebar.remove()
-            }
-          })
-        }
-      })
 
       // Add close functionality to the sidebar
       let closeButton = document.getElementById('closeSidebar')
@@ -771,7 +835,7 @@ class OverleafManager {
         <div style='display: flex; align-items: center'>
           <h3 style='display: inline-block; margin-right: 10px;'>${category}</h3>
           <button class='addCriterionBtn' style='margin-left: auto;'>+</button>
-          <button id='categoryBtn_${categoryTitle}' class='editCategory' style='margin-left: auto;'>Edit</button>
+          <!--<button id='categoryBtn_${categoryTitle}' class='editCategory' style='margin-left: auto;'>Edit</button>-->
         </div>
         <div class='criteria-buttons-container' style='display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;'></div>
       `
@@ -846,11 +910,11 @@ class OverleafManager {
           this.addNewCriterion(listName, category)
         })
 
-        let editCategoryBtn = categoryDiv.querySelector('#categoryBtn_' + categoryTitle)
+        /* let editCategoryBtn = categoryDiv.querySelector('#categoryBtn_' + categoryTitle)
         // Add right-click (contextmenu) functionality to the criterion button
         editCategoryBtn.addEventListener('click', (event) => {
           this.editCategory(listName, category)
-        })
+        }) */
       }
     }
   }
