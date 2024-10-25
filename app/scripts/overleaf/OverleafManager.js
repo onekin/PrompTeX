@@ -213,7 +213,7 @@ class OverleafManager {
     let standarized = window.promptex.storageManager.client.getStandardizedStatus()
     if (standarized) {
       // If already standardized, show a message
-      Alerts.infoAlert({ title: 'Content Already Stabilized', text: 'The content"s structure is already stabilized.' })
+      Alerts.infoAlert({ title: 'Content Already Stabilized', text: 'The content"s structure is already stabilized. You can use the Improvement button for reviewing your draft' })
     } else {
       if (this._sidebar) {
         this._sidebar.remove()
@@ -246,7 +246,7 @@ class OverleafManager {
           const llmProvider = llm.modelType
           // Create an array of promises for processing each section
           const processingPromises = diffResult.map((section) => {
-            Alerts.showLoadingWindowDuringProcess('Processing section...' + section.title)
+            Alerts.showLoadingWindowDuringProcess('Processing sections...')
             return new Promise((resolve) => {
               let foundSection = []
               let combinedContent = ''
@@ -301,12 +301,10 @@ class OverleafManager {
                   prompt = prompt.replace('C_TITLES', titlesString)
                 }
               }
-
               if (prompt !== '') {
                 chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
                   if (apiKey !== null && apiKey !== '') {
                     let callback = (json) => {
-                      Alerts.closeLoadingWindow()
                       // Extracting details from the JSON
                       const comment = json.comment
                       const identifiedChanges = json.identifiedChanges
@@ -350,12 +348,13 @@ class OverleafManager {
 
           // Wait for all processing to complete before downloading the summary
           await Promise.all(processingPromises)
-          Alerts.closeLoadingWindow()
           this.downloadSummaryAsHTML(summary)
+          Alerts.closeLoadingWindow()
           Alerts.infoAlert({
             title: 'Stabilization Complete',
             text: 'Do you want to add TODOs in the document?',
             callback: () => {
+              Alerts.showLoadingWindowDuringProcess('Adding TODOs...')
               this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
             }
           })
@@ -448,7 +447,6 @@ class OverleafManager {
       if (apiKey !== null && apiKey !== '') {
         // Define the callback function to handle the LLM response
         let callback = (json) => {
-          Alerts.closeLoadingWindow()
           console.log('Raw LLM response:', json) // Debugging line
 
           try {
@@ -456,7 +454,8 @@ class OverleafManager {
             if (json.sections && Array.isArray(json.sections)) {
               // Insert TODOs into the LaTeX document based on the response
               let updatedDocument = this.insertTODOsIntoLatex(originalDocument, json.sections)
-              console.log('Updated LaTeX document with TODOs:', updatedDocument)
+              Alerts.closeLoadingWindow()
+              Alerts.showAlertToast('Updated LaTeX document with TODOs')
               OverleafUtils.removeContent(() => {
                 window.promptex._overleafManager._sidebar.remove()
                 OverleafUtils.insertContent(updatedDocument)

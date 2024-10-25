@@ -398,27 +398,26 @@ class OverleafUtils {
   }
 
   // Define a function to split sections based on \section command and count %TODO lines
+  // Define a function to split sections based on \section command and count %TODO lines
   static extractSectionsWithTodos (latexContent) {
     const lines = latexContent.split('\n')
     const sections = []
     let currentSection = null
-    const todoRegex = /%TODO/g
-    let todoBuffer = [] // Buffer to hold TODO lines before a section
+    const todoRegex = /%\s*TODO/ // Adjusted regex to account for spaces
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       // Regex to capture \section{...} even if there is extra text after it, e.g., \label
       const sectionMatch = line.match(/\\section\{(.+?)\}/)
       if (sectionMatch) {
         // If there's a current section being tracked, push it into the array
         if (currentSection) {
           // Remove empty lines from the content
-          currentSection.content = currentSection.content.filter(line => line.trim() !== '')
-          // Add any buffered TODOs to the current section
-          currentSection.todoCount += todoBuffer.length
-          currentSection.content.unshift(...todoBuffer)
-          todoBuffer = [] // Clear the buffer
+          currentSection.content = currentSection.content.filter(
+            (line) => line.trim() !== ''
+          )
           sections.push(currentSection)
         }
+
         // Create a new section object
         currentSection = {
           title: sectionMatch[1], // Capture the section title
@@ -426,23 +425,16 @@ class OverleafUtils {
           todoCount: 0
         }
       } else if (todoRegex.test(line)) {
-        // If the line is a TODO, add it to the buffer
-        todoBuffer.push(line)
+        // If the line is a TODO, increase the TODO count for the current section
+        if (currentSection) {
+          currentSection.todoCount += 1
+          currentSection.content.push(line) // Optionally add the TODO line to the content
+        }
       } else if (currentSection) {
         // If a section is being tracked and it's not a TODO line, add it to the section's content
         currentSection.content.push(line)
       }
     })
-
-    // Push the last section if any, after filtering out empty lines
-    if (currentSection) {
-      currentSection.content = currentSection.content.filter(line => line.trim() !== '')
-      // Add any buffered TODOs to the last section
-      currentSection.todoCount += todoBuffer.length
-      currentSection.content.unshift(...todoBuffer)
-      sections.push(currentSection)
-    }
-
     return sections
   }
 

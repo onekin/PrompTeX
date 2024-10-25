@@ -242,7 +242,7 @@ class Alerts {
           const content = element.querySelector('.swal2-html-container')
           if (content) {
             content.style.fontSize = '0.8em' // Adjust to the desired font size
-            content.style.textAlign = 'justify' // Add text justification
+            // content.style.textAlign = 'justify' // Add text justification
           }
         }
       }).then((result) => {
