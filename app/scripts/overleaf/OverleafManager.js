@@ -512,43 +512,73 @@ class OverleafManager {
     const outlineContainer = document.querySelector('.outline-container')
 
     // Create a new pane for the outline
-    const newOutlinePane = document.createElement('div')
-    newOutlinePane.classList.add('outline-pane2')
+    const newImprovementOutlinePane = document.createElement('div')
+    newImprovementOutlinePane.classList.add('outline-pane2')
 
     // Create the header for the new outline
-    const newHeader = document.createElement('header')
-    newHeader.classList.add('outline-header')
-    newHeader.classList.add('closed')
+    const newImprovementHeader = document.createElement('header')
+    newImprovementHeader.classList.add('outline-header')
+    newImprovementHeader.classList.add('closed')
 
-    const headerButton = document.createElement('button')
-    headerButton.classList.add('outline-header-expand-collapse-btn')
-    headerButton.setAttribute('aria-label', 'Show Foundation outline')
-    headerButton.setAttribute('aria-expanded', 'false') // Initially collapsed
+    const headerImprovementButton = document.createElement('button')
+    headerImprovementButton.classList.add('outline-header-expand-collapse-btn')
+    headerImprovementButton.setAttribute('aria-label', 'Show Foundation outline')
+    headerImprovementButton.setAttribute('aria-expanded', 'false') // Initially collapsed
 
-    const caretIcon = document.createElement('span')
-    caretIcon.classList.add('material-symbols', 'outline-caret-icon')
-    caretIcon.setAttribute('aria-hidden', 'true')
-    caretIcon.textContent = 'keyboard_arrow_right' // Initially right arrow (collapsed)
+    const caretImprovementIcon = document.createElement('span')
+    caretImprovementIcon.classList.add('material-symbols', 'outline-caret-icon')
+    caretImprovementIcon.setAttribute('aria-hidden', 'true')
+    caretImprovementIcon.textContent = 'keyboard_arrow_right' // Initially right arrow (collapsed)
 
-    const headerTitle = document.createElement('h4')
-    headerTitle.classList.add('outline-header-name2')
-    headerTitle.textContent = 'Improvement outline' // Update title to "Foundation outline"
+    const headerImprovementTitle = document.createElement('h4')
+    headerImprovementTitle.classList.add('outline-header-name2')
+    headerImprovementTitle.textContent = 'Improvement outline' // Update title to "Foundation outline"
 
     // Append the caret and title to the header button, and the button to the header
-    headerButton.appendChild(caretIcon)
-    headerButton.appendChild(headerTitle)
-    newHeader.appendChild(headerButton)
-    newOutlinePane.appendChild(newHeader)
+    headerImprovementButton.appendChild(caretImprovementIcon)
+    headerImprovementButton.appendChild(headerImprovementTitle)
+    newImprovementHeader.appendChild(headerImprovementButton)
+    newImprovementOutlinePane.appendChild(newImprovementHeader)
+
+    // Create a new pane for the outline
+    const newConsolidateOutlinePane = document.createElement('div')
+    newConsolidateOutlinePane.classList.add('outline-pane2')
+
+    // Create the header for the new outline
+    const newConsolidateHeader = document.createElement('header')
+    newConsolidateHeader.classList.add('outline-header')
+    newConsolidateHeader.classList.add('closed')
+
+    const headerConsolidateButton = document.createElement('button')
+    headerConsolidateButton.classList.add('outline-header-expand-collapse-btn')
+    headerConsolidateButton.setAttribute('aria-label', 'Show Foundation outline')
+    headerConsolidateButton.setAttribute('aria-expanded', 'false') // Initially collapsed
+
+    const caretConsolidateIcon = document.createElement('span')
+    caretConsolidateIcon.classList.add('material-symbols', 'outline-caret-icon')
+    caretConsolidateIcon.setAttribute('aria-hidden', 'true')
+    caretConsolidateIcon.textContent = 'keyboard_arrow_right' // Initially right arrow (collapsed)
+
+    const headerConsolidateTitle = document.createElement('h4')
+    headerConsolidateTitle.classList.add('outline-header-name2')
+    headerConsolidateTitle.textContent = 'Consolidate outline' // Update title to "Foundation outline"
+
+    // Append the caret and title to the header button, and the button to the header
+    headerConsolidateButton.appendChild(caretConsolidateIcon)
+    headerConsolidateButton.appendChild(headerConsolidateTitle)
+    newConsolidateHeader.appendChild(headerConsolidateButton)
+    newConsolidateOutlinePane.appendChild(newConsolidateHeader)
 
     // Append the new outline pane to the container BEFORE the original outline
     const originalOutline = document.querySelector('.outline-pane')
-    outlineContainer.insertBefore(newOutlinePane, originalOutline)
+    outlineContainer.insertBefore(newConsolidateOutlinePane, originalOutline)
+    outlineContainer.insertBefore(newImprovementOutlinePane, newConsolidateOutlinePane)
     const outlinePanel = document.querySelector('#panel-outline')
 
     // Set the height and min-height dynamically
     if (outlinePanel) {
       outlinePanel.style.height = '50%' // Set height to 50%
-      outlinePanel.style.minHeight = '64px' // Set min-height to 64px
+      outlinePanel.style.minHeight = '96px'
     }
 
     // Select all outline panes
@@ -560,12 +590,12 @@ class OverleafManager {
     })
 
     // Handle header click to show/hide the outline body of THIS outline only
-    newHeader.addEventListener('click', (event) => {
+    newImprovementHeader.addEventListener('click', (event) => {
       event.stopPropagation() // Prevent interference with other outlines
-      const isHidden = newHeader.classList.contains('closed')
+      const isHidden = newImprovementHeader.classList.contains('closed')
       // Toggle between opened and closed state
       if (isHidden) {
-        newHeader.classList.replace('closed', 'opened')
+        newImprovementHeader.classList.replace('closed', 'opened')
         // Ensure outline body is visible
         const outlineBody = document.createElement('div')
         outlineBody.classList.add('outline-body')
@@ -576,102 +606,56 @@ class OverleafManager {
         rootList.setAttribute('role', 'tree')
         outlineBody.appendChild(rootList)
 
-        // Helper function to create list items
-        const createListItem = (label) => {
-          const li = document.createElement('li')
-          li.classList.add('outline-item', 'outline-item-no-children')
-          li.setAttribute('role', 'treeitem')
-
-          const div = document.createElement('div')
-          div.classList.add('outline-item-row')
-
-          const button = document.createElement('button')
-          button.classList.add('outline-item-link')
-          button.setAttribute('data-navigation', '1')
-          button.textContent = label
-          button.addEventListener('click', async () => {
-            // Get criterion content
-            var match = label.match(/^(.+)\s\((\d+)\)$/)
-
-            if (match) {
-              // match[1] is the name (e.g., 'Artifact Detail')
-              // match[2] is the number (e.g., '1')
-              var name = match[1]
-              var number = match[2]
-
-              // Get the navigation attribute from the button
-              var navigation = button.getAttribute('data-navigation')
-
-              // Log the extracted name, number, and navigation attribute
-              console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
-              await OverleafUtils.scrollToContent(name, parseInt(navigation))
-              if (navigation === number) {
-                button.setAttribute('data-navigation', '1')
-              } else {
-                let newNavigation = (parseInt(navigation) + 1).toString()
-                button.setAttribute('data-navigation', newNavigation)
-              }
-            }
-          })
-
-          div.appendChild(button)
-          li.appendChild(div)
-
-          return li
-        }
-        OverleafUtils.generateOutlineContent(async (outlineContent) => {
+        OverleafUtils.generateImprovementOutlineContent(async (outlineContent) => {
           if (!outlineContent) {
             Alerts.infoAlert({ title: 'No annotations found', text: 'No annotation found in the document.' })
           } else {
             // Iterate through the content to build the outline
             Object.keys(outlineContent).forEach((category) => {
-              // Create a parent item for each category
-              const categoryLi = document.createElement('li')
-              categoryLi.classList.add('outline-item')
-              categoryLi.setAttribute('role', 'treeitem')
-              categoryLi.setAttribute('aria-expanded', 'true')
-
-              const categoryDiv = document.createElement('div')
-              categoryDiv.classList.add('outline-item-row')
-
-              // Add expand/collapse button
-              const categoryButton = document.createElement('button')
-              categoryButton.classList.add('outline-item-expand-collapse-btn')
-              categoryButton.setAttribute('aria-label', 'Collapse')
-              categoryButton.setAttribute('aria-expanded', 'true') // Initially expanded
-
-              const categoryIcon = document.createElement('span')
-              categoryIcon.classList.add('material-symbols', 'outline-caret-icon')
-              categoryIcon.textContent = 'keyboard_arrow_down' // Default to expanded
-              categoryButton.appendChild(categoryIcon)
-
-              const categoryTitle = document.createElement('button')
-              categoryTitle.classList.add('outline-item-link')
-              categoryTitle.textContent = category
-
-              categoryDiv.appendChild(categoryButton)
-              categoryDiv.appendChild(categoryTitle)
-              categoryLi.appendChild(categoryDiv)
-
-              // Add sub-items (attributes)
-              const subList = document.createElement('ul')
-              subList.classList.add('outline-item-list')
-              subList.setAttribute('role', 'group')
-
               outlineContent[category].forEach((subItem) => {
-                subList.appendChild(createListItem(subItem))
-              })
+                // Create a parent item for each category
+                const categoryLi = document.createElement('li')
+                categoryLi.classList.add('outline-item')
+                categoryLi.setAttribute('role', 'treeitem')
+                categoryLi.setAttribute('aria-expanded', 'true')
 
-              categoryLi.appendChild(subList)
-              rootList.appendChild(categoryLi)
+                const categoryDiv = document.createElement('div')
+                categoryDiv.classList.add('outline-item-row')
 
-              // Toggle sub-list visibility on category click
-              categoryButton.addEventListener('click', () => {
-                const isExpanded = categoryLi.getAttribute('aria-expanded') === 'true'
-                categoryLi.setAttribute('aria-expanded', isExpanded ? 'false' : 'true')
-                subList.style.display = isExpanded ? 'none' : 'block'
-                categoryIcon.textContent = isExpanded ? 'keyboard_arrow_right' : 'keyboard_arrow_down'
-                categoryButton.setAttribute('aria-expanded', isExpanded ? 'false' : 'true') // Update aria-expanded
+                const categoryTitle = document.createElement('button')
+                categoryTitle.classList.add('outline-item-link')
+                const categorySpan = document.createElement('span')
+                categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
+                categorySpan.textContent = subItem
+                categoryTitle.appendChild(categorySpan)
+                categoryTitle.setAttribute('data-navigation', '1')
+                categoryTitle.addEventListener('click', async () => {
+                  // Get criterion content
+                  var match = subItem.match(/^(.+)\s\((\d+)\)$/)
+
+                  if (match) {
+                    // match[1] is the name (e.g., 'Artifact Detail')
+                    // match[2] is the number (e.g., '1')
+                    var name = match[1]
+                    var number = match[2]
+
+                    // Get the navigation attribute from the button
+                    var navigation = categoryTitle.getAttribute('data-navigation')
+
+                    // Log the extracted name, number, and navigation attribute
+                    console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
+                    await OverleafUtils.scrollToContent(name, parseInt(navigation))
+                    if (navigation === number) {
+                      categoryTitle.setAttribute('data-navigation', '1')
+                    } else {
+                      let newNavigation = (parseInt(navigation) + 1).toString()
+                      categoryTitle.setAttribute('data-navigation', newNavigation)
+                    }
+                  }
+                })
+                categoryDiv.appendChild(categoryTitle)
+                categoryLi.appendChild(categoryDiv)
+                rootList.appendChild(categoryLi)
               })
             })
             let treeDiv = document.getElementById('panel-file-tree')
@@ -712,17 +696,135 @@ class OverleafManager {
             // Change the 'flex' value in the style property
             panelOutline.style.flex = '44.8 1 0px'
             // Add the outline body to the pane, and let it push content down
-            newOutlinePane.appendChild(outlineBody)
+            newImprovementOutlinePane.appendChild(outlineBody)
           }
         })
       } else {
-        newHeader.classList.replace('opened', 'closed')
-        const outlineBody = newOutlinePane.querySelector('.outline-body')
+        newImprovementHeader.classList.replace('opened', 'closed')
+        const outlineBody = newImprovementOutlinePane.querySelector('.outline-body')
         if (outlineBody) {
-          newOutlinePane.removeChild(outlineBody) // Remove from DOM
+          newImprovementOutlinePane.removeChild(outlineBody) // Remove from DOM
         }
       }
-      caretIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+      caretImprovementIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+      // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
+    })
+
+    // Handle header click to show/hide the outline body of THIS outline only
+    newConsolidateHeader.addEventListener('click', (event) => {
+      event.stopPropagation() // Prevent interference with other outlines
+      const isHidden = newConsolidateHeader.classList.contains('closed')
+      // Toggle between opened and closed state
+      if (isHidden) {
+        newConsolidateHeader.classList.replace('closed', 'opened')
+        // Ensure outline body is visible
+        const outlineBody = document.createElement('div')
+        outlineBody.classList.add('outline-body')
+
+        // Create the root list for the items
+        const rootList = document.createElement('ul')
+        rootList.classList.add('outline-item-list', 'outline-item-list-root')
+        rootList.setAttribute('role', 'tree')
+        outlineBody.appendChild(rootList)
+
+        OverleafUtils.generateConsolidateOutlineContent(async (outlineContent) => {
+          if (!outlineContent) {
+            Alerts.infoAlert({ title: 'No sections with TODOs found', text: 'No annotation found in the document.' })
+          } else {
+            // Iterate through the content to build the outline
+            Object.keys(outlineContent).forEach((category) => {
+              // Create a parent item for each category
+              const categoryLi = document.createElement('li')
+              categoryLi.classList.add('outline-item')
+              categoryLi.setAttribute('role', 'treeitem')
+              categoryLi.setAttribute('aria-expanded', 'true')
+
+              const categoryDiv = document.createElement('div')
+              categoryDiv.classList.add('outline-item-row')
+
+              const categoryTitle = document.createElement('button')
+              categoryTitle.classList.add('outline-item-link')
+              const value = outlineContent[category]
+              const categorySpan = document.createElement('span')
+              categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
+              categorySpan.textContent = value
+              categoryTitle.appendChild(categorySpan)
+              categoryTitle.setAttribute('data-navigation', '1')
+              categoryTitle.addEventListener('click', async () => {
+                // Get criterion content
+                var match = value.match(/^(.+)\s\((\d+)\)$/)
+
+                if (match) {
+                  var name = match[1]
+                  var number = match[2]
+
+                  // Get the navigation attribute from the button
+                  var navigation = categoryTitle.getAttribute('data-navigation')
+
+                  // Log the extracted name, number, and navigation attribute
+                  console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
+                  await OverleafUtils.scrollToConsolidateContent(name, parseInt(navigation))
+                  if (navigation === number) {
+                    categoryTitle.setAttribute('data-navigation', '1')
+                  } else {
+                    let newNavigation = (parseInt(navigation) + 1).toString()
+                    categoryTitle.setAttribute('data-navigation', newNavigation)
+                  }
+                }
+              })
+              categoryDiv.appendChild(categoryTitle)
+              categoryLi.appendChild(categoryDiv)
+              rootList.appendChild(categoryLi)
+            })
+            let treeDiv = document.getElementById('panel-file-tree')
+            // Change the data-panel-size attribute
+            treeDiv.setAttribute('data-panel-size', '80.5') // You can set it to any value
+            // Change the flex style property
+            treeDiv.style.flex = '80.5 1 0px' // Update the first number to match the new panel size
+            let separator = treeDiv.nextElementSibling
+            // Change the 'data-panel-resize-handle-enabled' attribute to 'true'
+            separator.setAttribute('data-panel-resize-handle-enabled', 'true')
+            // Change the 'aria-valuenow' attribute to '55'
+            separator.setAttribute('aria-valuenow', '80')
+            // Select the inner div with the class 'vertical-resize-handle'
+            const innerHandle = separator.querySelector('.vertical-resize-handle')
+            // Mouse down starts the resizing
+            let isResizing = false
+            innerHandle.addEventListener('mousedown', (e) => {
+              isResizing = true
+              document.body.style.cursor = 'row-resize' // Change the cursor when resizing
+            })
+            document.addEventListener('mousemove', (e) => {
+              if (isResizing) {
+                const panelOutline = document.getElementById('panel-outline')
+                const newSize = e.clientY // Use the Y position of the mouse to calculate the new size
+                panelOutline.style.flex = `${newSize} 1 0px` // Adjust flex-grow// property dynamically
+                panelOutline.setAttribute('data-panel-size', newSize) // Update the data attribute
+              }
+            })
+            document.addEventListener('mouseup', () => {
+              isResizing = false
+              document.body.style.cursor = 'default' // Reset the cursor
+            })
+            // Add the 'vertical-resize-handle-enabled' class to the inner div
+            innerHandle.classList.add('vertical-resize-handle-enabled')
+            let panelOutline = separator.nextElementSibling
+            // Change the 'data-panel-size' attribute to '44.8'
+            panelOutline.setAttribute('data-panel-size', '44.8')
+            // Change the 'flex' value in the style property
+            panelOutline.style.flex = '44.8 1 0px'
+            // Add the outline body to the pane, and let it push content down
+            newConsolidateOutlinePane.appendChild(outlineBody)
+          }
+        })
+      } else {
+        newConsolidateHeader.classList.replace('opened', 'closed')
+        const outlineBody = newConsolidateOutlinePane.querySelector('.outline-body')
+        if (outlineBody) {
+          newConsolidateOutlinePane.removeChild(outlineBody) // Remove from DOM
+        }
+      }
+      caretConsolidateIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
       // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
     })
   }

@@ -68,6 +68,7 @@ class LatexUtils {
     lines = lines.filter(line => !line.trim().startsWith('\\subsubsection{'))
     lines = lines.filter(line => !line.trim().startsWith('\\begin{figure}'))
     lines = lines.filter(line => !line.trim().startsWith('\\end{figure}'))
+    lines = lines.filter(line => !line.trim().includes('\\promptex{'))
 
     // Join the lines back to form the document content without comments
     let processedContent = lines.join('\n')

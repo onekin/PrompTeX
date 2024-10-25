@@ -111,7 +111,7 @@ class OverleafUtils {
     return fullText
   }
 
-  static async scrollToContent (name, navigation) {
+  static async scrollToImprovementContent (name, navigation) {
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -238,7 +238,129 @@ class OverleafUtils {
     OverleafUtils.toggleEditor()
   }
 
-  // Define a function to split sections based on \section command
+  static async scrollToConsolidateContent (name) {
+    let editor = OverleafUtils.getActiveEditor()
+    if (editor === 'Visual Editor') {
+      OverleafUtils.toggleEditor()
+    }
+    let textToFind = `\\section{${name}`
+    let onTop = false
+    const editorContainer = document.querySelector('.cm-scroller')
+    const contentEditable = document.querySelector('.cm-content')
+    const lineNumbersContainer = document.querySelector('.cm-lineNumbers')
+    let contentLines = []
+    let capturedLineNumbers = new Set()
+
+    if (!editorContainer || !contentEditable || !lineNumbersContainer) {
+      console.error('Editor elements not found')
+      return
+    }
+
+    function scrollEditor (position) {
+      return new Promise((resolve) => {
+        editorContainer.scrollTo({ top: position })
+        setTimeout(resolve, 100)
+      })
+    }
+
+    function extractVisibleText () {
+      const lineNumbers = Array.from(lineNumbersContainer.querySelectorAll('.cm-gutterElement')).slice(1)
+      let lines = contentEditable.querySelectorAll('.cm-line, .cm-gap')
+
+      let myText = Array.from(lines).map((line) => {
+        let lineText = ''
+        if (line.classList.contains('cm-line')) {
+          line.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              lineText += node.textContent || ''
+            } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
+              lineText += node.innerText || ''
+            }
+          })
+          return lineText.trim()
+        } else if (line.classList.contains('cm-gap')) {
+          return ''
+        }
+      })
+
+      let myLineNumbers = lineNumbers.map((item) => item.textContent)
+
+      if (myLineNumbers.length > 0 && myLineNumbers[0] === '1') {
+        onTop = true
+      }
+      if (onTop) {
+        if (myLineNumbers[0] !== '1') {
+          // check from already saved content the first five myLineNumbers and myText correspond;
+          let isAligned = false
+          const maxCheckLength = 5 // Let's check the first five lines for alignment
+          let offset = 0
+          // Compare saved content to find where the mismatch happens
+          while (!isAligned && offset < maxCheckLength) {
+            isAligned = true // Assume alignment is correct at the start
+
+            // Check the first few stored line numbers and text to ensure alignment
+            for (let i = 0; i < Math.min(myText.length, maxCheckLength); i++) {
+              const savedContentLine = contentLines.find(line => line.startsWith(`${myLineNumbers[i]}:`))
+              const currentLine = `${myLineNumbers[i]}: ${myText[i] || '\n'}` // Create new line to compare (with line number)
+
+              // If there's a mismatch between stored and new line number:text, it's not aligned
+              if (savedContentLine && savedContentLine !== currentLine) {
+                isAligned = false // If any mismatch is found, set to false
+                break
+              }
+            }
+
+            // If not aligned, remove the first element of myText (shift) and increment the offset
+            if (!isAligned) {
+              myText = myText.slice(1) // Remove the first element of the text
+              offset++ // Move forward to recheck
+            }
+          }
+        }
+        // Ensure the text length matches the line numbers length if more lines are added
+        if (myText.length > myLineNumbers.length) {
+          myText = myText.slice(0, myLineNumbers.length)
+        }
+        // Loop over the line numbers and match with the text content
+        for (let index = 0; index < myLineNumbers.length; index++) {
+          const lineNumber = myLineNumbers[index]
+          const text = myText[index] // Get the corresponding text for this line number
+
+          if (lineNumber && !capturedLineNumbers.has(lineNumber)) {
+            if (text) {
+              contentLines.push(`${lineNumber}: ${text}`) // Add the line number and the corresponding text
+              if (text.includes(textToFind)) {
+                console.log('Found the text in line: ' + lineNumber + ' text: ' + text)
+                return true // Return true to stop the outer loop
+              }
+            } else {
+              contentLines.push(`${lineNumber}: \n`) // Handle the empty text case
+            }
+            capturedLineNumbers.add(lineNumber) // Mark the line number as captured
+          }
+        }
+        return false
+      }
+      return false
+    }
+
+    let position = 0
+    let stopFinding = false
+    while (position < editorContainer.scrollHeight) {
+      await scrollEditor(position)
+      stopFinding = extractVisibleText()
+      if (stopFinding) {
+        await scrollEditor(editorContainer.scrollTop + editorContainer.clientHeight)
+        break
+      }
+      position = editorContainer.scrollTop + editorContainer.clientHeight
+      if (Math.ceil(position) + 1 >= editorContainer.scrollHeight) {
+        break
+      }
+    }
+    OverleafUtils.toggleEditor()
+  }
+
   // Define a function to split sections based on \section command
   static extractSections (latexContent) {
     const lines = latexContent.split('\n')
@@ -269,6 +391,55 @@ class OverleafUtils {
     // Push the last section if any, after filtering out empty lines
     if (currentSection) {
       currentSection.content = currentSection.content.filter(line => line.trim() !== '')
+      sections.push(currentSection)
+    }
+
+    return sections
+  }
+
+  // Define a function to split sections based on \section command and count %TODO lines
+  static extractSectionsWithTodos (latexContent) {
+    const lines = latexContent.split('\n')
+    const sections = []
+    let currentSection = null
+    const todoRegex = /%TODO/g
+    let todoBuffer = [] // Buffer to hold TODO lines before a section
+
+    lines.forEach(line => {
+      // Regex to capture \section{...} even if there is extra text after it, e.g., \label
+      const sectionMatch = line.match(/\\section\{(.+?)\}/)
+      if (sectionMatch) {
+        // If there's a current section being tracked, push it into the array
+        if (currentSection) {
+          // Remove empty lines from the content
+          currentSection.content = currentSection.content.filter(line => line.trim() !== '')
+          // Add any buffered TODOs to the current section
+          currentSection.todoCount += todoBuffer.length
+          currentSection.content.unshift(...todoBuffer)
+          todoBuffer = [] // Clear the buffer
+          sections.push(currentSection)
+        }
+        // Create a new section object
+        currentSection = {
+          title: sectionMatch[1], // Capture the section title
+          content: [line],
+          todoCount: 0
+        }
+      } else if (todoRegex.test(line)) {
+        // If the line is a TODO, add it to the buffer
+        todoBuffer.push(line)
+      } else if (currentSection) {
+        // If a section is being tracked and it's not a TODO line, add it to the section's content
+        currentSection.content.push(line)
+      }
+    })
+
+    // Push the last section if any, after filtering out empty lines
+    if (currentSection) {
+      currentSection.content = currentSection.content.filter(line => line.trim() !== '')
+      // Add any buffered TODOs to the last section
+      currentSection.todoCount += todoBuffer.length
+      currentSection.content.unshift(...todoBuffer)
       sections.push(currentSection)
     }
 
@@ -367,7 +538,7 @@ class OverleafUtils {
       document.querySelector('label[for="editor-switch-cm6"]').click()
     }
   }
-  static async generateOutlineContent (callback) {
+  static async generateImprovementOutlineContent (callback) {
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -452,6 +623,25 @@ class OverleafUtils {
           console.error('Failed to update annotations:', err)
         })
     }
+  }
+
+  static async generateConsolidateOutlineContent (callback) {
+    let editor = OverleafUtils.getActiveEditor()
+    if (editor === 'Visual Editor') {
+      OverleafUtils.toggleEditor()
+    }
+
+    // Read the document content
+    const documents = await OverleafUtils.getAllEditorContent()
+    const sections = OverleafUtils.extractSectionsWithTodos(documents)
+    const outlineContent = {}
+    sections.forEach(section => {
+      if (section.todoCount > 0) {
+        outlineContent[section.title] = `${section.title} (${section.todoCount})`
+      }
+    })
+    console.log('Outline content:', outlineContent)
+    callback(outlineContent)
   }
 }
 
