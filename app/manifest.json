@@ -45,8 +45,6 @@
   },
   "permissions": [
     "storage",
-    "webRequest",
-    "contextMenus",
     "declarativeNetRequest",
     "unlimitedStorage"
   ],
