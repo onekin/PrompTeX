@@ -48,7 +48,6 @@
     "webRequest",
     "contextMenus",
     "declarativeNetRequest",
-    "identity",
     "unlimitedStorage"
   ],
   "host_permissions": [
