@@ -164,7 +164,7 @@ class OverleafManager {
     checkCriteriaButton.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
         <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Improvement</p>
+        <p class='toolbar-label'>Improvement Cycle</p>
       </button>
     `
     // Locate the toolbar where the button should be added
@@ -348,7 +348,7 @@ class OverleafManager {
 
           // Wait for all processing to complete before downloading the summary
           await Promise.all(processingPromises)
-          this.downloadSummaryAsHTML(summary)
+          // this.downloadSummaryAsHTML(summary)
           Alerts.closeLoadingWindow()
           Alerts.infoAlert({
             title: 'Stabilization Complete',
