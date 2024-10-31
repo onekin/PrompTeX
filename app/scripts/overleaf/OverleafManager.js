@@ -164,7 +164,7 @@ class OverleafManager {
     checkCriteriaButton.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
         <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Improvement Cycle</p>
+        <p class='toolbar-label'>Improvement</p>
       </button>
     `
     // Locate the toolbar where the button should be added
@@ -203,10 +203,39 @@ class OverleafManager {
       console.error('Toolbar not found')
     }
 
-    stabilizeButton.addEventListener('click', async () => {
-      // Action for the 'Stabilize' button click
+    // Check if content is already standardized to disable the button
+    this.updateStandardizedButton()
+  }
+
+  updateStandardizedButton () {
+    // Check if content is already standardized to disable the button
+    let standarized = window.promptex.storageManager.client.getStandardizedStatus()
+    const button = document.querySelector('#stabilizeBtn')
+    const buttonText = button.querySelector('p')
+
+    // Define the click handler as a named function to ensure it can be removed
+    const clickHandler = async () => {
       await this.stabilizeContent()
-    })
+    }
+
+    if (standarized) {
+      // Deactivate the button by changing its style and disabling it
+      button.style.cursor = 'not-allowed' // Cursor change to indicate non-clickable
+      button.disabled = true // Disable button functionality
+      buttonText.style.color = 'red' // Change text color to match disabled state
+
+      // Remove any previously attached click event listener
+      button.removeEventListener('click', clickHandler)
+    } else {
+      // Enable the button and reset styles
+      button.style.cursor = 'pointer' // Set cursor to pointer for clickable state
+      button.disabled = false // Enable button functionality
+      buttonText.style.color = 'green' // Set text color for active state
+
+      // Remove any existing listener and add a fresh click listener
+      button.removeEventListener('click', clickHandler)
+      button.addEventListener('click', clickHandler)
+    }
   }
 
   async stabilizeContent () {
@@ -453,11 +482,14 @@ class OverleafManager {
             // Ensure JSON parsing only when the response is a valid string
             if (json.sections && Array.isArray(json.sections)) {
               // Insert TODOs into the LaTeX document based on the response
+              originalDocument = LatexUtils.removeCommentsFromLatex(originalDocument)
               let updatedDocument = this.insertTODOsIntoLatex(originalDocument, json.sections)
               Alerts.closeLoadingWindow()
               Alerts.showAlertToast('Updated LaTeX document with TODOs')
               OverleafUtils.removeContent(() => {
-                window.promptex._overleafManager._sidebar.remove()
+                if (window.promptex._overleafManager._sidebar) {
+                  window.promptex._overleafManager._sidebar.remove()
+                }
                 OverleafUtils.insertContent(updatedDocument)
               })
               // You may want to save or use the updated document here
@@ -617,6 +649,7 @@ class OverleafManager {
                 categoryLi.classList.add('outline-item')
                 categoryLi.setAttribute('role', 'treeitem')
                 categoryLi.setAttribute('aria-expanded', 'true')
+                categoryLi.style.marginLeft = '5px' // Adjust this value as needed
 
                 const categoryDiv = document.createElement('div')
                 categoryDiv.classList.add('outline-item-row')
@@ -643,7 +676,7 @@ class OverleafManager {
 
                     // Log the extracted name, number, and navigation attribute
                     console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
-                    await OverleafUtils.scrollToContent(name, parseInt(navigation))
+                    await OverleafUtils.scrollToImprovementContent(name, parseInt(navigation))
                     if (navigation === number) {
                       categoryTitle.setAttribute('data-navigation', '1')
                     } else {
@@ -727,7 +760,7 @@ class OverleafManager {
         outlineBody.appendChild(rootList)
 
         OverleafUtils.generateConsolidateOutlineContent(async (outlineContent) => {
-          if (!outlineContent) {
+          if (Object.keys(outlineContent).length === 0) {
             Alerts.infoAlert({ title: 'No sections with TODOs found', text: 'No annotation found in the document.' })
           } else {
             // Iterate through the content to build the outline
@@ -737,6 +770,7 @@ class OverleafManager {
               categoryLi.classList.add('outline-item')
               categoryLi.setAttribute('role', 'treeitem')
               categoryLi.setAttribute('aria-expanded', 'true')
+              categoryLi.style.marginLeft = '5px' // Adjust this value as needed
 
               const categoryDiv = document.createElement('div')
               categoryDiv.classList.add('outline-item-row')
@@ -839,7 +873,7 @@ class OverleafManager {
       sidebar.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <br>
-        <h2 style="margin: 0; flex-grow: 1;">Improvement</h2>
+        <h2 style="margin: 0; flex-grow: 1;">Improvement Cycle</h2>
         <button id='closeSidebar' style="background-color: transparent; border: none; font-size: 16px; cursor: pointer; align-self: flex-start;">X</button>
         <hr>
       </div>
@@ -860,8 +894,8 @@ class OverleafManager {
         <button id='submitNewCriteria'>Save</button>
       </div>
       <hr>
-      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button></br>
-      <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: none; padding: 10px; cursor: pointer; width: 100%;">Reset Database</button>
+      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button></br>
+      <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Reset Database</button>
     `
 
       document.body.appendChild(sidebar)
@@ -965,7 +999,7 @@ class OverleafManager {
           const criterion = database[listName][category][criterionLabel]
           let button = document.createElement('button')
           button.classList.add('criteria-button')
-          button.textContent = criterionLabel // Use the criterion label as button text
+          button.textContent = 'Ask ' + criterionLabel // Use the criterion label as button text
 
           // Set the default color for the button (light grey)
           button.style.backgroundColor = '#d3d3d3' // Default light grey
@@ -1001,7 +1035,7 @@ class OverleafManager {
 
           // Add click event to display the criterion details (Description, Assessment, Effort Value)
           button.addEventListener('click', () => {
-            this.showCriterionDetails(criterionLabel, criterion)
+            CriterionActions.askCriterionAssessment(criterionLabel, criterion.Description)
           })
         }
 
@@ -1111,7 +1145,7 @@ class OverleafManager {
     menu.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.2)'
     menu.innerHTML = `
     <ul style='list-style-type: none; padding: 0; margin: 0;'>
-      <li style='padding: 5px 10px; cursor: pointer;' id='assessCriterion'>Ask PrompTeX</li>
+      <li style='padding: 5px 10px; cursor: pointer;' id='seeAnswer'>See Details</li>
       <li style='padding: 5px 10px; cursor: pointer;' id='editCriterion'>Edit</li>
     </ul>
   `
@@ -1119,9 +1153,10 @@ class OverleafManager {
     document.body.appendChild(menu)
 
     // Add event listeners for context menu options
-    document.getElementById('assessCriterion').addEventListener('click', () => {
+    document.getElementById('seeAnswer').addEventListener('click', () => {
       // alert(`Assessing: ${criterion}`)
-      CriterionActions.askCriterionAssessment(criterionLabel, criterion.Description)
+      // CriterionActions.askCriterionAssessment(criterionLabel, criterion.Description)
+      this.showCriterionDetails(criterionLabel, criterion)
       menu.remove() // Remove menu after selection
     })
 
@@ -1145,10 +1180,10 @@ class OverleafManager {
     Alerts.threeOptionsAlert({
       title: 'Modifying name and description for criterion ' + criterionLabel,
       html: '<div>' +
-        '<input id="criteriaName" class="swal2-input customizeInput" value="' + criterionLabel + '"/>' +
+        'Name: <input id="criteriaName" class="swal2-input customizeInput" value="' + criterionLabel + '"/>' +
         '</div>' +
         '<div>' +
-        '<textarea id="criteriaDescription" class="swal2-input customizeInput" placeholder="Description">' + criteriaDescription + '</textarea>' +
+        'Description: <textarea id="criteriaDescription" class="swal2-input customizeInput" placeholder="Description">' + criteriaDescription + '</textarea>' +
         '</div>',
       preConfirm: () => {
         // Retrieve values from inputs
@@ -1313,6 +1348,7 @@ class OverleafManager {
     } else {
       console.log('Standardized status is already okay, no action needed.')
     }
+    this.updateStandardizedButton()
   }
 }
 

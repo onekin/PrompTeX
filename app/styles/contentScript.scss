@@ -85,6 +85,13 @@ body[data-loading="true"] #loading-overlay {
  height: 50%;
 }
 
+.outline-pane2 {
+  color: #fff;
+  display: flex;
+  flex-flow: column;
+  font-size: 14px;
+}
+
 /* Dropdown, Import, and +Category in the same line */
 #dropdown-container {
   display: flex;
