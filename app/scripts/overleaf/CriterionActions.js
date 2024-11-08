@@ -50,23 +50,6 @@ class CriterionActions {
                 console.log(`Excerpt not found: "${excerpt}"`)
               }
             })
-
-            if (foundExcerpts.length === 0) {
-              Alerts.showWarningWindow('No excerpt found in the document for ' + criterionLabel)
-            } else {
-              // Create an HTML list of the found excerpts with improved styling
-              const excerptList = foundExcerpts
-                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                .join('')
-              const htmlContent = `<ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-
-              Alerts.infoAlert({
-                text: ` ${htmlContent}`,
-                title: 'Excerpt(s) found:',
-                showCancelButton: false,
-                html: true // Enable HTML rendering in the alert
-              })
-            }
             let suggestion = json.suggestionForImprovement
             let sentiment = json.sentiment
             let effortLevel = json.effortLevel
@@ -79,7 +62,7 @@ class CriterionActions {
                 console.log('Criterion updated successfully')
                 let newContent = LatexUtils.addCommentsToLatex(documents, cleanExcerpts, suggestion, sentiment, criterionLabel)
                 newContent = LatexUtils.ensurePromptexCommandExists(newContent)
-                OverleafUtils.removeContent(() => {
+                OverleafUtils.removeContent(async () => {
                   window.promptex._overleafManager._sidebar.remove()
                   OverleafUtils.insertContent(newContent)
                   if (window.promptex._overleafManager._standardized) {
@@ -90,6 +73,25 @@ class CriterionActions {
                       } else {
                         console.log('Standarized version set successfully: ' + array)
                         window.promptex._overleafManager.checkAndUpdateStandardized(false)
+                      }
+                    })
+                  }
+                  if (foundExcerpts.length === 0) {
+                    Alerts.showWarningWindow('No excerpt found in the document for ' + criterionLabel)
+                  } else {
+                    // Create an HTML list of the found excerpts with improved styling
+                    const excerptList = foundExcerpts
+                      .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                      .join('')
+                    const htmlContent = `<ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+
+                    Alerts.infoAlert({
+                      text: ` ${htmlContent}`,
+                      title: 'Excerpt(s) found:',
+                      showCancelButton: false,
+                      html: true, // Enable HTML rendering in the alert
+                      callback: async () => {
+                        await OverleafUtils.scrollToAnnotation(criterionLabel)
                       }
                     })
                   }
