@@ -23,7 +23,7 @@ const Config = {
       '- green: The paper meets the criterion.\n' +
       '- yellow: The paper partially meets the criterion.\n' +
       '- red: The paper does not meet the criterion.\n' +
-      'Additionally, provide a suggestion for improvement, classifying it as "red," "yellow," or "green" based on the effort required for implementation (e.g., time, resource availability, subject access, or technical skills).\n' +
+      'Additionally, provide a detailed suggestion(s) for improvement with indications of how to conduct it, classifying it as "red," "yellow," or "green" based on the effort required for implementation (e.g., time, resource availability, subject access, or technical skills).\n' +
       'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
         '"assessment": "[assessment off the criteria]",\n' +
@@ -45,82 +45,103 @@ const Config = {
             '}\n' +
       'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process.',
     newSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]\n' +
-      'DO: Act as a writer of a research paper. For the above research paper, the section "[C_TITLE]" is new and the content in it is:\n' +
+      'CONTEXT: We are drafting a research paper and iterating through multiple versions. In the current iteration, we have added a new section to the manuscript. It is important to review the impact of this new section thoroughly, as it may introduce new content or changes that need to be reflected throughout the rest of the manuscript.' +
+      'This review will help ensure consistency, accuracy, and alignment with the overall objectives of the paper.' +
+      'This changes can include changes in terminology, methodology, or content that may require adjustments in other sections of the paper.\n' +
+      'DO: Act as the writer of a research paper. For the provided research paper, the section "[C_TITLE]" is new, and the content of this section is:\n' +
       '[C_NEWLINES]' + '\n' +
-      'Please, you have to review the rest of the sections and how the new content in the rest of the research paper to not destabilize the overall manuscript.' +
-      'In order to later adjust related content to integrate the implications of these changes and maintain consistency throughout,' +
-      'you have to IDENTIFY the changes made during the improvement of the paper, SPOTTING where these adjustments impact the previous terminology, structural decisions, or content.' +
-      'ensuring that the overall narrative of the document accurately represents the improvements made.' +
-      'Changes can be Terminology Enhancement (i.e., Determine that the terminology has evolved, such as changing from "manuscript" to "annotated draft," making it necessary to propagate these changes of terminology in other sections\n' +
-      ', Methodology adjustment (i.e., Identify that the methodology has been updated, requiring the adjustment of content where the changes of methodology can impact\n' +
-      ', Content enrichment (i.e., Identify new content that has been added in the paper, and changes that will be required to be propagated\n' +
+      'You need to review the rest of the research paper to evaluate how this new content affects other sections and ensure that it does not destabilize the overall manuscript. Your objective is to identify the adjustments necessary to integrate the implications of the new content and maintain consistency throughout the document.' +
+      'Consider the section Title and if it is inside of other section, it can be relevant when considering changes in the manuscript.\n' +
+      'TASKS:' +
+      '1. **Identify Changes:** Spot the key changes introduced by the new section and evaluate their impact on terminology, structural decisions, or content in the rest of the manuscript.\n' +
+      '2. **Ensure Narrative Accuracy:** Verify that the overall narrative of the document accurately reflects the improvements introduced by the new section.\n' +
+      '3. **Types of Changes to Identify:**\n' +
+      '   - **Terminology Enhancement:** Determine if the terminology has evolved (e.g., a change from "manuscript" to "annotated draft") and identify where these changes need to be propagated throughout the document.\n' +
+      '   - **Methodology Adjustment:** Identify updates to methodology and evaluate how these changes impact other sections of the manuscript.\n' +
+      '   - **Content Enrichment:** Identify new content added to the paper and evaluate where adjustments are needed to reflect and integrate this content.\n' +
       'Provide the answer in a JSON format with the following structure. ' +
       'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
-      'comment: Summary of the main changes introduced by the new section.,' +
+      'comment: Summary of the main changes introduced by the new section,' +
       'identifiedChanges: {' +
-      'TerminologyEnhancement: Details of terminology changes and their impact on other sections.,' +
-      'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
-      'ContentEnrichment: Details of new content and how it affects other sections.' +
+      'TerminologyEnhancement: Provide a detailed review of terminology changes introduced in this section compared to the rest of the manuscript. Include any new or updated terminology.' +
+      'MethodologyAdjustment: Detail the changes to methodology and their impact on other sections of the manuscript.,' +
+      'ContentEnrichment: Detail new content added in this section and how it affects other sections.' +
       '},' +
-      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason. Analyze this sections from the Research paper: [C_TITLES]]' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection (Name of the affected section) and reason (Reason why this section is affected or needs adjustment). Analyze all this sections from the Research paper: [C_TITLES]]' +
       '}' +
       'Important: Only provide the JSON response, without any additional commentary.',
     deletedSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]' + '\n' +
-      'DO: Act as a writer of a research paper. For the above research paper, the following section has been deleted:\n' +
-      '[C_TITLE]' + '\n content was' + '[C_DELETED_LINES]' + '\n' +
-      'Please, you have to review the rest of the sections and how the new content in the rest of the research paper to not destabilize the overall manuscript.' +
-      'In order to later adjust related content to integrate the implications of these changes and maintain consistency throughout,' +
-      'you have to IDENTIFY the changes made during the improvement of the paper, SPOTTING where these adjustments impact the previous terminology, structural decisions, or content.' +
-      'ensuring that the overall narrative of the document accurately represents the improvements made.' +
-      'Changes can be Terminology Enhancement (i.e., Determine that the terminology has evolved, such as changing from "manuscript" to "annotated draft," making it necessary to propagate these changes of terminology in other sections\n' +
-      ', Methodology adjustment (i.e., Identify that the methodology has been updated, requiring the adjustment of content where the changes of methodology can impact\n' +
-      ', Content enrichment (i.e., Identify new content that has been added in the paper, and changes that will be required to be propagated\n' +
-      'Provide the answer in a JSON format with the following structure. ' +
-      'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
-      'comment: Summary of the main changes introduced by the new section.,' +
-      'identifiedChanges: {' +
-      'TerminologyEnhancement: Details of terminology changes and their impact on other sections.,' +
-      'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
-      'ContentEnrichment: Details of new content and how it affects other sections.' +
-      '},' +
-      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason. Analyze this sections from the Research paper: [C_TITLES]]' +
-      '}' +
+      'CONTEXT: We are drafting a research paper and iterating through multiple versions. In the current iteration, the following section has been removed from the manuscript:\n' +
+      '[C_TITLE]\n' +
+      'The content of the deleted section was:\n' +
+      '[C_DELETED_LINES]\n' +
+      'It is important to review the impact of this deletion thoroughly, as it may introduce gaps or inconsistencies in the manuscript that need to be addressed to maintain coherence and alignment with the overall objectives of the paper.\n' +
+      'DO: Act as the writer of a research paper. For the provided research paper, review the rest of the manuscript to evaluate how the removal of this section affects other sections. Your objective is to identify the adjustments necessary to ensure the remaining content integrates seamlessly and that the overall narrative remains stable and accurate.\n' +
+      'Consider the section Title and if it is inside of other section, it can be relevant when considering changes in the manuscript.\n' +
+      'TASKS:\n' +
+      '1. **Identify Changes:** Spot the key gaps or inconsistencies introduced by the removal of the section and evaluate their impact on terminology, structural decisions, or content in the rest of the manuscript.\n' +
+      '2. **Ensure Narrative Accuracy:** Verify that the overall narrative of the document reflects the implications of the deleted section and adjusts appropriately to maintain coherence.\n' +
+      '3. **Types of Changes to Identify:**\n' +
+      '   - **Terminology Enhancement:** Determine if the deletion affects terminology (e.g., if terms specific to the removed section are still used elsewhere) and identify where these need to be removed or updated throughout the document.\n' +
+      '   - **Methodology Adjustment:** Identify if the removed section impacted methodology and evaluate where adjustments are needed to account for the removal.\n' +
+      '   - **Content Enrichment:** Determine if the deletion creates gaps or missing information and suggest how to address these gaps to ensure the paper remains comprehensive and logical.\n' +
+      'Provide the answer in a JSON format with the following structure:\n' +
+      'comment: Summary of the main changes introduced by the removal of the section,\n' +
+      'identifiedChanges: {\n' +
+      'TerminologyEnhancement: Details of terminology changes and their impact on other sections.,\n' +
+      'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,\n' +
+      'ContentEnrichment: Details of gaps created by the removal and how they can be addressed.\n' +
+      '},\n' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with these keys: affectedSection (Name of the affected section) and reason (Reason why this section is affected or needs adjustment). Analyze all these sections from the Research Paper: [C_TITLES]]\n' +
+      '}\n' +
       'Important: Only provide the JSON response, without any additional commentary.',
-    modifiedSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]' + '\n' +
-      'DO: Act as a writer of a research paper. For the above research paper, the following section has been modified:\n' +
-      '[C_TITLE]' + '\n the content is this [C_COMBINED_CONTENT]' + '\n' +
-      'added lines were' + '[C_NEWLINES]' + '\n' + 'deleted lines were [C_DELETED_LINES]' + '\n' +
-      'Please, you have to review the rest of the sections and how the new content in the rest of the research paper to not destabilize the overall manuscript.' +
-      'In order to later adjust related content to integrate the implications of these changes and maintain consistency throughout,' +
-      'you have to IDENTIFY the changes made during the improvement of the paper, SPOTTING where these adjustments impact the previous terminology, structural decisions, or content.' +
-      'ensuring that the overall narrative of the document accurately represents the improvements made.' +
-      'Changes can be Terminology Enhancement (i.e., Determine that the terminology has evolved, such as changing from "manuscript" to "annotated draft," making it necessary to propagate these changes of terminology in other sections\n' +
-      ', Methodology adjustment (i.e., Identify that the methodology has been updated, requiring the adjustment of content where the changes of methodology can impact\n' +
-      ', Content enrichment (i.e., Identify new content that has been added in the paper, and changes that will be required to be propagated\n' +
-      'Provide the answer in a JSON format with the following structure. ' +
-      'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
-      'comment: Summary of the main changes introduced by the new section.,' +
-      'identifiedChanges: {' +
-      'TerminologyEnhancement: Details of terminology changes and their impact on other sections.,' +
-      'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,' +
-      'ContentEnrichment: Details of new content and how it affects other sections.' +
-      '},' +
-      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with this keys: affectedSection and reason. Analyze this sections from the Research paper: [C_TITLES]]' +
-      '}' +
+    modifiedSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]\n' +
+      'CONTEXT: We are drafting a research paper and iterating through multiple versions. In the current iteration, the following section has been modified:\n' +
+      '[C_TITLE]\n' +
+      'The current content of this section is:\n' +
+      '[C_COMBINED_CONTENT]\n' +
+      'The changes made to this section are as follows:\n' +
+      '- Added lines: [C_NEWLINES]\n' +
+      '- Deleted lines: [C_DELETED_LINES]\n' +
+      'It is important to review the impact of these modifications thoroughly, as they may introduce new content, changes, or inconsistencies that need to be reflected throughout the rest of the manuscript. This ensures consistency, accuracy, and alignment with the overall objectives of the paper.\n' +
+      'DO: Act as the writer of a research paper. For the provided research paper, review the rest of the manuscript to evaluate how the modifications to this section affect other sections. Your objective is to identify the adjustments necessary to integrate the implications of these changes and maintain consistency throughout the document.\n' +
+      'Consider the section Title and if it is inside of other section, it can be relevant when considering changes in the manuscript.\n' +
+      'TASKS:\n' +
+      '1. **Identify Changes:** Spot the key changes introduced by the modifications to this section and evaluate their impact on terminology, structural decisions, or content in the rest of the manuscript.\n' +
+      '2. **Ensure Narrative Accuracy:** Verify that the overall narrative of the document reflects the implications of the modified section and adjusts appropriately to maintain coherence.\n' +
+      '3. **Types of Changes to Identify:**\n' +
+      '   - **Terminology Enhancement:** Determine if the modifications include changes to terminology (e.g., a change from "manuscript" to "annotated draft") and identify where these changes need to be propagated throughout the document.\n' +
+      '   - **Methodology Adjustment:** Identify if the modifications affect the methodology and evaluate how these changes impact other sections of the manuscript.\n' +
+      '   - **Content Enrichment:** Determine if the modifications introduce new content or remove key content, and suggest how to address any gaps or propagate changes as needed.\n' +
+      'Provide the answer in a JSON format with the following structure:\n' +
+      'comment: Summary of the main changes introduced by the modifications to the section,\n' +
+      'identifiedChanges: {\n' +
+      'TerminologyEnhancement: Details of terminology changes and their impact on other sections.,\n' +
+      'MethodologyAdjustment: Details of methodology changes and their impact on other sections.,\n' +
+      'ContentEnrichment: Details of new or removed content and how it affects other sections.\n' +
+      '},\n' +
+      'affectedSpots: [List the sections or areas in the manuscript that need adjustments or review, with reasons for each. Provide each affected spot with these keys: affectedSection (Name of the affected section) and reason (Reason why this section is affected or needs adjustment). Analyze all these sections from the Research Paper: [C_TITLES]]\n' +
+      '}\n' +
       'Important: Only provide the JSON response, without any additional commentary.',
     createTODOPrompt: 'RESEARCH PAPER: [C_DOCUMENT]' + '\n' +
-      'For the sections of the above RESEARCH PAPER, you have to provide a TODO list for the following sections:\n' +
-      'You have to do that based on the following review of changes: [C_REVIEW]' + '\n' +
+      'REVIEW: [C_REVIEW]\n' +
+      'For the sections of the above RESEARCH PAPER, you have to provide a TODO list for the following sections: [C_TITLES]\n' +
+      'You have to do that based on the complete REVIEW provided above: ' + '\n' +
+      'Your task is to identify the tasks that need to be completed for each section based on the review of changes provided. The tasks should be specific and actionable, focusing on what needs to be done to address the modifications or additions in each section.\n' +
+      'Each TODO must be explained in detail and provide substantial information.' +
+      'For each section also include the comment of the changes made in the section from the Review, if it is available. For example, if there is a comment value for the section add it for that section in the output together. Not all sections are commented in the REVIEW\n' +
       'Provide the answer in a JSON format with the following structure. ' +
       'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
       '  "sections": [\n' +
       '    {\n' +
       '      "name": "[Section name]",\n' +
+      '      "comment": "if the section is included in the REVIEW add the comment from it, if not put "There were not changes" \n' +
       '      "todo": "[List of tasks separated by commas]"\n' +
       '    },\n' +
       '    {\n' +
       '      "name": "[Another section name]",\n' +
+      '      "comment": "if the section is included in the REVIEW add the comment from it, if not put "There were not changes"\n' +
       '      "todo": "[List of tasks separated by commas]"\n' +
       '    }\n' +
       '  ]\n' +

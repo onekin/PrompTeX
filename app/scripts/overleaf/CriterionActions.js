@@ -65,6 +65,7 @@ class CriterionActions {
                 OverleafUtils.removeContent(async () => {
                   window.promptex._overleafManager._sidebar.remove()
                   OverleafUtils.insertContent(newContent)
+                  window.promptex._overleafManager._readingDocument = false
                   if (window.promptex._overleafManager._standardized) {
                     const projectId = window.promptex._overleafManager._project
                     window.promptex.storageManager.client.setStandarizedVersion(projectId, sectionsArray, (err, array) => {

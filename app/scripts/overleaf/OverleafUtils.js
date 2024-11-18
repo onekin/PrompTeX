@@ -2,6 +2,7 @@ const _ = require('lodash')
 
 class OverleafUtils {
   static async getAllEditorContent () {
+    window.promptex._overleafManager._readingDocument = true
     let onTop = false
     const editorContainer = document.querySelector('.cm-scroller')
     const contentEditable = document.querySelector('.cm-content')
@@ -105,6 +106,7 @@ class OverleafUtils {
     }
     let fullText = contentLines.join('\n')
     console.log('Full text:', fullText)
+    window.promptex._overleafManager._readingDocument = false
     fullText = contentLines
       .map(line => line.replace(/^\d+:\s*/, '')) // Remove the leading '{number}: ' pattern
       .join('\n')
@@ -112,6 +114,7 @@ class OverleafUtils {
   }
 
   static async scrollToImprovementContent (name, navigation) {
+    window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -235,10 +238,12 @@ class OverleafUtils {
         break
       }
     }
+    window.promptex._overleafManager._readingDocument = false
     OverleafUtils.toggleEditor()
   }
 
   static async scrollToAnnotation (name) {
+    window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -357,10 +362,12 @@ class OverleafUtils {
         break
       }
     }
+    window.promptex._overleafManager._readingDocument = false
     OverleafUtils.toggleEditor()
   }
 
   static async scrollToConsolidateContent (name) {
+    window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -480,6 +487,7 @@ class OverleafUtils {
         break
       }
     }
+    window.promptex._overleafManager._readingDocument = false
     OverleafUtils.toggleEditor()
   }
 
@@ -576,6 +584,7 @@ class OverleafUtils {
   }
 
   static async insertContent (content) {
+    window.promptex._overleafManager._readingDocument = true
     const editorContent = document.querySelector('.cm-content')
 
     if (!editorContent) {

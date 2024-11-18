@@ -12,7 +12,7 @@ class OverleafManager {
   constructor () {
     this._project = null
     this._sidebar = null
-    this._currentCriteriaList = null
+    this._readingDocument = false
     this._standarized = true
   }
 
@@ -53,84 +53,204 @@ class OverleafManager {
     // Use setInterval to check every second (1000ms)
     setInterval(() => {
       // Get all elements with the class 'ol-cm-command-promptex'
-      let elements = document.querySelectorAll('.ol-cm-command-promptex')
+      let visualElements = document.querySelectorAll('.ol-cm-command-promptex')
+      this.monitorVisualEditorContent(visualElements)
+      let codeElements = document.querySelectorAll('span.tok-typeName')
+      // Filter the elements to find ones containing '\promptex'
+      const promptexElements = Array.from(codeElements).filter(element =>
+        element.textContent.trim() === '\\promptex'
+      )
+      let editor = OverleafUtils.getActiveEditor()
+      if (editor === 'Code Editor') {
+        this.monitorCodeEditorContent(promptexElements)
+      }
+    }, 500) // Every second
+  }
 
-      elements.forEach((element) => {
-        if (!this.isSelected(element)) {
-          // Find the first .ol-cm-command-textit inside the element
-          let commandTextit = element.querySelector('.ol-cm-command-textit')
+  monitorVisualEditorContent (elements) {
+    elements.forEach((element) => {
+      if (!this.isSelected(element)) {
+        // Find the first .ol-cm-command-textit inside the element
+        let commandTextit = element.querySelector('.ol-cm-command-textit')
 
-          if (commandTextit) {
-            // Extract the text content from the .ol-cm-command-textit element
-            let commandText = commandTextit.textContent
-            let criterion = ''
-            // Check if the content matches the format 'text::number'
-            const match = commandText.match(/(.*)::(\d+)/)
+        if (commandTextit) {
+          // Extract the text content from the .ol-cm-command-textit element
+          let commandText = commandTextit.textContent
+          let criterion = ''
+          // Check if the content matches the format 'text::number'
+          const match = commandText.match(/(.*)::(\d+)/)
 
-            if (match) {
-              criterion = match[1]
-              const number = parseInt(match[2], 10)
+          if (match) {
+            criterion = match[1]
+            const number = parseInt(match[2], 10)
 
-              // Apply background color based on the number
-              if (number === 0) {
-                element.style.backgroundColor = 'green' // Set background to green
-              } else if (number === 1) {
-                element.style.backgroundColor = 'yellow' // Set background to yellow
-              } else if (number === 2) {
-                element.style.backgroundColor = 'red' // Set background to red
-              } else {
-                element.style.backgroundColor = '' // Reset background for other cases
-              }
+            // Apply background color based on the number
+            if (number === 0) {
+              element.style.backgroundColor = 'green' // Set background to green
+            } else if (number === 1) {
+              element.style.backgroundColor = 'yellow' // Set background to yellow
+            } else if (number === 2) {
+              element.style.backgroundColor = 'red' // Set background to red
+            } else {
+              element.style.backgroundColor = '' // Reset background for other cases
             }
-
-            // Set the display of the first .ol-cm-command-textit element to 'none'
-            commandTextit.style.display = 'none'
-            // Hide the first two .tok-punctuation.ol-cm-punctuation elements
-            const previousSibling = element.previousElementSibling
-            const secondPreviousSibling = previousSibling?.previousElementSibling
-            const nextSibling = element.nextElementSibling
-            if (previousSibling && secondPreviousSibling) {
-              previousSibling.style.display = 'none' // cm-matchingBracket
-              secondPreviousSibling.style.display = 'none' // \promptex
-              nextSibling.style.display = 'none' // cm-punctuation
-              // firstBracket.style.display = 'none'; // cm-punctuation
-            }
-            if (secondPreviousSibling && secondPreviousSibling.textContent && secondPreviousSibling.textContent === 'ex') {
-              const thirdPreviousSibling = secondPreviousSibling.previousElementSibling
-              const forthPreviousSibling = thirdPreviousSibling.previousElementSibling
-              thirdPreviousSibling.style.display = 'none' // cm-punctuation
-              forthPreviousSibling.style.display = 'none' // cm-punctuation
-            }
-            // Select all elements with both classes 'tok-punctuation' and 'ol-cm-punctuation' inside the current item
-            element.querySelectorAll('.tok-punctuation.ol-cm-punctuation').forEach(punctuationElement => {
-              // Hide the punctuation element by setting display to 'none'
-              punctuationElement.style.display = 'none'
-            })
-            element.addEventListener('contextmenu', function (event) {
-              event.preventDefault() // Prevent the default right-click menu
-              let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
-              let info = ''
-              if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-                const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-                info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
-              }
-
-              if (criterionElement && criterionElement.Suggestion) {
-                info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
-
-                if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                  const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                  info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
-                }
-              }
-              // Show alert with the tooltip message
-              Alerts.infoAnswerAlert({ title: criterion, text: info })
-              return false // Additional return to ensure default action is canceled
-            })
           }
+
+          // Set the display of the first .ol-cm-command-textit element to 'none'
+          commandTextit.style.display = 'none'
+          // Hide the first two .tok-punctuation.ol-cm-punctuation elements
+          const previousSibling = element.previousElementSibling
+          const secondPreviousSibling = previousSibling?.previousElementSibling
+          const nextSibling = element.nextElementSibling
+          if (previousSibling && secondPreviousSibling) {
+            previousSibling.style.display = 'none' // cm-matchingBracket
+            secondPreviousSibling.style.display = 'none' // \promptex
+            nextSibling.style.display = 'none' // cm-punctuation
+            // firstBracket.style.display = 'none'; // cm-punctuation
+          }
+          if (secondPreviousSibling && secondPreviousSibling.textContent && secondPreviousSibling.textContent === 'ex') {
+            const thirdPreviousSibling = secondPreviousSibling.previousElementSibling
+            const forthPreviousSibling = thirdPreviousSibling.previousElementSibling
+            thirdPreviousSibling.style.display = 'none' // cm-punctuation
+            forthPreviousSibling.style.display = 'none' // cm-punctuation
+          }
+          // Select all elements with both classes 'tok-punctuation' and 'ol-cm-punctuation' inside the current item
+          element.querySelectorAll('.tok-punctuation.ol-cm-punctuation').forEach(punctuationElement => {
+            // Hide the punctuation element by setting display to 'none'
+            punctuationElement.style.display = 'none'
+          })
+          element.addEventListener('contextmenu', function (event) {
+            event.preventDefault() // Prevent the default right-click menu
+            let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
+            let info = ''
+            if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
+              const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
+              info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
+            }
+
+            if (criterionElement && criterionElement.Suggestion) {
+              info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
+
+              if (criterionElement.EffortValue && criterionElement.EffortDescription) {
+                const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
+                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+              }
+            }
+            // Show alert with the tooltip message
+            Alerts.infoAnswerAlert({ title: criterion, text: info })
+            return false // Additional return to ensure default action is canceled
+          })
+        }
+      }
+    })
+  }
+
+  monitorCodeEditorContent (elements) {
+    if (!window.promptex._overleafManager._readingDocument) {
+      // Get all elements with the class 'ol-cm-command-promptex'
+      elements.forEach((element) => {
+        if (!this.isSelectedInCodeEditor(element)) {
+          let parent = element.parentElement
+          let promptexFound = false // Flag to mark when we find '\\promptex'
+          let punctuationCount = 0 // Counter to track the number of 'tok-punctuation' spans
+          let desiredTextNode = null
+          // Iterate over the child nodes of the parent element
+          for (let i = 0; i < parent.childNodes.length; i++) {
+            const node = parent.childNodes[i]
+            // Check for '\\promptex' in 'tok-typeName' class
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tok-typeName') && node.textContent.trim() === '\\promptex') {
+              promptexFound = true // Found the '\\promptex'
+            }
+            // If '\\promptex' has been found, start counting punctuations
+            if (promptexFound) {
+              if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tok-punctuation')) {
+                punctuationCount++ // Increment the punctuation count
+              }
+              // If we are past the second punctuation, find the first text node
+              if (punctuationCount === 2) {
+                // Move to the next nodes to find a text node
+                for (let j = i + 1; j < parent.childNodes.length; j++) {
+                  const nextNode = parent.childNodes[j]
+                  if (nextNode.nodeType === Node.TEXT_NODE && nextNode.textContent.trim() !== '') {
+                    desiredTextNode = nextNode.textContent.trim()
+                    break
+                  }
+                }
+                break // Stop the outer loop as we have found our result
+              }
+            }
+          }
+          // Log the desired text node
+          if (desiredTextNode) {
+            console.log('Text node after second punctuation:', desiredTextNode)
+          } else {
+            console.log('Text node after second punctuation not found.')
+          }
+
+          // Check if the content matches the format 'text::number'
+          const match = desiredTextNode.match(/(.*)::(\d+)/)
+          const criterion = match[1]
+          if (match) {
+            const number = parseInt(match[2], 10)
+            // Apply background color based on the number
+            if (number === 0) {
+              parent.style.backgroundColor = 'green' // Set background to green
+            } else if (number === 1) {
+              parent.style.backgroundColor = 'yellow' // Set background to yellow
+            } else if (number === 2) {
+              parent.style.backgroundColor = 'red' // Set background to red
+            } else {
+              parent.style.backgroundColor = '' // Reset background for other cases
+            }
+          }
+          /*
+          // Set the display of the first .ol-cm-command-textit element to 'none'
+          commandTextit.style.display = 'none'
+          // Hide the first two .tok-punctuation.ol-cm-punctuation elements
+          const previousSibling = element.previousElementSibling
+          const secondPreviousSibling = previousSibling?.previousElementSibling
+          const nextSibling = element.nextElementSibling
+          if (previousSibling && secondPreviousSibling) {
+            previousSibling.style.display = 'none' // cm-matchingBracket
+            secondPreviousSibling.style.display = 'none' // \promptex
+            nextSibling.style.display = 'none' // cm-punctuation
+            // firstBracket.style.display = 'none'; // cm-punctuation
+          }
+          if (secondPreviousSibling && secondPreviousSibling.textContent && secondPreviousSibling.textContent === 'ex') {
+            const thirdPreviousSibling = secondPreviousSibling.previousElementSibling
+            const forthPreviousSibling = thirdPreviousSibling.previousElementSibling
+            thirdPreviousSibling.style.display = 'none' // cm-punctuation
+            forthPreviousSibling.style.display = 'none' // cm-punctuation
+          }
+          // Select all elements with both classes 'tok-punctuation' and 'ol-cm-punctuation' inside the current item
+          element.querySelectorAll('.tok-punctuation.ol-cm-punctuation').forEach(punctuationElement => {
+            // Hide the punctuation element by setting display to 'none'
+            punctuationElement.style.display = 'none'
+          })  */
+          parent.addEventListener('contextmenu', function (event) {
+            event.preventDefault() // Prevent the default right-click menu
+            let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
+            let info = ''
+            if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
+              const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
+              info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
+            }
+
+            if (criterionElement && criterionElement.Suggestion) {
+              info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
+
+              if (criterionElement.EffortValue && criterionElement.EffortDescription) {
+                const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
+                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+              }
+            }
+            // Show alert with the tooltip message
+            Alerts.infoAnswerAlert({ title: criterion, text: info })
+            return false // Additional return to ensure default action is canceled
+          })
         }
       })
-    }, 500) // Every second
+    }
   }
 
   isSelected (element) {
@@ -148,6 +268,30 @@ class OverleafManager {
       }
       // Check if the element contains the caret container (either directly or via descendants)
       if (element.contains(caretContainer)) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  }
+
+  isSelectedInCodeEditor (element) {
+    const selection = window.getSelection()
+
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0) // Get the first range (caret position)
+
+      // Find the container where the caret is located (text node or element)
+      let caretContainer = range.startContainer
+
+      // If the caret is inside a text node, get its parent element
+      if (caretContainer.nodeType === Node.TEXT_NODE) {
+        caretContainer = caretContainer.parentNode
+      }
+      // Check if the element contains the caret container (either directly or via descendants)
+      if (element.parentElement.contains(caretContainer)) {
         return true
       } else {
         return false
@@ -340,7 +484,7 @@ class OverleafManager {
                       const affectedSpots = json.affectedSpots
 
                       // Constructing the summary content
-                      summary += sectionTitle + ' - ' + typeOfChange + '\n'
+                      summary += '\n' + sectionTitle + ' - ' + typeOfChange + '\n'
                       summary += `Comment: ${comment}\n`
                       summary += 'Identified Changes:\n'
 
@@ -377,7 +521,7 @@ class OverleafManager {
 
           // Wait for all processing to complete before downloading the summary
           await Promise.all(processingPromises)
-          // this.downloadSummaryAsHTML(summary)
+          this.downloadSummaryAsHTML(summary)
           Alerts.closeLoadingWindow()
           Alerts.infoAlert({
             title: 'Stabilization Complete',
@@ -470,7 +614,7 @@ class OverleafManager {
     let prompt = Config.prompts.createTODOPrompt
     prompt = prompt.replace('[C_DOCUMENT]', documents)
     prompt = prompt.replace('[C_REVIEW]', summary)
-
+    prompt = prompt.replace('[C_TITLES]', OverleafUtils.extractSections(documents).map(section => section.title).join(','))
     // Get the API key for the LLM provider
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
       if (apiKey !== null && apiKey !== '') {
@@ -491,6 +635,7 @@ class OverleafManager {
                   window.promptex._overleafManager._sidebar.remove()
                 }
                 OverleafUtils.insertContent(updatedDocument)
+                window.promptex._overleafManager._readingDocument = false
               })
               // You may want to save or use the updated document here
             } else {
@@ -522,8 +667,8 @@ class OverleafManager {
     // Iterate through each section from the JSON response
     sections.forEach(section => {
       const sectionName = section.name
+      const comment = section.comment
       const todos = section.todo.split(',')
-
       // Create the TODO lines for this section
       const todoLines = todos.map(todo => `%%TODO: ${todo.trim()}`).join('\n')
 
@@ -532,7 +677,7 @@ class OverleafManager {
       // Find and replace the section with the TODOs added after it
       updatedDocument = updatedDocument.replace(
         sectionPattern,
-        `\\section{${sectionName}}\n${todoLines}`
+        `\\section{${sectionName}}\n%%Changes in this section: ${comment}\n${todoLines}`
       )
     })
     return updatedDocument
