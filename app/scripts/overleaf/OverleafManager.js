@@ -677,7 +677,7 @@ class OverleafManager {
       // Find and replace the section with the TODOs added after it
       updatedDocument = updatedDocument.replace(
         sectionPattern,
-        `\\section{${sectionName}}\n%%Changes in this section: ${comment}\n${todoLines}`
+        `\\section{${sectionName}}\n%%Changes in this section: ${comment}\n\n${todoLines}`
       )
     })
     return updatedDocument
