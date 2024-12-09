@@ -521,16 +521,18 @@ class OverleafManager {
 
           // Wait for all processing to complete before downloading the summary
           await Promise.all(processingPromises)
-          this.downloadSummaryAsHTML(summary)
+          // this.downloadSummaryAsHTML(summary)
           Alerts.closeLoadingWindow()
-          Alerts.infoAlert({
+          Alerts.showLoadingWindowDuringProcess('Adding TODOs...')
+          this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
+          /* Alerts.infoAlert({
             title: 'Stabilization Complete',
             text: 'Do you want to add TODOs in the document?',
             callback: () => {
               Alerts.showLoadingWindowDuringProcess('Adding TODOs...')
               this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
             }
-          })
+          }) */
         })
       })
     }

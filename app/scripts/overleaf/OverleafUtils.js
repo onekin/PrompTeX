@@ -239,7 +239,7 @@ class OverleafUtils {
       }
     }
     window.promptex._overleafManager._readingDocument = false
-    OverleafUtils.toggleEditor()
+    // OverleafUtils.toggleEditor()
   }
 
   static async scrollToAnnotation (name) {
@@ -363,7 +363,7 @@ class OverleafUtils {
       }
     }
     window.promptex._overleafManager._readingDocument = false
-    OverleafUtils.toggleEditor()
+    // OverleafUtils.toggleEditor()
   }
 
   static async scrollToConsolidateContent (name) {
@@ -488,7 +488,7 @@ class OverleafUtils {
       }
     }
     window.promptex._overleafManager._readingDocument = false
-    OverleafUtils.toggleEditor()
+    // OverleafUtils.toggleEditor()
   }
 
   // Define a function to split sections based on \section command
