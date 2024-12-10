@@ -8,7 +8,8 @@ if (window.location.href.includes('pages/options.html')) {
     { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
     { value: 'gpt-4', label: 'GPT-4' },
     { value: 'gpt-4-32k', label: 'GPT-4 32k' },
-    { value: 'gpt-4-1106-preview', label: 'GPT-4-1106-Preview' }
+    { value: 'gpt-4-1106-preview', label: 'GPT-4-1106-Preview' },
+    { value: 'gpt-4o-2024-11-20', label: 'GPT-4o' }
   ]
 
   const anthropicModels = [
