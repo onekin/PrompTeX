@@ -30,14 +30,14 @@ class OverleafManager {
     that.projectManagement() // Replace this with the function handling actions when the icon is found
   }
 
-  findHomeIcon() {
+  findHomeIcon () {
     // Check for Font Awesome icon
-    let faIcon = document.querySelector('i.fa.fa-home.fa-fw');
+    let faIcon = document.querySelector('i.fa.fa-home.fa-fw')
     // Check for Material Symbols icon
-    let materialIcon = Array.from(document.querySelectorAll('span.material-symbols.align-text-bottom[aria-hidden="true"]'))
-      .find(span => span.textContent.trim() === "home");
+    let materialIcon = Array.from(document.querySelectorAll("span.material-symbols.align-text-bottom[aria-hidden='true']"))
+      .find(span => span.textContent.trim() === 'home')
 
-    return faIcon || materialIcon;
+    return faIcon || materialIcon
   }
 
   projectManagement () {
@@ -701,10 +701,12 @@ class OverleafManager {
     // Create a new pane for the outline
     const newImprovementOutlinePane = document.createElement('div')
     newImprovementOutlinePane.classList.add('outline-pane2')
+    newImprovementOutlinePane.classList.add('newImprovementOutlinePane')
 
     // Create the header for the new outline
     const newImprovementHeader = document.createElement('header')
     newImprovementHeader.classList.add('outline-header')
+    newImprovementHeader.classList.add('newImprovementHeader')
     newImprovementHeader.classList.add('closed')
 
     const headerImprovementButton = document.createElement('button')
@@ -714,6 +716,7 @@ class OverleafManager {
 
     const caretImprovementIcon = document.createElement('span')
     caretImprovementIcon.classList.add('material-symbols', 'outline-caret-icon')
+    caretImprovementIcon.classList.add('improvement-caret-icon')
     caretImprovementIcon.setAttribute('aria-hidden', 'true')
     caretImprovementIcon.textContent = 'keyboard_arrow_right' // Initially right arrow (collapsed)
 
@@ -779,6 +782,7 @@ class OverleafManager {
     // Handle header click to show/hide the outline body of THIS outline only
     newImprovementHeader.addEventListener('click', (event) => {
       event.stopPropagation() // Prevent interference with other outlines
+
       const isHidden = newImprovementHeader.classList.contains('closed')
       // Toggle between opened and closed state
       if (isHidden) {
@@ -1016,6 +1020,129 @@ class OverleafManager {
       caretConsolidateIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
       // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
     })
+  }
+
+  displayImprovementOutlineContent () {
+    let newImprovementHeader = document.querySelector('.newImprovementHeader')
+    let newImprovementOutlinePane = document.querySelector('.newImprovementOutlinePane')
+    let caretImprovementIcon = newImprovementHeader.querySelector('.outline-caret-icon')
+    const isHidden = newImprovementHeader.classList.contains('closed')
+    // Toggle between opened and closed state
+    if (isHidden) {
+      newImprovementHeader.classList.replace('closed', 'opened')
+      // Ensure outline body is visible
+      const outlineBody = document.createElement('div')
+      outlineBody.classList.add('outline-body')
+
+      // Create the root list for the items
+      const rootList = document.createElement('ul')
+      rootList.classList.add('outline-item-list', 'outline-item-list-root')
+      rootList.setAttribute('role', 'tree')
+      outlineBody.appendChild(rootList)
+
+      OverleafUtils.generateImprovementOutlineContent(async (outlineContent) => {
+        if (!outlineContent) {
+          Alerts.infoAlert({ title: 'No annotations found', text: 'No annotation found in the document.' })
+        } else {
+          // Iterate through the content to build the outline
+          Object.keys(outlineContent).forEach((category) => {
+            outlineContent[category].forEach((subItem) => {
+              // Create a parent item for each category
+              const categoryLi = document.createElement('li')
+              categoryLi.classList.add('outline-item')
+              categoryLi.setAttribute('role', 'treeitem')
+              categoryLi.setAttribute('aria-expanded', 'true')
+              categoryLi.style.marginLeft = '5px' // Adjust this value as needed
+
+              const categoryDiv = document.createElement('div')
+              categoryDiv.classList.add('outline-item-row')
+
+              const categoryTitle = document.createElement('button')
+              categoryTitle.classList.add('outline-item-link')
+              const categorySpan = document.createElement('span')
+              categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
+              categorySpan.textContent = subItem
+              categoryTitle.appendChild(categorySpan)
+              categoryTitle.setAttribute('data-navigation', '1')
+              categoryTitle.addEventListener('click', async () => {
+                // Get criterion content
+                var match = subItem.match(/^(.+)\s\((\d+)\)$/)
+
+                if (match) {
+                  // match[1] is the name (e.g., 'Artifact Detail')
+                  // match[2] is the number (e.g., '1')
+                  var name = match[1]
+                  var number = match[2]
+
+                  // Get the navigation attribute from the button
+                  var navigation = categoryTitle.getAttribute('data-navigation')
+
+                  // Log the extracted name, number, and navigation attribute
+                  console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
+                  await OverleafUtils.scrollToImprovementContent(name, parseInt(navigation))
+                  if (navigation === number) {
+                    categoryTitle.setAttribute('data-navigation', '1')
+                  } else {
+                    let newNavigation = (parseInt(navigation) + 1).toString()
+                    categoryTitle.setAttribute('data-navigation', newNavigation)
+                  }
+                }
+              })
+              categoryDiv.appendChild(categoryTitle)
+              categoryLi.appendChild(categoryDiv)
+              rootList.appendChild(categoryLi)
+            })
+          })
+          let treeDiv = document.getElementById('panel-file-tree')
+          // Change the data-panel-size attribute
+          treeDiv.setAttribute('data-panel-size', '80.5') // You can set it to any value
+          // Change the flex style property
+          treeDiv.style.flex = '80.5 1 0px' // Update the first number to match the new panel size
+          let separator = treeDiv.nextElementSibling
+          // Change the 'data-panel-resize-handle-enabled' attribute to 'true'
+          separator.setAttribute('data-panel-resize-handle-enabled', 'true')
+          // Change the 'aria-valuenow' attribute to '55'
+          separator.setAttribute('aria-valuenow', '80')
+          // Select the inner div with the class 'vertical-resize-handle'
+          const innerHandle = separator.querySelector('.vertical-resize-handle')
+          // Mouse down starts the resizing
+          let isResizing = false
+          innerHandle.addEventListener('mousedown', (e) => {
+            isResizing = true
+            document.body.style.cursor = 'row-resize' // Change the cursor when resizing
+          })
+          document.addEventListener('mousemove', (e) => {
+            if (isResizing) {
+              const panelOutline = document.getElementById('panel-outline')
+              const newSize = e.clientY // Use the Y position of the mouse to calculate the new size
+              panelOutline.style.flex = `${newSize} 1 0px` // Adjust flex-grow// property dynamically
+              panelOutline.setAttribute('data-panel-size', newSize) // Update the data attribute
+            }
+          })
+          document.addEventListener('mouseup', () => {
+            isResizing = false
+            document.body.style.cursor = 'default' // Reset the cursor
+          })
+          // Add the 'vertical-resize-handle-enabled' class to the inner div
+          innerHandle.classList.add('vertical-resize-handle-enabled')
+          let panelOutline = separator.nextElementSibling
+          // Change the 'data-panel-size' attribute to '44.8'
+          panelOutline.setAttribute('data-panel-size', '44.8')
+          // Change the 'flex' value in the style property
+          panelOutline.style.flex = '44.8 1 0px'
+          // Add the outline body to the pane, and let it push content down
+          newImprovementOutlinePane.appendChild(outlineBody)
+        }
+      })
+    } else {
+      newImprovementHeader.classList.replace('opened', 'closed')
+      const outlineBody = newImprovementOutlinePane.querySelector('.outline-body')
+      if (outlineBody) {
+        newImprovementOutlinePane.removeChild(outlineBody) // Remove from DOM
+      }
+    }
+    caretImprovementIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
+    // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
   }
 
   showCriteriaSidebar (defaultList = 0) {

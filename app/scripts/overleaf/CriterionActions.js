@@ -44,10 +44,10 @@ class CriterionActions {
             let foundExcerpts = []
             cleanExcerpts.forEach(excerpt => {
               if (documents.includes(excerpt)) {
-                console.log(`Excerpt found: "${excerpt}"`)
+                console.log(`Excerpt found for ${criterionLabel}: "${excerpt}"`)
                 foundExcerpts.push(excerpt)
               } else {
-                console.log(`Excerpt not found: "${excerpt}"`)
+                console.log(`Excerpt not found for ${criterionLabel}: "${excerpt}"`)
               }
             })
             let suggestion = json.suggestionForImprovement
@@ -73,6 +73,7 @@ class CriterionActions {
                         console.error('Failed to set standarized version:', err)
                       } else {
                         console.log('Standarized version set successfully: ' + array)
+                        window.promptex._overleafManager.displayImprovementOutlineContent()
                         window.promptex._overleafManager.checkAndUpdateStandardized(false)
                       }
                     })
