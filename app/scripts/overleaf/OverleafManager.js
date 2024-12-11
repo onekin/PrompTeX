@@ -18,8 +18,7 @@ class OverleafManager {
 
   init () {
     let that = this
-    let locator = 'i.fa.fa-home.fa-fw' // CSS selector for the home icon
-    let target = document.querySelector(locator)
+    let target = this.findHomeIcon()
     if (target == null) {
       // If the icon is not found, retry after 500ms
       window.setTimeout(() => {
@@ -29,6 +28,16 @@ class OverleafManager {
     }
     // If the home icon is found, perform your desired actions
     that.projectManagement() // Replace this with the function handling actions when the icon is found
+  }
+
+  findHomeIcon() {
+    // Check for Font Awesome icon
+    let faIcon = document.querySelector('i.fa.fa-home.fa-fw');
+    // Check for Material Symbols icon
+    let materialIcon = Array.from(document.querySelectorAll('span.material-symbols.align-text-bottom[aria-hidden="true"]'))
+      .find(span => span.textContent.trim() === "home");
+
+    return faIcon || materialIcon;
   }
 
   projectManagement () {
