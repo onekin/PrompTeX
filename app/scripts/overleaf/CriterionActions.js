@@ -42,12 +42,14 @@ class CriterionActions {
             })
             console.log(cleanExcerpts)
             let foundExcerpts = []
+            let notFoundExcerpts = []
             cleanExcerpts.forEach(excerpt => {
               if (documents.includes(excerpt)) {
                 console.log(`Excerpt found for ${criterionLabel}: "${excerpt}"`)
                 foundExcerpts.push(excerpt)
               } else {
                 console.log(`Excerpt not found for ${criterionLabel}: "${excerpt}"`)
+                notFoundExcerpts.push(excerpt)
               }
             })
             let suggestion = json.suggestionForImprovement
@@ -80,16 +82,39 @@ class CriterionActions {
                   }
                   if (foundExcerpts.length === 0) {
                     Alerts.showWarningWindow('No excerpt found in the document for ' + criterionLabel)
+                    // Create an HTML list of the found excerpts with improved styling
+                    const excerptList = notFoundExcerpts
+                      .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                      .join('')
+                    let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                    htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
+                    Alerts.infoAlert({
+                      text: ` ${htmlContent}`,
+                      title: `Retrieved excerpts do not match with the document text.`,
+                      showCancelButton: false,
+                      html: true, // Enable HTML rendering in the alert
+                      callback: async () => {
+                        await OverleafUtils.scrollToAnnotation(criterionLabel)
+                      }
+                    })
                   } else {
                     // Create an HTML list of the found excerpts with improved styling
                     const excerptList = foundExcerpts
                       .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
                       .join('')
-                    const htmlContent = `<ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-
+                    let htmlContent = ''
+                    // htmlContent += `<p style="margin-top: 10px;"><b>Suggestion for improvement:</b> ${suggestion}</p>`
+                    htmlContent += `<h4>Annotated content:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                    if (notFoundExcerpts.length > 0) {
+                      // Create an HTML list of the found excerpts with improved styling
+                      const notFoundExcerptList = notFoundExcerpts
+                        .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                        .join('')
+                      htmlContent += `<h4>The AI also retrieved these excerpts that can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${notFoundExcerptList}</ul>`
+                    }
                     Alerts.infoAlert({
                       text: ` ${htmlContent}`,
-                      title: 'Excerpt(s) found:',
+                      title: `Excerpt(s) found for ${criterionLabel}`,
                       showCancelButton: false,
                       html: true, // Enable HTML rendering in the alert
                       callback: async () => {
