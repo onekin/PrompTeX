@@ -52,6 +52,7 @@ class CriterionActions {
                 notFoundExcerpts.push(excerpt)
               }
             })
+            let excerpts = foundExcerpts.concat(notFoundExcerpts)
             let suggestion = json.suggestionForImprovement
             let sentiment = json.sentiment
             let effortLevel = json.effortLevel
@@ -59,7 +60,7 @@ class CriterionActions {
             let assessmentDescription = json.assessment
             // Call CriteriaDatabaseClient to update the criterion
             let listName = window.promptex._overleafManager._currentCriteriaList
-            window.promptex.storageManager.client.updateCriterion(listName, criterionLabel, cleanExcerpts, suggestion, sentiment, effortLevel, effortDescription, assessmentDescription)
+            window.promptex.storageManager.client.updateCriterion(listName, criterionLabel, excerpts, suggestion, sentiment, effortLevel, effortDescription, assessmentDescription)
               .then(() => {
                 console.log('Criterion updated successfully')
                 let newContent = LatexUtils.addCommentsToLatex(documents, cleanExcerpts, suggestion, sentiment, criterionLabel)
@@ -87,7 +88,7 @@ class CriterionActions {
                       .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
                       .join('')
                     let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-                    htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
+                    // htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
                     Alerts.infoAlert({
                       text: ` ${htmlContent}`,
                       title: `Retrieved excerpts do not match with the document text.`,

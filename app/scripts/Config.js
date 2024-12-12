@@ -14,38 +14,52 @@ const Config = {
   },
   prompts: {
     annotatePrompt: 'Research Paper Context: [The research paper is provided above as a LaTeX file]' +
-      'Analyze the paper based on the specified criterion for evaluation.\n' +
+      '-CONTEXT: \n' +
+      'We are drafting a research paper using LaTeX. The current document represents the ongoing version of the manuscript. In line with the knowledge-transforming model of writing, the focus is on enhancing the content space, which includes the exploration of knowledge, problem analysis, and hypothesis formulation. This process aims to ensure that the manuscript effectively addresses specified criteria, reflecting rigor, coherence, and depth in its conceptual and empirical contributions. Your evaluation will involve assessing these content-specific dimensions, proposing actionable improvements, and analyzing the effort required for implementing these changes.\n' +
+      '-TASK: \n' +
+      'Given the context provided, assess the document based on the specified criterion below:\n' +
       'Criterion Name: [C_NAME]\n' +
       'Criterion Description: [C_DESCRIPTION]\n' +
-      'Your task is to assess the entire research paper and generate a structured JSON response.\n' +
-      ' This JSON should contain up to short three excerpts from the paper that directly relate to the given criterion and must include evidence for your assessment.\n' +
-      'You have to evaluate whether the criterion is met using one of the following labels:\n' +
-      '- green: The paper meets the criterion.\n' +
-      '- yellow: The paper partially meets the criterion.\n' +
-      '- red: The paper does not meet the criterion.\n' +
-      'Additionally, provide a detailed suggestion(s) for improvement with indications of how to conduct it, classifying it as "red," "yellow," or "green" based on the effort required for implementation (e.g., time, resource availability, subject access, or technical skills).\n' +
-      'The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
+      '\n' +
+      'Your task is to:\n' +
+      '\n' +
+      'Identify Relevant Excerpts: Select up to three short excerpts from the document that directly relate to the criterion. Each excerpt must:\n' +
+      '- Include the original LaTeX syntax (e.g., \\textit{}, \\cite{}, \\footnote{}) as written in the document.\n' +
+      '- Serve as evidence for your assessment of how well the criterion is met.\n' +
+      '\n' +
+      'Evaluate the Criterion: Determine whether the document meets the criterion using one of the following labels:\n' +
+      '- Green: The paper fully meets the criterion.\n' +
+      '- Yellow: The paper partially meets the criterion.\n' +
+      '- Red: The paper does not meet the criterion.\n' +
+      '\n' +
+      'Provide Suggestions for Improvement:\n' +
+      '- Offer detailed, actionable suggestions to address gaps or improve the document’s alignment with the criterion.\n' +
+      '- Classify the level of effort required for each suggestion as green (low effort), yellow (moderate effort), or red (high effort),\n' +
+      'considering factors like time, resource availability, access to subjects, or technical skills.\n' +
+      '- Provide a brief explanation for the effort classification.\n' +
+      '-OUTPUT FORMAT:\n' +
+      'You have to provide the answer in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
-        '"assessment": "[assessment off the criteria]",\n' +
-        '"sentiment": "[based on one of these values: green/yellow/red]",\n' +
-          '"suggestionForImprovement": "[Detail the suggested improvement]",\n' +
-          '"effortLevel": "[Classify the effort level for the suggested improvement: green, yellow, red]",\n' +
-          '"effortDescription": "[Provide a detailed explanation of the required effort]",\n' +
-          '"claims": [\n' +
-             '{\n' +
-                '"excerpt": "[Include a relevant short text fragment from the latex file. IMPORTANT: Keep the original LaTeX text, including the latex commands in the excerpt, such as \\textit{}, \\cite{}]\n, or nested commands such as \\footnote{\\href{... Do not include text fragments that are inside a \\promptex command' +
-              '},\n' +
-              '{\n' +
-                '"excerpt": "[Include a relevant short text fragment from the latex file. IMPORTANT: Keep the original LaTeX text, including the latex commands in the excerpt, such as \\textit{}, \\cite{}]\n, or nested commands such as \\footnote{\\href{... Do not include text fragments that are inside a \\promptex command' +
-               '},\n' +
-              '{\n' +
-               '"excerpt": "[Include a relevant short text fragment from the latex file. IMPORTANT: Keep the original LaTeX text, including the latex commands in the excerpt, such as \\textit{}, \\cite{}]\n, or nested commands such as \\footnote{\\href{... Do not include text fragments that are inside a \\promptex command' +
-              '},\n' +
-              ']\n' +
-            '}\n' +
+      '  "assessment": "[Provide an evaluation of how well the document meets the criterion. You can based your answer in the excerpts]",\n' +
+      '  "sentiment": "[Use one of these values: green, yellow, red]",\n' +
+      '  "suggestionForImprovement": "[Provide detailed, actionable suggestions to address gaps or improve the document’s alignment with the criterion]",\n' +
+      '  "effortLevel": "[Classify the effort required for the suggested improvement: green (low), yellow (moderate), red (high)]",\n' +
+      '  "effortDescription": "[Provide a detailed explanation of the required effort, considering time, resources, access, or technical skills]",\n' +
+      '  "claims": [\n' +
+      '    {\n' +
+      '      "excerpt": "[Include a relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.]",\n' +
+      '    },\n' +
+      '    {\n' +
+      '      "excerpt": "[Include another relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.]",\n' +
+      '    },\n' +
+      '    {\n' +
+      '      "excerpt": "[Include another relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.]",\n' +
+      '    }\n' +
+      '  ]\n' +
+      '}\n' +
       'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process.',
     newSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]\n' +
-      'CONTEXT: We are drafting a research paper and iterating through multiple versions. In the current iteration, we have added a new section to the manuscript. It is important to review the impact of this new section thoroughly, as it may introduce new content or changes that need to be reflected throughout the rest of the manuscript.' +
+      'CONTEXT: We are writing a research paper. I' +
       'This review will help ensure consistency, accuracy, and alignment with the overall objectives of the paper.' +
       'This changes can include changes in terminology, methodology, or content that may require adjustments in other sections of the paper.\n' +
       'DO: Act as the writer of a research paper. For the provided research paper, the section "[C_TITLE]" is new, and the content of this section is:\n' +

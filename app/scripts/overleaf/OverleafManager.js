@@ -142,8 +142,15 @@ class OverleafManager {
 
               if (criterionElement.EffortValue && criterionElement.EffortDescription) {
                 const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+                criterionElement.Annotations += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
               }
+            }
+            if (criterionElement && criterionElement.Annotations) {
+              // Create an HTML list of the found excerpts with improved styling
+              const excerptList = criterionElement.Annotations
+                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                .join('')
+              info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
             }
             // Show alert with the tooltip message
             Alerts.infoAnswerAlert({ title: criterion, text: info })
@@ -252,6 +259,13 @@ class OverleafManager {
                 const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
                 info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
               }
+            }
+            if (criterionElement && criterionElement.Annotations) {
+              // Create an HTML list of the found excerpts with improved styling
+              const excerptList = criterionElement.Annotations
+                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                .join('')
+              info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
             }
             // Show alert with the tooltip message
             Alerts.infoAnswerAlert({ title: criterion, text: info })
@@ -1178,7 +1192,7 @@ class OverleafManager {
       </div>
       <hr>
       <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button></br>
-      <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Reset Database</button>
+      <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Reset</button>
     `
 
       document.body.appendChild(sidebar)
@@ -1214,7 +1228,7 @@ class OverleafManager {
       resetDatabaseBtn.addEventListener('click', () => {
         const projectId = window.promptex._overleafManager._project // Replace with your method to retrieve the current project ID
         // Call the cleanDatabase function
-        window.promptex.storageManager.cleanDatabase(projectId, (error) => {
+        window.promptex.storageManager.cleanDatabase(projectId, async (error) => {
           if (error) {
             console.error('Failed to reset the database:', error)
             alert('Failed to reset the database. Please try again.')
@@ -1223,6 +1237,10 @@ class OverleafManager {
             alert('Database has been reset to default.')
             // Optionally reload the criteria list to reflect the reset state
             this.loadCriteriaList(Object.keys(window.promptex.storageManager.client.getSchemas())[0], window.promptex.storageManager.client.getSchemas())
+            const originalDocument = await OverleafUtils.getAllEditorContent()
+            let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
+            OverleafUtils.insertContent(documents)
+            // window.location.reload()
           }
         })
       })
@@ -1399,6 +1417,13 @@ class OverleafManager {
         const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
         info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
       }
+    }
+    if (criterionElement && criterionElement.Annotations) {
+      // Create an HTML list of the found excerpts with improved styling
+      const excerptList = criterionElement.Annotations
+        .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+        .join('')
+      info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
     }
     // Show alert with the tooltip message
     Alerts.infoAnswerAlert({ title: 'Criterion Information', text: info })

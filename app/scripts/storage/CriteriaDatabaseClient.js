@@ -105,7 +105,7 @@ class CriteriaDatabaseClient {
   }
 
   // Update an existing criterion in a category
-  updateCriterion (listName, criterionLabel, cleanExcerpts, suggestion, sentiment, effortLevel, effortDescription, assessmentDescription) {
+  updateCriterion (listName, criterionLabel, excerpts, suggestion, sentiment, effortLevel, effortDescription, assessmentDescription) {
     let projectID = window.promptex._overleafManager._project
     return new Promise((resolve, reject) => {
       // Check if the list exists
@@ -121,7 +121,7 @@ class CriteriaDatabaseClient {
       }
 
       // Update the criterion with the provided values
-      criterion.Annotations = cleanExcerpts || criterion.Annotations // Update annotations if provided
+      criterion.Annotations = excerpts // Update annotations if provided
       criterion.Suggestion = suggestion || criterion.Suggestion // Update suggestion if provided
       criterion.Assessment = sentiment || criterion.Assessment // Update assessment if provided
       criterion.EffortValue = effortLevel || criterion.EffortValue // Update effort level if provided
