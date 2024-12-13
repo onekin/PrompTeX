@@ -76,7 +76,6 @@ class CriterionActions {
                         console.error('Failed to set standarized version:', err)
                       } else {
                         console.log('Standarized version set successfully: ' + array)
-                        window.promptex._overleafManager.displayImprovementOutlineContent()
                         window.promptex._overleafManager.checkAndUpdateStandardized(false)
                       }
                     })
@@ -95,7 +94,10 @@ class CriterionActions {
                       showCancelButton: false,
                       html: true, // Enable HTML rendering in the alert
                       callback: async () => {
-                        await OverleafUtils.scrollToAnnotation(criterionLabel)
+                        window.promptex._overleafManager.displayImprovementOutlineContent()
+                        setTimeout(async () => {
+                          await OverleafUtils.scrollToAnnotation(criterionLabel)
+                        }, 2000)
                       }
                     })
                   } else {
@@ -119,7 +121,10 @@ class CriterionActions {
                       showCancelButton: false,
                       html: true, // Enable HTML rendering in the alert
                       callback: async () => {
-                        await OverleafUtils.scrollToAnnotation(criterionLabel)
+                        window.promptex._overleafManager.displayImprovementOutlineContent()
+                        setTimeout(async () => {
+                          await OverleafUtils.scrollToAnnotation(criterionLabel)
+                        }, 2000)
                       }
                     })
                   }

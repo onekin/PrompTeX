@@ -95,11 +95,11 @@ class OverleafManager {
 
             // Apply background color based on the number
             if (number === 0) {
-              element.style.backgroundColor = 'green' // Set background to green
+              element.style.backgroundColor = '#8ACF8F' // Set background to green
             } else if (number === 1) {
               element.style.backgroundColor = 'yellow' // Set background to yellow
             } else if (number === 2) {
-              element.style.backgroundColor = 'red' // Set background to red
+              element.style.backgroundColor = '#ff6666' // Set background to red
             } else {
               element.style.backgroundColor = '' // Reset background for other cases
             }
@@ -189,6 +189,32 @@ class OverleafManager {
                   const nextNode = parent.childNodes[j]
                   if (nextNode.nodeType === Node.TEXT_NODE && nextNode.textContent.trim() !== '') {
                     desiredTextNode = nextNode.textContent.trim()
+                    console.log('Text node after second punctuation:' + desiredTextNode)
+                    // Check if the previous sibling is a span with class "ol-cm-spelling-error"
+                    const previousNode = nextNode.previousSibling
+                    if (
+                      previousNode &&
+                      previousNode.nodeType === Node.ELEMENT_NODE &&
+                      previousNode.tagName === 'SPAN' &&
+                      previousNode.classList.contains('ol-cm-spelling-error') &&
+                      previousNode.textContent.trim() !== ''
+                    ) {
+                      desiredTextNode = previousNode.textContent.trim() + ' ' + desiredTextNode
+                      console.log('Added text from previous span with spelling error:', previousNode.textContent.trim())
+                    }
+                    // Check if the next sibling is a span with class "ol-cm-spelling-error"
+                    const followingNode = nextNode.nextSibling
+                    if (
+                      followingNode &&
+                      followingNode.nodeType === Node.ELEMENT_NODE &&
+                      followingNode.tagName === 'SPAN' &&
+                      followingNode.classList.contains('ol-cm-spelling-error') &&
+                      followingNode.textContent.trim() !== ''
+                    ) {
+                      desiredTextNode += ' ' + followingNode.textContent.trim()
+                      console.log('Added text from next span with spelling error:', followingNode.textContent.trim())
+                    }
+                    console.log('Text node after second punctuation:', desiredTextNode)
                     break
                   }
                 }
@@ -202,75 +228,55 @@ class OverleafManager {
           } else {
             console.log('Text node after second punctuation not found.')
           }
-
-          // Check if the content matches the format 'text::number'
-          const match = desiredTextNode.match(/(.*)::(\d+)/)
-          const criterion = match[1]
-          if (match) {
-            const number = parseInt(match[2], 10)
-            // Apply background color based on the number
-            if (number === 0) {
-              parent.style.backgroundColor = 'green' // Set background to green
-            } else if (number === 1) {
-              parent.style.backgroundColor = 'yellow' // Set background to yellow
-            } else if (number === 2) {
-              parent.style.backgroundColor = 'red' // Set background to red
-            } else {
-              parent.style.backgroundColor = '' // Reset background for other cases
-            }
-          }
-          /*
-          // Set the display of the first .ol-cm-command-textit element to 'none'
-          commandTextit.style.display = 'none'
-          // Hide the first two .tok-punctuation.ol-cm-punctuation elements
-          const previousSibling = element.previousElementSibling
-          const secondPreviousSibling = previousSibling?.previousElementSibling
-          const nextSibling = element.nextElementSibling
-          if (previousSibling && secondPreviousSibling) {
-            previousSibling.style.display = 'none' // cm-matchingBracket
-            secondPreviousSibling.style.display = 'none' // \promptex
-            nextSibling.style.display = 'none' // cm-punctuation
-            // firstBracket.style.display = 'none'; // cm-punctuation
-          }
-          if (secondPreviousSibling && secondPreviousSibling.textContent && secondPreviousSibling.textContent === 'ex') {
-            const thirdPreviousSibling = secondPreviousSibling.previousElementSibling
-            const forthPreviousSibling = thirdPreviousSibling.previousElementSibling
-            thirdPreviousSibling.style.display = 'none' // cm-punctuation
-            forthPreviousSibling.style.display = 'none' // cm-punctuation
-          }
-          // Select all elements with both classes 'tok-punctuation' and 'ol-cm-punctuation' inside the current item
-          element.querySelectorAll('.tok-punctuation.ol-cm-punctuation').forEach(punctuationElement => {
-            // Hide the punctuation element by setting display to 'none'
-            punctuationElement.style.display = 'none'
-          })  */
-          parent.addEventListener('contextmenu', function (event) {
-            event.preventDefault() // Prevent the default right-click menu
-            let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
-            let info = ''
-            if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-              const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-              info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
-            }
-
-            if (criterionElement && criterionElement.Suggestion) {
-              info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
-
-              if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+          try {
+            // Check if the content matches the format 'text::number'
+            const match = desiredTextNode.match(/(.*)::(\d+)/)
+            const criterion = match[1]
+            if (match) {
+              const number = parseInt(match[2], 10)
+              // Apply background color based on the number
+              if (number === 0) {
+                parent.style.backgroundColor = '#8ACF8F' // Set background to green
+              } else if (number === 1) {
+                parent.style.backgroundColor = 'yellow' // Set background to yellow
+              } else if (number === 2) {
+                parent.style.backgroundColor = '#ff6666' // Set background to red
+              } else {
+                parent.style.backgroundColor = '' // Reset background for other cases
               }
             }
-            if (criterionElement && criterionElement.Annotations) {
-              // Create an HTML list of the found excerpts with improved styling
-              const excerptList = criterionElement.Annotations
-                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                .join('')
-              info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-            }
-            // Show alert with the tooltip message
-            Alerts.infoAnswerAlert({ title: criterion, text: info })
-            return false // Additional return to ensure default action is canceled
-          })
+            parent.addEventListener('contextmenu', function (event) {
+              event.preventDefault() // Prevent the default right-click menu
+              let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
+              let info = ''
+              if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
+                const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
+                info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
+              }
+
+              if (criterionElement && criterionElement.Suggestion) {
+                info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
+
+                if (criterionElement.EffortValue && criterionElement.EffortDescription) {
+                  const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
+                  info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+                }
+              }
+              if (criterionElement && criterionElement.Annotations) {
+                // Create an HTML list of the found excerpts with improved styling
+                const excerptList = criterionElement.Annotations
+                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                  .join('')
+                info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+              }
+              // Show alert with the tooltip message
+              Alerts.infoAnswerAlert({ title: criterion, text: info })
+              return false // Additional return to ensure default action is canceled
+            })
+          } catch (error) {
+            console.error('Failed to parse LLM response:', error)
+            // Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
+          }
         }
       })
     }
@@ -382,7 +388,15 @@ class OverleafManager {
 
     // Define the click handler as a named function to ensure it can be removed
     const clickHandler = async () => {
-      await this.stabilizeContent()
+      Alerts.infoAlert({
+        title: 'Consolidate Content',
+        text: 'Are you sure you want to consolidate the content?',
+        cancelButtonText: 'No',
+        confirmButtonText: 'Yes',
+        callback: async () => {
+          await this.stabilizeContent()
+        }
+      })
     }
 
     if (standarized) {
@@ -654,6 +668,7 @@ class OverleafManager {
               originalDocument = LatexUtils.removeCommentsFromLatex(originalDocument)
               let updatedDocument = this.insertTODOsIntoLatex(originalDocument, json.sections)
               Alerts.closeLoadingWindow()
+              window.promptex._overleafManager.displayImprovementOutlineContent()
               Alerts.showAlertToast('Updated LaTeX document with TODOs')
               OverleafUtils.removeContent(() => {
                 if (window.promptex._overleafManager._sidebar) {
@@ -1038,125 +1053,7 @@ class OverleafManager {
 
   displayImprovementOutlineContent () {
     let newImprovementHeader = document.querySelector('.newImprovementHeader')
-    let newImprovementOutlinePane = document.querySelector('.newImprovementOutlinePane')
-    let caretImprovementIcon = newImprovementHeader.querySelector('.outline-caret-icon')
-    const isHidden = newImprovementHeader.classList.contains('closed')
-    // Toggle between opened and closed state
-    if (isHidden) {
-      newImprovementHeader.classList.replace('closed', 'opened')
-      // Ensure outline body is visible
-      const outlineBody = document.createElement('div')
-      outlineBody.classList.add('outline-body')
-
-      // Create the root list for the items
-      const rootList = document.createElement('ul')
-      rootList.classList.add('outline-item-list', 'outline-item-list-root')
-      rootList.setAttribute('role', 'tree')
-      outlineBody.appendChild(rootList)
-
-      OverleafUtils.generateImprovementOutlineContent(async (outlineContent) => {
-        if (!outlineContent) {
-          Alerts.infoAlert({ title: 'No annotations found', text: 'No annotation found in the document.' })
-        } else {
-          // Iterate through the content to build the outline
-          Object.keys(outlineContent).forEach((category) => {
-            outlineContent[category].forEach((subItem) => {
-              // Create a parent item for each category
-              const categoryLi = document.createElement('li')
-              categoryLi.classList.add('outline-item')
-              categoryLi.setAttribute('role', 'treeitem')
-              categoryLi.setAttribute('aria-expanded', 'true')
-              categoryLi.style.marginLeft = '5px' // Adjust this value as needed
-
-              const categoryDiv = document.createElement('div')
-              categoryDiv.classList.add('outline-item-row')
-
-              const categoryTitle = document.createElement('button')
-              categoryTitle.classList.add('outline-item-link')
-              const categorySpan = document.createElement('span')
-              categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
-              categorySpan.textContent = subItem
-              categoryTitle.appendChild(categorySpan)
-              categoryTitle.setAttribute('data-navigation', '1')
-              categoryTitle.addEventListener('click', async () => {
-                // Get criterion content
-                var match = subItem.match(/^(.+)\s\((\d+)\)$/)
-
-                if (match) {
-                  // match[1] is the name (e.g., 'Artifact Detail')
-                  // match[2] is the number (e.g., '1')
-                  var name = match[1]
-                  var number = match[2]
-
-                  // Get the navigation attribute from the button
-                  var navigation = categoryTitle.getAttribute('data-navigation')
-
-                  // Log the extracted name, number, and navigation attribute
-                  console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
-                  await OverleafUtils.scrollToImprovementContent(name, parseInt(navigation))
-                  if (navigation === number) {
-                    categoryTitle.setAttribute('data-navigation', '1')
-                  } else {
-                    let newNavigation = (parseInt(navigation) + 1).toString()
-                    categoryTitle.setAttribute('data-navigation', newNavigation)
-                  }
-                }
-              })
-              categoryDiv.appendChild(categoryTitle)
-              categoryLi.appendChild(categoryDiv)
-              rootList.appendChild(categoryLi)
-            })
-          })
-          let treeDiv = document.getElementById('panel-file-tree')
-          // Change the data-panel-size attribute
-          treeDiv.setAttribute('data-panel-size', '80.5') // You can set it to any value
-          // Change the flex style property
-          treeDiv.style.flex = '80.5 1 0px' // Update the first number to match the new panel size
-          let separator = treeDiv.nextElementSibling
-          // Change the 'data-panel-resize-handle-enabled' attribute to 'true'
-          separator.setAttribute('data-panel-resize-handle-enabled', 'true')
-          // Change the 'aria-valuenow' attribute to '55'
-          separator.setAttribute('aria-valuenow', '80')
-          // Select the inner div with the class 'vertical-resize-handle'
-          const innerHandle = separator.querySelector('.vertical-resize-handle')
-          // Mouse down starts the resizing
-          let isResizing = false
-          innerHandle.addEventListener('mousedown', (e) => {
-            isResizing = true
-            document.body.style.cursor = 'row-resize' // Change the cursor when resizing
-          })
-          document.addEventListener('mousemove', (e) => {
-            if (isResizing) {
-              const panelOutline = document.getElementById('panel-outline')
-              const newSize = e.clientY // Use the Y position of the mouse to calculate the new size
-              panelOutline.style.flex = `${newSize} 1 0px` // Adjust flex-grow// property dynamically
-              panelOutline.setAttribute('data-panel-size', newSize) // Update the data attribute
-            }
-          })
-          document.addEventListener('mouseup', () => {
-            isResizing = false
-            document.body.style.cursor = 'default' // Reset the cursor
-          })
-          // Add the 'vertical-resize-handle-enabled' class to the inner div
-          innerHandle.classList.add('vertical-resize-handle-enabled')
-          let panelOutline = separator.nextElementSibling
-          // Change the 'data-panel-size' attribute to '44.8'
-          panelOutline.setAttribute('data-panel-size', '44.8')
-          // Change the 'flex' value in the style property
-          panelOutline.style.flex = '44.8 1 0px'
-          // Add the outline body to the pane, and let it push content down
-          newImprovementOutlinePane.appendChild(outlineBody)
-        }
-      })
-    } else {
-      newImprovementHeader.classList.replace('opened', 'closed')
-      const outlineBody = newImprovementOutlinePane.querySelector('.outline-body')
-      if (outlineBody) {
-        newImprovementOutlinePane.removeChild(outlineBody) // Remove from DOM
-      }
-    }
-    caretImprovementIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
-    // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
+    newImprovementHeader.click()
   }
 
   showCriteriaSidebar (defaultList = 0) {
