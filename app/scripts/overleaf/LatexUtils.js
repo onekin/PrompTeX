@@ -1,5 +1,4 @@
 const Utils = require('../utils/Utils')
-const Alerts = require('../utils/Alerts')
 
 class LatexUtils {
   static ensurePromptexCommandExists (latexText) {
@@ -87,9 +86,6 @@ class LatexUtils {
     } else if (abstractMatch) {
       // If an abstract is found and no keywords section, remove everything before and including the abstract section
       processedContent = processedContent.substring(abstractMatch.index + abstractMatch[0].length)
-    } else {
-      // If neither keywords nor abstract is found, display an alert
-      Alerts.info({ title: 'No abstract or keywords found for the paper', text: 'Please ensure that the paper contains an abstract or keywords section.' })
     }
 
     // Remove excessive newlines (keep at most one consecutive newline)

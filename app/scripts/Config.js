@@ -15,7 +15,8 @@ const Config = {
   prompts: {
     annotatePrompt: 'Research Paper Context: [The research paper is provided above as a LaTeX file]' +
       '-CONTEXT: \n' +
-      'We are drafting a research paper using LaTeX. The current document represents the ongoing version of the manuscript. In line with the knowledge-transforming model of writing, the focus is on enhancing the content space, which includes the exploration of knowledge, problem analysis, and hypothesis formulation. This process aims to ensure that the manuscript effectively addresses specified criteria, reflecting rigor, coherence, and depth in its conceptual and empirical contributions. Your evaluation will involve assessing these content-specific dimensions, proposing actionable improvements, and analyzing the effort required for implementing these changes.\n' +
+      'The zero draft, often termed as the preliminary, unpolished version of a research paper, holds a pivotal role in the research process.\n' +
+      'We are drafting a research paper draft using LaTeX. The current document represents the ongoing version of the manuscript. In line with the knowledge-transforming model of writing, the focus is on enhancing the content space, which includes the exploration of knowledge, problem analysis, and hypothesis formulation. This process aims to ensure that the manuscript effectively addresses specified criteria, reflecting rigor, coherence, and depth in its conceptual and empirical contributions. Your evaluation will involve assessing these content-specific dimensions, proposing actionable improvements, and analyzing the effort required for implementing these changes.\n' +
       '-TASK: \n' +
       'Given the context provided, assess the document based on the specified criterion below:\n' +
       'Criterion Name: [C_NAME]\n' +
@@ -23,28 +24,31 @@ const Config = {
       '\n' +
       'Your task is to:\n' +
       '\n' +
-      'Identify Relevant Excerpts: Select up to three short excerpts from the document that directly relate to the criterion. Each excerpt must:\n' +
+      'Identify Relevant Excerpts: Select up to THREE short excerpts from the document that directly relate to the criterion. Each excerpt must:\n' +
       '- Include the original LaTeX syntax (e.g., \\textit{}, \\cite{}, \\footnote{}) as written in the document.\n' +
       '- Serve as evidence for your assessment of how well the criterion is met.\n' +
       '\n' +
-      'Evaluate the Criterion: Determine whether the document meets the criterion using one of the following labels:\n' +
+      'Evaluate the Criterion: Assessment of whether the criterion is met in the provided research paper. Provide reasons and arguments.' +
+      'Determine whether the document meets the criterion using one of the following labels:\n' +
       '- Green: The paper fully meets the criterion.\n' +
       '- Yellow: The paper partially meets the criterion.\n' +
       '- Red: The paper does not meet the criterion.\n' +
       '\n' +
       'Provide Suggestions for Improvement:\n' +
+      '- Suggestions should clearly outline what to improve and how to improve it. Avoid vague or general recommendations.\n' +
       '- Offer detailed, actionable suggestions to address gaps or improve the document’s alignment with the criterion.\n' +
+      '- Provide specific examples or explanations to guide revisions and highlight important insights or problems the author may not have noticed.\n' +
       '- Classify the level of effort required for each suggestion as green (low effort), yellow (moderate effort), or red (high effort),\n' +
       'considering factors like time, resource availability, access to subjects, or technical skills.\n' +
       '- Provide a brief explanation for the effort classification.\n' +
       '-OUTPUT FORMAT:\n' +
       'You have to provide the answer in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
-      '  "assessment": "[Provide an evaluation of how well the document meets the criterion. You can based your answer in the excerpts]",\n' +
+      '  "assessment": "[Provide an evaluation of how well the document meets the criterion. You can based your answer in the excerpts. Provide reasons and arguments.]",\n' +
       '  "sentiment": "[Use one of these values: green, yellow, red]",\n' +
-      '  "suggestionForImprovement": "[Provide detailed, actionable suggestions to address gaps or improve the document’s alignment with the criterion]",\n' +
+      '  "suggestionForImprovement": "[Provide detailed, actionable suggestions to address gaps or improve the document’s alignment with the criterion. You must provide specific and actionable suggestions for improvement, offer enough detail to help me address the highlighted issues,  introduce relevant examples or explanations to guide revisions and highlight important insights or problems author had not noticed before]",\n' +
       '  "effortLevel": "[Classify the effort required for the suggested improvement: green (low), yellow (moderate), red (high)]",\n' +
-      '  "effortDescription": "[Provide a detailed explanation of the required effort, considering time, resources, access, or technical skills]",\n' +
+      '  "effortDescription": "[Provide a detailed explanation of the required effort, considering time, resources, access, or technical skills. Provide a list of actionable]",\n' +
       '  "claims": [\n' +
       '    {\n' +
       '      "excerpt": "[Include a relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.]",\n' +

@@ -119,9 +119,11 @@ class CriteriaDatabaseClient {
       if (!criterion) {
         return reject(new Error(`Criterion '${criterionLabel}' does not exist in any category of '${listName}'.`))
       }
-
+      console.log(excerpts)
+      let newExcerpts = excerpts
+      console.log(newExcerpts)
       // Update the criterion with the provided values
-      criterion.Annotations = excerpts // Update annotations if provided
+      criterion.Annotations = newExcerpts
       criterion.Suggestion = suggestion || criterion.Suggestion // Update suggestion if provided
       criterion.Assessment = sentiment || criterion.Assessment // Update assessment if provided
       criterion.EffortValue = effortLevel || criterion.EffortValue // Update effort level if provided

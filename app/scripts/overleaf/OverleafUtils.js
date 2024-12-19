@@ -676,12 +676,12 @@ class OverleafUtils {
     // retrieve the database and current criteria list
     let db = window.promptex.storageManager.client.projectDatabase.criterionSchemas
     let currentCriteriaList = window.promptex._overleafManager._currentCriteriaList
-
+    let dbCopy = JSON.parse(JSON.stringify(db[currentCriteriaList]))
     // Clear all annotations in the database for the specific category in currentCriteriaList before adding new ones
-    if (db[currentCriteriaList]) {
-      for (let attributeType in db[currentCriteriaList]) {
-        for (let criterion in db[currentCriteriaList][attributeType]) {
-          db[currentCriteriaList][attributeType][criterion].Annotations = [] // Reset the Annotations array
+    if (dbCopy) {
+      for (let attributeType in dbCopy) {
+        for (let criterion in dbCopy[attributeType]) {
+          dbCopy[attributeType][criterion].Annotations = [] // Reset the Annotations array
         }
       }
     }
@@ -700,15 +700,12 @@ class OverleafUtils {
           excerpt: match ? match[3] : null // Capture the excerpt (second argument)
         }
       }).filter(item => item.label !== null && item.excerpt !== null)
-
       // Add the annotations to the database only for the currentCriteriaList category
       criterionAnnotations.forEach(({ label, excerpt }) => {
-        if (db[currentCriteriaList]) {
-          for (let attributeType in db[currentCriteriaList]) {
-            if (db[currentCriteriaList][attributeType][label]) {
-              // Push the excerpt into the Annotations array
-              db[currentCriteriaList][attributeType][label].Annotations.push(excerpt)
-            }
+        for (let attributeType in dbCopy) {
+          if (dbCopy[attributeType][label]) {
+            // Push the excerpt into the Annotations array
+            dbCopy[attributeType][label].Annotations.push(excerpt)
           }
         }
       })
@@ -718,11 +715,11 @@ class OverleafUtils {
         .then(() => {
           console.log('Annotations updated successfully')
           // Iterate through each attribute type (e.g., 'Essential Attributes', 'Desirable Attributes')
-          if (db[currentCriteriaList]) {
-            for (let attributeType in db[currentCriteriaList]) {
+          if (dbCopy) {
+            for (let attributeType in dbCopy) {
               // Iterate through each criterion in the attribute type
-              for (let criterion in db[currentCriteriaList][attributeType]) {
-                const criterionData = db[currentCriteriaList][attributeType][criterion]
+              for (let criterion in dbCopy[attributeType]) {
+                const criterionData = dbCopy[attributeType][criterion]
                 const annotationCount = criterionData.Annotations.length
                 // If the criterion has annotations, we add it to the corresponding category in outlineContent
                 if (annotationCount > 0) {

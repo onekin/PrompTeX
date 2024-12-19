@@ -54,8 +54,122 @@ class OverleafManager {
         this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
         this._standardized = window.promptex.storageManager.client.getStandardizedStatus()
         console.log('Standardized:', this._standardized)
+        // Example usage: listen for mouseup events
+        document.addEventListener('mouseup', (e) => {
+          e.stopPropagation() // Prevent propagation
+          if (this.isSelectionInsidePanel()) {
+            console.log('Selection is inside the "panel-ide" element.')
+            const selection = window.getSelection() // Get the selected text
+            let selectedText
+
+            if (window.getSelection) {
+              selectedText = window.getSelection().toString()
+            } else if (document.selection && document.selection.type !== 'Control') {
+              selectedText = document.selection.createRange().text
+            }
+
+            console.log('Selected text:', selectedText)
+
+            // If there is selected text, show the button
+            if (selectedText.trim()) {
+              const range = selection.getRangeAt(0)
+              const rect = range.getBoundingClientRect()
+
+              // Use setTimeout to delay button creation
+              setTimeout(() => {
+                const button = this.createPopupButton(selectedText)
+                button.style.top = `${window.scrollY + rect.top - 30}px` // Position 30px above the text
+                button.style.left = `${window.scrollX + rect.left}px`
+                document.body.appendChild(button)
+
+                const button2 = this.createPopupButton2(selectedText)
+                button2.style.top = `${window.scrollY + rect.top - 30}px`
+                button2.style.left = `${window.scrollX + rect.left + 100}px`
+                document.body.appendChild(button2)
+              }, 0) // Delay by a minimal timeout to allow `mouseup` to complete
+            } else {
+              this.removePopupButton() // Remove the button if no text is selected
+            }
+          } else {
+            console.log('Selection is outside the "panel-ide" element.')
+          }
+        })
       })
     }
+  }
+
+  createPopupButton (selectedText) {
+    // Check if the button already exists
+    let button = document.getElementById('popup-button')
+    if (!button) {
+      // Create a new button element
+      button = document.createElement('button')
+      button.id = 'popup-button'
+      button.textContent = 'bullet2text'
+      button.style.position = 'absolute'
+      button.style.zIndex = '1000'
+      button.style.padding = '5px 10px'
+      button.style.border = 'none'
+      button.style.background = 'blue'
+      button.style.color = 'white'
+      button.style.borderRadius = '5px'
+      button.style.cursor = 'pointer'
+
+      // Add a click event to the button
+      button.addEventListener('click', () => {
+        Alerts.infoAlert({ title: 'Selected Text', text: selectedText })
+      })
+    }
+    return button
+  }
+
+  createPopupButton2 (selectedText) {
+    // Check if the button already exists
+    let button = document.getElementById('popup-button2')
+    if (!button) {
+      // Create a new button element
+      button = document.createElement('button')
+      button.id = 'popup-button2'
+      button.textContent = 'text2text'
+      button.style.position = 'absolute'
+      button.style.zIndex = '1000'
+      button.style.padding = '5px 10px'
+      button.style.border = 'none'
+      button.style.background = 'blue'
+      button.style.color = 'white'
+      button.style.borderRadius = '5px'
+      button.style.cursor = 'pointer'
+
+      // Add a click event to the button
+      button.addEventListener('click', () => {
+        Alerts.infoAlert({ title: 'Selected Text', text: selectedText })
+      })
+    }
+    return button
+  }
+
+  removePopupButton () {
+    // Remove the button if it exists
+    const button = document.getElementById('popup-button')
+    if (button) {
+      button.remove()
+    }
+    const button2 = document.getElementById('popup-button2')
+    if (button2) {
+      button2.remove()
+    }
+  }
+
+  isSelectionInsidePanel () {
+    const panel = document.getElementById('panel-ide') // Get the "panel-ide" element
+    const selection = window.getSelection() // Get the current selection
+
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0) // Get the first range of the selection
+      const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
+      return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+    }
+    return false // No selection or not inside the panel
   }
 
   monitorEditorContent () {
@@ -142,7 +256,7 @@ class OverleafManager {
 
               if (criterionElement.EffortValue && criterionElement.EffortDescription) {
                 const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                criterionElement.Annotations += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
+                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
               }
             }
             if (criterionElement && criterionElement.Annotations) {
@@ -189,7 +303,6 @@ class OverleafManager {
                   const nextNode = parent.childNodes[j]
                   if (nextNode.nodeType === Node.TEXT_NODE && nextNode.textContent.trim() !== '') {
                     desiredTextNode = nextNode.textContent.trim()
-                    console.log('Text node after second punctuation:' + desiredTextNode)
                     // Check if the previous sibling is a span with class "ol-cm-spelling-error"
                     const previousNode = nextNode.previousSibling
                     if (
@@ -214,7 +327,6 @@ class OverleafManager {
                       desiredTextNode += ' ' + followingNode.textContent.trim()
                       console.log('Added text from next span with spelling error:', followingNode.textContent.trim())
                     }
-                    console.log('Text node after second punctuation:', desiredTextNode)
                     break
                   }
                 }
@@ -223,9 +335,7 @@ class OverleafManager {
             }
           }
           // Log the desired text node
-          if (desiredTextNode) {
-            console.log('Text node after second punctuation:', desiredTextNode)
-          } else {
+          if (!desiredTextNode) {
             console.log('Text node after second punctuation not found.')
           }
           try {
@@ -274,7 +384,7 @@ class OverleafManager {
               return false // Additional return to ensure default action is canceled
             })
           } catch (error) {
-            console.error('Failed to parse LLM response:', error)
+            // console.error('Failed to parse LLM response:', error)
             // Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
           }
         }
@@ -819,7 +929,7 @@ class OverleafManager {
         // Ensure outline body is visible
         const outlineBody = document.createElement('div')
         outlineBody.classList.add('outline-body')
-
+        outlineBody.classList.add('newImprovementOutlineBody')
         // Create the root list for the items
         const rootList = document.createElement('ul')
         rootList.classList.add('outline-item-list', 'outline-item-list-root')
@@ -1053,7 +1163,13 @@ class OverleafManager {
 
   displayImprovementOutlineContent () {
     let newImprovementHeader = document.querySelector('.newImprovementHeader')
-    newImprovementHeader.click()
+    let newImprovementOutlineBody = document.querySelector('.newImprovementOutlineBody')
+    if (newImprovementHeader && newImprovementOutlineBody) {
+      newImprovementHeader.click()
+      newImprovementHeader.click()
+    } else {
+      newImprovementHeader.click()
+    }
   }
 
   showCriteriaSidebar (defaultList = 0) {
@@ -1133,10 +1249,11 @@ class OverleafManager {
             console.log('Database reset successfully.')
             alert('Database has been reset to default.')
             // Optionally reload the criteria list to reflect the reset state
-            this.loadCriteriaList(Object.keys(window.promptex.storageManager.client.getSchemas())[0], window.promptex.storageManager.client.getSchemas())
-            const originalDocument = await OverleafUtils.getAllEditorContent()
-            let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
-            OverleafUtils.insertContent(documents)
+            // this.loadCriteriaList(Object.keys(window.promptex.storageManager.client.getSchemas())[0], window.promptex.storageManager.client.getSchemas())
+            // const originalDocument = await OverleafUtils.getAllEditorContent()
+            // let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
+            // OverleafUtils.insertContent(documents)
+            window.location.reload()
             // window.location.reload()
           }
         })
