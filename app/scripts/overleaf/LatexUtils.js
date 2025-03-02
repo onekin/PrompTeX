@@ -38,6 +38,16 @@ class LatexUtils {
     return originalLatex
   }
 
+  static addCommentsToLatexRoles (originalLatex, excerpts, sentiment, role, feedback) {
+    let sentimentColor = Utils.sentimentToNumber(sentiment.toLowerCase())
+    excerpts.forEach(excerpt => {
+      let commentCommand = `\n\\promptex{\\textit{${role}-${feedback}::${sentimentColor}}}{${excerpt}}\n`
+      // Add the \mycomment after each occurrence of the excerpt in the latex file
+      originalLatex = originalLatex.replace(excerpt, `${commentCommand}`)
+    })
+    return originalLatex
+  }
+
   static removeCommentsFromLatex (originalLatex) {
     // Define a regex to match \promptex{first}{second}, capturing the second parameter content
     const commentRegex = /\\promptex\{.*?\}\{(.*?)\}/gs

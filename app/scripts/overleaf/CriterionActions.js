@@ -145,6 +145,106 @@ class CriterionActions {
       })
     })
   }
+
+  static async askForFeedback (document, prompt, roleName) {
+    Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
+    chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
+      if (llm === '') {
+        llm = Config.review.defaultLLM
+      }
+      const llmProvider = llm.modelType
+      Alerts.showLoadingWindowDuringProcess('Waiting ' + llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1) + ' to answer...')
+      chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
+        if (apiKey !== null && apiKey !== '') {
+          let callback = (json) => {
+            Alerts.closeLoadingWindow()
+            console.log(json)
+            const cleanExcerpts = json.claims.map(claim => {
+              // Convert the excerpt into a string with escape characters interpreted
+              let cleanedExcerpt = JSON.stringify(claim.excerpt)
+                .replace(/\\\\/g, '\\') // Replace double backslashes with a single backslash
+                .slice(1, -1) // Remove the quotes added by JSON.stringify
+              return cleanedExcerpt
+            })
+            console.log(cleanExcerpts)
+            let foundExcerpts = []
+            let notFoundExcerpts = []
+            cleanExcerpts.forEach(excerpt => {
+              if (document.includes(excerpt)) {
+                console.log(`Excerpt found for ${roleName}: "${excerpt}"`)
+                foundExcerpts.push(excerpt)
+              } else {
+                console.log(`Excerpt not found for ${roleName}: "${excerpt}"`)
+                notFoundExcerpts.push(excerpt)
+              }
+            })
+            // let excerpts = foundExcerpts.concat(notFoundExcerpts)
+            let sentiment = json.sentiment
+            let feedback = json.feedback
+            // Call CriteriaDatabaseClient to update the criterion
+            let newContent = LatexUtils.addCommentsToLatexRoles(document, cleanExcerpts, sentiment, roleName, feedback)
+            newContent = LatexUtils.ensurePromptexCommandExists(newContent)
+            OverleafUtils.removeContent(async () => {
+              OverleafUtils.insertContent(newContent)
+              window.promptex._overleafManager._readingDocument = false
+              if (foundExcerpts.length === 0) {
+                Alerts.showWarningWindow('No excerpt found in the document for ' + roleName)
+                // Create an HTML list of the found excerpts with improved styling
+                const excerptList = notFoundExcerpts
+                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                  .join('')
+                let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                // htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
+                Alerts.infoAlert({
+                  text: ` ${htmlContent}`,
+                  title: `Retrieved excerpts do not match with the document text.`,
+                  showCancelButton: false,
+                  html: true, // Enable HTML rendering in the alert
+                  callback: async () => {
+                    console.log('finished')
+                  }
+                })
+              } else {
+                // Create an HTML list of the found excerpts with improved styling
+                const excerptList = foundExcerpts
+                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                  .join('')
+                let htmlContent = ''
+                // htmlContent += `<p style="margin-top: 10px;"><b>Suggestion for improvement:</b> ${suggestion}</p>`
+                htmlContent += `<h4>Annotated content:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                if (notFoundExcerpts.length > 0) {
+                  // Create an HTML list of the found excerpts with improved styling
+                  const notFoundExcerptList = notFoundExcerpts
+                    .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                    .join('')
+                  htmlContent += `<h4>The AI also retrieved these excerpts that can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${notFoundExcerptList}</ul>`
+                }
+                Alerts.infoAlert({
+                  text: ` ${htmlContent}`,
+                  title: `Excerpt(s) found for ${roleName}`,
+                  showCancelButton: false,
+                  html: true, // Enable HTML rendering in the alert
+                  callback: async () => {
+                    console.log('finished')
+                  }
+                })
+              }
+            }).catch(err => {
+              console.error('Failed to update criterion:', err)
+            })
+          }
+          LLMClient.simpleQuestion({
+            apiKey: apiKey,
+            prompt: prompt,
+            llm: llm,
+            callback: callback
+          })
+        } else {
+          Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
+        }
+      })
+    })
+  }
 }
 
 module.exports = CriterionActions

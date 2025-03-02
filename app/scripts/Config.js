@@ -12,6 +12,28 @@ const Config = {
       }
     }
   },
+  roles: {
+    validator: {
+      name: ' Validate',
+      description: 'You have to act as a Validator to validate the content. Evaluates correctness, consistency, and logical coherence of existing content without suggesting improvements.'
+    },
+    enhancer: {
+      name: 'Enhance',
+      description: 'You have to act as a Enhancer, you have to suggest improvements in content and rhetoric such as Refine clarity, readability, and effectiveness while preserving meaning and structure.'
+    },
+    gapFiller: {
+      name: 'Gap Filling',
+      description: 'You have to act as a Gap-Filler  you have to look to Identify and addresses missing elements to ensure structural completeness without modifying existing content.'
+    },
+    alternativeProvider: {
+      name: 'Alternatives',
+      description: 'You have to act as a Alternative-Provider  you have to look to Generate entirely new perspectives, theories, or approaches without evaluating or refining the original content.'
+    },
+    unityBuilder: {
+      name: 'Unify',
+      description: 'You have to act as a Unity-Builder, you have to look to Strengthen coherence by connecting disparate elements into a unified whole without altering individual components.'
+    }
+  },
   prompts: {
     annotatePrompt: 'Research Paper Context: [The research paper is provided above as a LaTeX file]' +
       '-CONTEXT: \n' +
@@ -62,6 +84,33 @@ const Config = {
       '  ]\n' +
       '}\n' +
       'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process.',
+    getFeedback: '-[CONTENT]\n' +
+      '-TASK: \n' +
+      'Given the provided, assess the document to provide feedback on [ROLE].\n' +
+      '[NOTE]' +
+      '\n' +
+      'Identify Relevant Excerpts: Select up to [NUMBER] short excerpts from the document that directly relate to the task. Each excerpt must:\n' +
+      '- Include the original LaTeX syntax (e.g., \\textit{}, \\cite{}, \\footnote{}) as written in the document.\n' +
+      '- Serve as evidence for your assessment of how well the criterion is met.\n' +
+      '\n' +
+      'Determine whether the provided content meets the task asked to you using one of the following labels:\n' +
+      '- Green: The content fully meets the task.\n' +
+      '- Yellow: The content partially meets the task.\n' +
+      '- Red: The content does not meet the task.\n' +
+      '\n' +
+      '-OUTPUT FORMAT:\n' +
+      'You have to provide the answer in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
+      '{\n' +
+      '  "feedback": "[Provide your feedback. You can based your answer in the excerpts.]",\n' +
+      '  "sentiment": "[Use one of these values: green, yellow, red]",\n' +
+      '  "claims": [\n' +
+      '    {\n' +
+      '      "excerpt": "Include a relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.",\n' +
+      '    },\n' +
+      ' ... ' +
+      '  ]\n' +
+      '}\n' +
+      'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process. For the claims provide [NUMBER] excerpts in the array.',
     newSectionPrompt: 'RESEARCH PAPER: [The research paper is provided above as a LaTeX file]\n' +
       'CONTEXT: We are writing a research paper. I' +
       'This review will help ensure consistency, accuracy, and alignment with the overall objectives of the paper.' +

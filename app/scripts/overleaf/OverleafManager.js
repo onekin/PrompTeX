@@ -47,8 +47,8 @@ class OverleafManager {
       this._project = project
       this.loadStorage(project, () => {
         console.log(window.promptex.storageManager.client.getSchemas())
-        that.addButton()
-        that.addStabilizeButton()
+        // that.addButton()
+        // that.addStabilizeButton()
         that.addOutlineButton()
         that.monitorEditorContent()
         this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
@@ -74,19 +74,46 @@ class OverleafManager {
             if (selectedText.trim()) {
               const range = selection.getRangeAt(0)
               const rect = range.getBoundingClientRect()
-
-              // Use setTimeout to delay button creation
+              let scope = ''
+              let humanNote = ''
+              if (selectedText.trim().includes('\\title{')) {
+                scope = 'document'
+              } else if (selectedText.trim().includes('\\section{')) {
+                scope = 'section'
+              } else {
+                scope = 'text'
+              }
+              if (selectedText.trim().includes('\\humanNote{')) {
+                let notes = this.extractHumanNote(selectedText)
+                if (notes) {
+                  humanNote = notes[0]
+                }
+              }
+              console.log(scope)
               setTimeout(() => {
-                const button = this.createPopupButton(selectedText)
-                button.style.top = `${window.scrollY + rect.top - 30}px` // Position 30px above the text
-                button.style.left = `${window.scrollX + rect.left}px`
-                document.body.appendChild(button)
+                let roles = Object.values(Config.roles)
+                console.log("Roles:", roles) // Debugging log
 
-                const button2 = this.createPopupButton2(selectedText)
-                button2.style.top = `${window.scrollY + rect.top - 30}px`
-                button2.style.left = `${window.scrollX + rect.left + 100}px`
-                document.body.appendChild(button2)
-              }, 0) // Delay by a minimal timeout to allow `mouseup` to complete
+                if (roles.length === 0) {
+                  console.warn("No roles found!")
+                  return; // Prevents errors if roles are empty
+                }
+
+                const fixedWidth = 100 // Fixed width for all buttons
+                const gap = 20 // Space between buttons
+                const offset = 150 // Adjust this value to move buttons more to the right
+
+                const totalWidth = roles.length * (fixedWidth + gap) - gap // Total width of all buttons
+                const startPosition = window.scrollX + rect.left - totalWidth / 2 + offset // Shift right
+
+                roles.forEach((role, index) => {
+                  console.log("Creating button for:", role.name)
+                  const button = this.createPopupButton(selectedText, role.name, scope, humanNote)
+                  button.style.top = `${window.scrollY + rect.top - 40}px` // Position slightly higher
+                  button.style.left = `${startPosition + index * (fixedWidth + gap)}px` // Equal spacing
+                  document.body.appendChild(button)
+                })
+              }, 0)
             } else {
               this.removePopupButton() // Remove the button if no text is selected
             }
@@ -98,66 +125,93 @@ class OverleafManager {
     }
   }
 
-  createPopupButton (selectedText) {
-    // Check if the button already exists
-    let button = document.getElementById('popup-button')
+  createPopupButton (selectedText, role, scope, humanNote) {
+    let buttonId = `popup-button-${role.replace(/\s+/g, '-').toLowerCase()}`
+    let button = document.getElementById(buttonId)
+
     if (!button) {
-      // Create a new button element
       button = document.createElement('button')
-      button.id = 'popup-button'
-      button.textContent = 'bullet2text'
+      button.id = buttonId
+      button.textContent = role
       button.style.position = 'absolute'
       button.style.zIndex = '1000'
-      button.style.padding = '5px 10px'
+      button.style.width = '100px' // Fixed width for all buttons
+      button.style.height = '40px' // Fixed height for uniformity
+      button.style.padding = '5px 0' // Adjust padding to center text
+      button.style.textAlign = 'center' // Ensure text is centered
       button.style.border = 'none'
       button.style.background = 'blue'
       button.style.color = 'white'
       button.style.borderRadius = '5px'
       button.style.cursor = 'pointer'
+      button.style.fontSize = '14px' // Ensure uniform text size
 
-      // Add a click event to the button
-      button.addEventListener('click', () => {
-        Alerts.infoAlert({ title: 'Selected Text', text: selectedText })
-      })
-    }
-    return button
-  }
-
-  createPopupButton2 (selectedText) {
-    // Check if the button already exists
-    let button = document.getElementById('popup-button2')
-    if (!button) {
-      // Create a new button element
-      button = document.createElement('button')
-      button.id = 'popup-button2'
-      button.textContent = 'text2text'
-      button.style.position = 'absolute'
-      button.style.zIndex = '1000'
-      button.style.padding = '5px 10px'
-      button.style.border = 'none'
-      button.style.background = 'blue'
-      button.style.color = 'white'
-      button.style.borderRadius = '5px'
-      button.style.cursor = 'pointer'
-
-      // Add a click event to the button
-      button.addEventListener('click', () => {
-        Alerts.infoAlert({ title: 'Selected Text', text: selectedText })
+      // Click event
+      button.addEventListener('click', async () => {
+        let scopeText
+        let numberOfExcerpts
+        Alerts.infoAlert({ title: role, text: selectedText })
+        let editor = OverleafUtils.getActiveEditor()
+        if (editor === 'Visual Editor') {
+          OverleafUtils.toggleEditor()
+        }
+        Alerts.showLoadingWindowDuringProcess('Reading document content...')
+        let documents = await OverleafUtils.getAllEditorContent()
+        if (scope === 'document') {
+          numberOfExcerpts = 3
+          scopeText = 'RESEARCH_PAPER: [' + LatexUtils.processTexDocument(documents) + ']'
+          Alerts.closeLoadingWindow()
+          console.log('SCOPE:\n')
+          console.log(scopeText)
+        } else if (scope === 'section') {
+          numberOfExcerpts = 2
+          const sectionsArray = OverleafUtils.extractSections(documents)
+          console.log(sectionsArray)
+          const sectionsFromText = this.extractSectionsFromText(selectedText)
+          console.log(sectionsFromText)
+          const firstSection = sectionsFromText[0]
+          const scopedSection = sectionsArray.find(section => section.title === firstSection)
+          console.log('SCOPE:\n')
+          scopeText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
+          console.log(scopeText)
+          Alerts.closeLoadingWindow()
+        } else if (scope === 'text') {
+          numberOfExcerpts = 1
+          console.log('SCOPE:\n')
+          scopeText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
+        }
+        const selectedRole = Object.values(Config.roles).find(el => el.name === role)
+        console.log(selectedRole)
+        let description = selectedRole.description
+        console.log(description)
+        let prompt = Config.prompts.getFeedback
+        prompt = prompt.replaceAll('[CONTENT]', scopeText)
+        prompt = prompt.replaceAll('[ROLE]', description)
+        prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
+        prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
+        await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
       })
     }
     return button
   }
 
   removePopupButton () {
-    // Remove the button if it exists
-    const button = document.getElementById('popup-button')
-    if (button) {
+    // Select all buttons that match the pattern "popup-button-*"
+    document.querySelectorAll('[id^="popup-button-"]').forEach(button => {
       button.remove()
-    }
-    const button2 = document.getElementById('popup-button2')
-    if (button2) {
-      button2.remove()
-    }
+    })
+  }
+
+  extractSectionsFromText (text) {
+    const sectionPattern = /\\section{(.*?)}/g // RegEx pattern to capture content inside \section{}
+    const matches = [...text.matchAll(sectionPattern)] // Extract all matches
+    return matches.map(match => match[1]) // Return only the content inside {}
+  }
+
+  extractHumanNote (text) {
+    const sectionPattern = /\\humanNote{(.*?)}/g // RegEx pattern to capture content inside \section{}
+    const matches = [...text.matchAll(sectionPattern)] // Extract all matches
+    return matches.map(match => match[1]) // Return only the content inside {}
   }
 
   isSelectionInsidePanel () {
