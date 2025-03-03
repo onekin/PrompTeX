@@ -179,58 +179,62 @@ class CriterionActions {
               }
             })
             // let excerpts = foundExcerpts.concat(notFoundExcerpts)
-            let sentiment = json.sentiment
-            let feedback = json.feedback
-            // Call CriteriaDatabaseClient to update the criterion
-            let newContent = LatexUtils.addCommentsToLatexRoles(document, cleanExcerpts, sentiment, roleName, feedback)
+            let feedback = {}
+            feedback.sentiment = json.sentiment
+            feedback.comment = json.feedback
+            // Call CriteriaDatabaseClient to update the
+            let commentID = LatexUtils.generateId()
+            let newContent = LatexUtils.addCommentsToLatexRoles(document, cleanExcerpts, feedback.sentiment, roleName, feedback, commentID)
             newContent = LatexUtils.ensurePromptexCommandExists(newContent)
-            OverleafUtils.removeContent(async () => {
-              OverleafUtils.insertContent(newContent)
-              window.promptex._overleafManager._readingDocument = false
-              if (foundExcerpts.length === 0) {
-                Alerts.showWarningWindow('No excerpt found in the document for ' + roleName)
-                // Create an HTML list of the found excerpts with improved styling
-                const excerptList = notFoundExcerpts
-                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                  .join('')
-                let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-                // htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
-                Alerts.infoAlert({
-                  text: ` ${htmlContent}`,
-                  title: `Retrieved excerpts do not match with the document text.`,
-                  showCancelButton: false,
-                  html: true, // Enable HTML rendering in the alert
-                  callback: async () => {
-                    console.log('finished')
-                  }
-                })
-              } else {
-                // Create an HTML list of the found excerpts with improved styling
-                const excerptList = foundExcerpts
-                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                  .join('')
-                let htmlContent = ''
-                // htmlContent += `<p style="margin-top: 10px;"><b>Suggestion for improvement:</b> ${suggestion}</p>`
-                htmlContent += `<h4>Annotated content:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-                if (notFoundExcerpts.length > 0) {
+            window.promptex.storageManager.client.createNewFeedback(feedback, commentID, () => {
+              OverleafUtils.removeContent(async () => {
+                OverleafUtils.insertContent(newContent)
+                window.promptex._overleafManager._readingDocument = false
+                if (foundExcerpts.length === 0) {
+                  Alerts.showWarningWindow('No excerpt found in the document for ' + roleName)
                   // Create an HTML list of the found excerpts with improved styling
-                  const notFoundExcerptList = notFoundExcerpts
+                  const excerptList = notFoundExcerpts
                     .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
                     .join('')
-                  htmlContent += `<h4>The AI also retrieved these excerpts that can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${notFoundExcerptList}</ul>`
-                }
-                Alerts.infoAlert({
-                  text: ` ${htmlContent}`,
-                  title: `Excerpt(s) found for ${roleName}`,
-                  showCancelButton: false,
-                  html: true, // Enable HTML rendering in the alert
-                  callback: async () => {
-                    console.log('finished')
+                  let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                  // htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
+                  Alerts.infoAlert({
+                    text: ` ${htmlContent}`,
+                    title: `Retrieved excerpts do not match with the document text.`,
+                    showCancelButton: false,
+                    html: true, // Enable HTML rendering in the alert
+                    callback: async () => {
+                      console.log('finished')
+                    }
+                  })
+                } else {
+                  // Create an HTML list of the found excerpts with improved styling
+                  const excerptList = foundExcerpts
+                    .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                    .join('')
+                  let htmlContent = ''
+                  // htmlContent += `<p style="margin-top: 10px;"><b>Suggestion for improvement:</b> ${suggestion}</p>`
+                  htmlContent += `<h4>Annotated content:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+                  if (notFoundExcerpts.length > 0) {
+                    // Create an HTML list of the found excerpts with improved styling
+                    const notFoundExcerptList = notFoundExcerpts
+                      .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
+                      .join('')
+                    htmlContent += `<h4>The AI also retrieved these excerpts that can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${notFoundExcerptList}</ul>`
                   }
-                })
-              }
-            }).catch(err => {
-              console.error('Failed to update criterion:', err)
+                  Alerts.infoAlert({
+                    text: ` ${htmlContent}`,
+                    title: `Excerpt(s) found for ${roleName}`,
+                    showCancelButton: false,
+                    html: true, // Enable HTML rendering in the alert
+                    callback: async () => {
+                      console.log('finished')
+                    }
+                  })
+                }
+              }).catch(err => {
+                console.error('Failed to update criterion:', err)
+              })
             })
           }
           LLMClient.simpleQuestion({

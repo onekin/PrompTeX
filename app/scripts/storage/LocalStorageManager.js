@@ -26,6 +26,7 @@ class LocalStorageManager {
             this.database.criterionSchemas = DefaultSchemas
             this.database.parameters = {}
             this.database.standarizedVersion = []
+            this.database.feedback = []
           } finally {
             this.client = new LocalStorageClient(this.database, this)
           }
@@ -34,6 +35,7 @@ class LocalStorageManager {
           this.database.criterionSchemas = DefaultSchemas
           this.database.parameters = {}
           this.database.standarizedVersion = []
+          this.database.feedback = []
           this.saveDatabase(projectId, this.database, () => {
             this.client = new LocalStorageClient(this.database, this)
             callback()
@@ -44,6 +46,7 @@ class LocalStorageManager {
           this.database.criterionSchemas = DefaultSchemas
           this.database.parameters = {}
           this.database.standarizedVersion = []
+          this.database.feedback = []
           this.saveDatabase(projectId, this.database, () => {
             this.client = new LocalStorageClient(this.database, this)
             callback()

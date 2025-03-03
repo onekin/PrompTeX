@@ -46,14 +46,14 @@ class OverleafManager {
     if (project) {
       this._project = project
       this.loadStorage(project, () => {
-        console.log(window.promptex.storageManager.client.getSchemas())
+        // console.log(window.promptex.storageManager.client.getSchemas())
         // that.addButton()
+        that.addConfigurationButton()
         // that.addStabilizeButton()
         that.addOutlineButton()
         that.monitorEditorContent()
-        this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
-        this._standardized = window.promptex.storageManager.client.getStandardizedStatus()
-        console.log('Standardized:', this._standardized)
+        // this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
+        // this._standardized = window.promptex.storageManager.client.getStandardizedStatus()
         // Example usage: listen for mouseup events
         document.addEventListener('mouseup', (e) => {
           e.stopPropagation() // Prevent propagation
@@ -81,7 +81,7 @@ class OverleafManager {
               } else if (selectedText.trim().includes('\\section{')) {
                 scope = 'section'
               } else {
-                scope = 'text'
+                scope = 'excerpts'
               }
               if (selectedText.trim().includes('\\humanNote{')) {
                 let notes = this.extractHumanNote(selectedText)
@@ -92,11 +92,11 @@ class OverleafManager {
               console.log(scope)
               setTimeout(() => {
                 let roles = Object.values(Config.roles)
-                console.log("Roles:", roles) // Debugging log
+                console.log('Roles:', roles) // Debugging log
 
                 if (roles.length === 0) {
-                  console.warn("No roles found!")
-                  return; // Prevents errors if roles are empty
+                  console.warn('No roles found!')
+                  return // Prevents errors if roles are empty
                 }
 
                 const fixedWidth = 100 // Fixed width for all buttons
@@ -107,7 +107,6 @@ class OverleafManager {
                 const startPosition = window.scrollX + rect.left - totalWidth / 2 + offset // Shift right
 
                 roles.forEach((role, index) => {
-                  console.log("Creating button for:", role.name)
                   const button = this.createPopupButton(selectedText, role.name, scope, humanNote)
                   button.style.top = `${window.scrollY + rect.top - 40}px` // Position slightly higher
                   button.style.left = `${startPosition + index * (fixedWidth + gap)}px` // Equal spacing
@@ -161,23 +160,16 @@ class OverleafManager {
           numberOfExcerpts = 3
           scopeText = 'RESEARCH_PAPER: [' + LatexUtils.processTexDocument(documents) + ']'
           Alerts.closeLoadingWindow()
-          console.log('SCOPE:\n')
-          console.log(scopeText)
         } else if (scope === 'section') {
           numberOfExcerpts = 2
           const sectionsArray = OverleafUtils.extractSections(documents)
-          console.log(sectionsArray)
           const sectionsFromText = this.extractSectionsFromText(selectedText)
-          console.log(sectionsFromText)
           const firstSection = sectionsFromText[0]
           const scopedSection = sectionsArray.find(section => section.title === firstSection)
-          console.log('SCOPE:\n')
           scopeText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
-          console.log(scopeText)
           Alerts.closeLoadingWindow()
-        } else if (scope === 'text') {
+        } else if (scope === 'excerpts') {
           numberOfExcerpts = 1
-          console.log('SCOPE:\n')
           scopeText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
         }
         const selectedRole = Object.values(Config.roles).find(el => el.name === role)
@@ -189,7 +181,21 @@ class OverleafManager {
         prompt = prompt.replaceAll('[ROLE]', description)
         prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
         prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
-        await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
+        console.log(prompt)
+        let htmlContent = ''
+        htmlContent += '<b>Content:</b> ' + scope + '<br>'
+        htmlContent += '<b>Role:</b> ' + role + '<br>'
+        htmlContent += '<b>Human Note:</b> ' + humanNote + '<br>'
+        // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>'
+        Alerts.infoAlert({
+          text: ` ${htmlContent}`,
+          title: `Prompt elaboration:`,
+          showCancelButton: false,
+          html: true, // Enable HTML rendering in the alert
+          callback: async () => {
+            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
+          }
+        })
       })
     }
     return button
@@ -254,11 +260,13 @@ class OverleafManager {
           // Extract the text content from the .ol-cm-command-textit element
           let commandText = commandTextit.textContent
           let criterion = ''
+          let feedbackId = ''
           // Check if the content matches the format 'text::number'
-          const match = commandText.match(/(.*)::(\d+)/)
+          const match = commandText.match(/(.*)::(\d+)::(.*)/)
 
           if (match) {
             criterion = match[1]
+            feedbackId = match[3]
             const number = parseInt(match[2], 10)
 
             // Apply background color based on the number
@@ -298,27 +306,11 @@ class OverleafManager {
           })
           element.addEventListener('contextmenu', function (event) {
             event.preventDefault() // Prevent the default right-click menu
-            let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
+            let feedback = window.promptex.storageManager.client.findFeedback(feedbackId).feedback
             let info = ''
-            if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-              const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-              info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
-            }
-
-            if (criterionElement && criterionElement.Suggestion) {
-              info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
-
-              if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
-              }
-            }
-            if (criterionElement && criterionElement.Annotations) {
-              // Create an HTML list of the found excerpts with improved styling
-              const excerptList = criterionElement.Annotations
-                .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                .join('')
-              info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+            if (feedback && feedback.comment && feedback.sentiment) {
+              const assessmentFace = Utils.getColoredFace(feedback.sentiment)
+              info += '<b>Feedback</b> ' + assessmentFace + ': ' + feedback.comment + '<br><br>'
             }
             // Show alert with the tooltip message
             Alerts.infoAnswerAlert({ title: criterion, text: info })
@@ -347,7 +339,7 @@ class OverleafManager {
             }
             // If '\\promptex' has been found, start counting punctuations
             if (promptexFound) {
-              if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tok-punctuation')) {
+              if (node.nodeType === Node.ELEMENT_NODE && (node.classList.contains('tok-punctuation') || node.classList.contains('cm-lintRange'))) {
                 punctuationCount++ // Increment the punctuation count
               }
               // If we are past the second punctuation, find the first text node
@@ -394,8 +386,9 @@ class OverleafManager {
           }
           try {
             // Check if the content matches the format 'text::number'
-            const match = desiredTextNode.match(/(.*)::(\d+)/)
+            const match = desiredTextNode.match(/(.*)::(\d+)::(.*)/)
             const criterion = match[1]
+            const feedbackId = match[3]
             if (match) {
               const number = parseInt(match[2], 10)
               // Apply background color based on the number
@@ -411,27 +404,11 @@ class OverleafManager {
             }
             parent.addEventListener('contextmenu', function (event) {
               event.preventDefault() // Prevent the default right-click menu
-              let criterionElement = window.promptex.storageManager.client.findCriterion(criterion)
+              let feedback = window.promptex.storageManager.client.findFeedback(feedbackId).feedback
               let info = ''
-              if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-                const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-                info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
-              }
-
-              if (criterionElement && criterionElement.Suggestion) {
-                info += '<b>Suggestion</b>: ' + criterionElement.Suggestion + '<br><br>'
-
-                if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-                  const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-                  info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
-                }
-              }
-              if (criterionElement && criterionElement.Annotations) {
-                // Create an HTML list of the found excerpts with improved styling
-                const excerptList = criterionElement.Annotations
-                  .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                  .join('')
-                info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
+              if (feedback && feedback.comment && feedback.sentiment) {
+                const assessmentFace = Utils.getColoredFace(feedback.sentiment)
+                info += '<b>Feedback</b> ' + assessmentFace + ': ' + feedback.comment + '<br><br>'
               }
               // Show alert with the tooltip message
               Alerts.infoAnswerAlert({ title: criterion, text: info })
@@ -494,14 +471,14 @@ class OverleafManager {
     }
   }
 
-  addButton () {
+  addConfigurationButton () {
     // Create the 'Check Criteria' button element
-    let checkCriteriaButton = document.createElement('div')
-    checkCriteriaButton.classList.add('toolbar-item')
-    checkCriteriaButton.innerHTML = `
+    let promptConfigurationBtn = document.createElement('div')
+    promptConfigurationBtn.classList.add('toolbar-item')
+    promptConfigurationBtn.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
         <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Improvement</p>
+        <p class='toolbar-label'>Configuration</p>
       </button>
     `
     // Locate the toolbar where the button should be added
@@ -509,14 +486,16 @@ class OverleafManager {
 
     // Insert the 'Check Criteria' button at the end of the toolbar list
     if (toolbar) {
-      toolbar.appendChild(checkCriteriaButton)
+      toolbar.appendChild(promptConfigurationBtn)
     } else {
       console.error('Toolbar not found')
     }
 
-    checkCriteriaButton.addEventListener('click', async () => {
+    promptConfigurationBtn.addEventListener('click', async () => {
       // const content = await OverleafUtils.getAllEditorContent()
-      this.showCriteriaSidebar()
+      promptConfigurationBtn.addEventListener('click', () => {
+        window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
+      })
     })
   }
 
@@ -915,14 +894,15 @@ class OverleafManager {
 
     const headerImprovementTitle = document.createElement('h4')
     headerImprovementTitle.classList.add('outline-header-name2')
-    headerImprovementTitle.textContent = 'Improvement outline' // Update title to "Foundation outline"
+    headerImprovementTitle.textContent = 'Feedback' +
+      ' outline' // Update title to "Foundation outline"
 
     // Append the caret and title to the header button, and the button to the header
     headerImprovementButton.appendChild(caretImprovementIcon)
     headerImprovementButton.appendChild(headerImprovementTitle)
     newImprovementHeader.appendChild(headerImprovementButton)
     newImprovementOutlinePane.appendChild(newImprovementHeader)
-
+    /*
     // Create a new pane for the outline
     const newConsolidateOutlinePane = document.createElement('div')
     newConsolidateOutlinePane.classList.add('outline-pane2')
@@ -951,11 +931,11 @@ class OverleafManager {
     headerConsolidateButton.appendChild(headerConsolidateTitle)
     newConsolidateHeader.appendChild(headerConsolidateButton)
     newConsolidateOutlinePane.appendChild(newConsolidateHeader)
-
+    */
     // Append the new outline pane to the container BEFORE the original outline
     const originalOutline = document.querySelector('.outline-pane')
-    outlineContainer.insertBefore(newConsolidateOutlinePane, originalOutline)
-    outlineContainer.insertBefore(newImprovementOutlinePane, newConsolidateOutlinePane)
+    // outlineContainer.insertBefore(newConsolidateOutlinePane, originalOutline)
+    outlineContainer.insertBefore(newImprovementOutlinePane, originalOutline)
     const outlinePanel = document.querySelector('#panel-outline')
 
     // Set the height and min-height dynamically
@@ -1096,7 +1076,7 @@ class OverleafManager {
     })
 
     // Handle header click to show/hide the outline body of THIS outline only
-    newConsolidateHeader.addEventListener('click', (event) => {
+    /* newConsolidateHeader.addEventListener('click', (event) => {
       event.stopPropagation() // Prevent interference with other outlines
       const isHidden = newConsolidateHeader.classList.contains('closed')
       // Toggle between opened and closed state
@@ -1212,7 +1192,7 @@ class OverleafManager {
       }
       caretConsolidateIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
       // headerButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false') // Toggle aria-expanded
-    })
+    }) */
   }
 
   displayImprovementOutlineContent () {

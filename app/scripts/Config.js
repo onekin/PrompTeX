@@ -14,7 +14,7 @@ const Config = {
   },
   roles: {
     validator: {
-      name: ' Validate',
+      name: 'Validate',
       description: 'You have to act as a Validator to validate the content. Evaluates correctness, consistency, and logical coherence of existing content without suggesting improvements.'
     },
     enhancer: {
@@ -86,7 +86,7 @@ const Config = {
       'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process.',
     getFeedback: '-[CONTENT]\n' +
       '-TASK: \n' +
-      'Given the provided, assess the document to provide feedback on [ROLE].\n' +
+      'Given the provided, assess the document to provide feedback. [ROLE].\n' +
       '[NOTE]' +
       '\n' +
       'Identify Relevant Excerpts: Select up to [NUMBER] short excerpts from the document that directly relate to the task. Each excerpt must:\n' +

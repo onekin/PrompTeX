@@ -14,6 +14,14 @@ class CriteriaDatabaseClient {
   }
 
   // Retrieve a category (e.g., "Essential Attributes", "Desirable Attributes")
+  getFeedbackComments () {
+    if (this.projectDatabase && this.projectDatabase.feedback) {
+      return this.projectDatabase.feedback
+    }
+    throw new Error(`No database found`)
+  }
+
+  // Retrieve a category (e.g., "Essential Attributes", "Desirable Attributes")
   getCategory (schema, category) {
     if (this.projectDatabase.criterionSchemas[schema] && this.projectDatabase.criterionSchemas[schema][category]) {
       return this.projectDatabase.criterionSchemas[schema][category]
@@ -283,6 +291,38 @@ class CriteriaDatabaseClient {
         callback(null, `Category '${categoryName}' created successfully in '${listName}'.`)
       }
     })
+  }
+
+  createNewFeedback (feedback, id, callback) {
+    let projectID = window.promptex._overleafManager._project
+
+    // Check if the list exists
+    if (!this.projectDatabase.feedback) {
+      return callback(new Error(`Error`))
+    }
+
+    // Create the new category
+    this.projectDatabase.feedback.push({id: id, feedback: feedback})
+
+    // Save the updated database
+    this.manager.saveDatabase(projectID, this.projectDatabase, (err) => {
+      if (err) {
+        return callback(err)
+      } else {
+        callback(null, `Error'.`)
+      }
+    })
+  }
+
+  findFeedback (id) {
+    // Iterate through the criteria database
+    let feedbacks = window.promptex.storageManager.client.getFeedbackComments()
+    let feedback = feedbacks.find(feedback => feedback.id === id)
+    if (feedback) {
+      return feedback
+    } else {
+      return null
+    }
   }
 
   deleteCategory (listName, categoryName, callback) {

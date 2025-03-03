@@ -38,14 +38,18 @@ class LatexUtils {
     return originalLatex
   }
 
-  static addCommentsToLatexRoles (originalLatex, excerpts, sentiment, role, feedback) {
+  static addCommentsToLatexRoles (originalLatex, excerpts, sentiment, role, feedback, id) {
     let sentimentColor = Utils.sentimentToNumber(sentiment.toLowerCase())
     excerpts.forEach(excerpt => {
-      let commentCommand = `\n\\promptex{\\textit{${role}-${feedback}::${sentimentColor}}}{${excerpt}}\n`
+      let commentCommand = `\n\\promptex{\\textit{${role}::${sentimentColor}::${id}}{${excerpt}}\n`
       // Add the \mycomment after each occurrence of the excerpt in the latex file
       originalLatex = originalLatex.replace(excerpt, `${commentCommand}`)
     })
     return originalLatex
+  }
+
+  static generateId () {
+    return Math.random().toString(36).substr(2, 6).toUpperCase()
   }
 
   static removeCommentsFromLatex (originalLatex) {
