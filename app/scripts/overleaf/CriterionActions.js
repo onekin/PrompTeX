@@ -164,28 +164,39 @@ class CriterionActions {
             let feedback = json?.feedback || 'No feedback available.'
             let suggestions = json?.suggestions || []
 
-            // Generate suggestion list correctly with checkboxes aligned left and smaller font
+            // Generate suggestion list correctly with checkboxes aligned left and better text alignment
             const suggestionList = suggestions
               .map(
                 (item, index) =>
-                  `<li style="display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; line-height: 1.4;">
-                <input type="checkbox" id="suggestion-${index}" style="margin-right: 6px;">
-                <label for="suggestion-${index}" style="flex: 1;">${item.suggestion}</label>
-                </li>`
+                  `<li style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; line-height: 1.4;">
+        <input type="checkbox" id="suggestion-${index}" class="suggestion-checkbox" style="flex-shrink: 0; margin-top: 2px;">
+        <label for="suggestion-${index}" style="flex-grow: 1; text-align: left;">${item.suggestion}</label>
+      </li>`
               )
-              .join('')
+              .join('');
 
             let htmlContent = `
-              <ul style="padding-left: 20px; list-style-type: none;">${suggestionList}</ul>
-            </div>`;
+  <div style="font-size: 14px; line-height: 1.5;">
+    <ul style="padding-left: 0; list-style-type: none; margin: 0;">${suggestionList}</ul>
+  </div>`;
 
-          // Show alert with HTML content
+// Show alert with HTML content
             Alerts.infoAlert({
-              text: htmlContent, // Use `html` instead of `text`
-              title: 'Suggestions for ' + roleName + ' in the ' + spaceName,
+              text: htmlContent, // ✅ Use `html` instead of `text`
+              title: `Suggestions for ${roleName} in the ${spaceName}`,
+              showCloseButton: true,
               showCancelButton: false,
               callback: async () => {
-                console.log('finished')
+                // Retrieve all checkboxes
+                let checkedSuggestions = [];
+                document.querySelectorAll('.suggestion-checkbox').forEach((checkbox, index) => {
+                  if (checkbox.checked) {
+                    checkedSuggestions.push(suggestions[index].suggestion);
+                  }
+                });
+
+                // Log checked suggestions in the console
+                console.log('Checked Suggestions:', checkedSuggestions);
               }
             })
           }
