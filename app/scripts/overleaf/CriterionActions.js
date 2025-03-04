@@ -146,7 +146,63 @@ class CriterionActions {
     })
   }
 
-  static async askForFeedback (document, prompt, roleName) {
+  static async askForFeedback (document, prompt, roleName, spaceName) {
+    Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
+    chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
+      if (llm === '') {
+        llm = Config.review.defaultLLM
+      }
+      const llmProvider = llm.modelType
+      Alerts.showLoadingWindowDuringProcess('Waiting ' + llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1) + ' to answer...')
+      chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
+        if (apiKey !== null && apiKey !== '') {
+          let callback = (json) => {
+            Alerts.closeLoadingWindow()
+            console.log(json)
+
+            // Ensure json has valid values
+            let feedback = json?.feedback || 'No feedback available.'
+            let suggestions = json?.suggestions || []
+
+            // Generate suggestion list correctly with checkboxes aligned left and smaller font
+            const suggestionList = suggestions
+              .map(
+                (item, index) =>
+                  `<li style="display: flex; align-items: center; margin-bottom: 6px; font-size: 14px; line-height: 1.4;">
+                <input type="checkbox" id="suggestion-${index}" style="margin-right: 6px;">
+                <label for="suggestion-${index}" style="flex: 1;">${item.suggestion}</label>
+                </li>`
+              )
+              .join('')
+
+            let htmlContent = `
+              <ul style="padding-left: 20px; list-style-type: none;">${suggestionList}</ul>
+            </div>`;
+
+          // Show alert with HTML content
+            Alerts.infoAlert({
+              text: htmlContent, // Use `html` instead of `text`
+              title: 'Suggestions for ' + roleName + ' in the ' + spaceName,
+              showCancelButton: false,
+              callback: async () => {
+                console.log('finished')
+              }
+            })
+          }
+          LLMClient.simpleQuestion({
+            apiKey: apiKey,
+            prompt: prompt,
+            llm: llm,
+            callback: callback
+          })
+        } else {
+          Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
+        }
+      })
+    })
+  }
+
+  static async askForAnnotations (document, prompt, roleName) {
     Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
       if (llm === '') {

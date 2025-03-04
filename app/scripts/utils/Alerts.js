@@ -232,6 +232,7 @@ class Alerts {
         showCancelButton: showCancelButton,
         cancelButtonText: cancelButtonText,
         confirmButtonText: confirmButtonText,
+        showCloseButton: true,
         html: text,
         onBeforeOpen: () => {
           // Add event listeners to the buttons after they are rendered

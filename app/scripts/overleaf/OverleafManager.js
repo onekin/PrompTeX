@@ -82,29 +82,40 @@ class OverleafManager {
               numberOfExcerpts = 1
               scopedText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
             }
-            const selectedRole = Object.values(Config.roles).find(el => el.name === request.text)
+            const spaceMode = document.getElementById('modeToggle').checked ? 'Rhetoric Mode' : 'Content Mode'
+            let role
+            let modeInstructions = ''
+            if (spaceMode === 'Rhetoric Mode') {
+              role = request.text + 'Rhetorical'
+              modeInstructions = 'Please focus on the rhetorical aspects of the text, not on the content.'
+            } else {
+              role = request.text
+              modeInstructions = 'Please focus on the content of the text, not on the rhetorical aspects.'
+            }
+            const selectedRole = Object.values(Config.roles).find(el => el.name === role)
             let description = selectedRole.description
-            console.log(description)
             let prompt = Config.prompts.getFeedback
             prompt = prompt.replaceAll('[CONTENT]', scopedText)
-            prompt = prompt.replaceAll('[ROLE]', description)
+            prompt = prompt.replaceAll('[ROLE]', description + ' ' + modeInstructions)
             prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
             prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
             console.log(prompt)
-            let htmlContent = ''
+            /* let htmlContent = ''
             htmlContent += '<b>Content:</b> ' + scope + '<br>'
             htmlContent += '<b>Role:</b> ' + request.text + '<br>'
+            htmlContent += '<b>Mode:</b> ' + spaceMode + '<br>'
             htmlContent += '<b>Human Note:</b> ' + humanNote + '<br>'
-            // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>'
-            Alerts.infoAlert({
+            // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>' */
+            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode)
+            /* Alerts.infoAlert({
               text: ` ${htmlContent}`,
               title: `Prompt elaboration:`,
               showCancelButton: false,
               html: true, // Enable HTML rendering in the alert
               callback: async () => {
-                await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
+
               }
-            })
+            }) */
           }
         } else {
           console.log('Selection is outside the "panel-ide" element.')
@@ -135,160 +146,8 @@ class OverleafManager {
         // that.addStabilizeButton()
         that.addOutlineButton()
         that.monitorEditorContent()
-        // this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
-        // this._standardized = window.promptex.storageManager.client.getStandardizedStatus()
-        // Example usage: listen for mouseup events
-        /* document.addEventListener('mouseup', (e) => {
-          e.stopPropagation() // Prevent propagation
-          if (this.isSelectionInsidePanel()) {
-            console.log('Selection is inside the "panel-ide" element.')
-            const selection = window.getSelection() // Get the selected text
-            let selectedText
-
-            if (window.getSelection) {
-              selectedText = window.getSelection().toString()
-            } else if (document.selection && document.selection.type !== 'Control') {
-              selectedText = document.selection.createRange().text
-            }
-
-            console.log('Selected text:', selectedText)
-
-            // If there is selected text, show the button
-            if (selectedText.trim()) {
-              const range = selection.getRangeAt(0)
-              const rect = range.getBoundingClientRect()
-              let scope = ''
-              let humanNote = ''
-              if (selectedText.trim().includes('\\title{')) {
-                scope = 'document'
-              } else if (selectedText.trim().includes('\\section{')) {
-                scope = 'section'
-              } else {
-                scope = 'excerpts'
-              }
-              if (selectedText.trim().includes('\\humanNote{')) {
-                let notes = this.extractHumanNote(selectedText)
-                if (notes) {
-                  humanNote = notes[0]
-                }
-              }
-              console.log(scope)
-              setTimeout(() => {
-                let roles = Object.values(Config.roles)
-                console.log('Roles:', roles) // Debugging log
-
-                if (roles.length === 0) {
-                  console.warn('No roles found!')
-                  return // Prevents errors if roles are empty
-                }
-
-                const fixedWidth = 100 // Fixed width for all buttons
-                const gap = 20 // Space between buttons
-                const offset = 150 // Adjust this value to move buttons more to the right
-
-                const totalWidth = roles.length * (fixedWidth + gap) - gap // Total width of all buttons
-                const startPosition = window.scrollX + rect.left - totalWidth / 2 + offset // Shift right
-
-                roles.forEach((role, index) => {
-                  const button = this.createPopupButton(selectedText, role.name, scope, humanNote)
-                  button.style.top = `${window.scrollY + rect.top - 40}px` // Position slightly higher
-                  button.style.left = `${startPosition + index * (fixedWidth + gap)}px` // Equal spacing
-                  document.body.appendChild(button)
-                })
-              }, 0)
-            } else {
-              this.removePopupButton() // Remove the button if no text is selected
-            }
-          } else {
-            console.log('Selection is outside the "panel-ide" element.')
-          }
-        }) */
       })
     }
-  }
-
-  createPopupButton (selectedText, role, scope, humanNote) {
-    let buttonId = `popup-button-${role.replace(/\s+/g, '-').toLowerCase()}`
-    let button = document.getElementById(buttonId)
-
-    if (!button) {
-      button = document.createElement('button')
-      button.id = buttonId
-      button.textContent = role
-      button.style.position = 'absolute'
-      button.style.zIndex = '1000'
-      button.style.width = '100px' // Fixed width for all buttons
-      button.style.height = '40px' // Fixed height for uniformity
-      button.style.padding = '5px 0' // Adjust padding to center text
-      button.style.textAlign = 'center' // Ensure text is centered
-      button.style.border = 'none'
-      button.style.background = 'blue'
-      button.style.color = 'white'
-      button.style.borderRadius = '5px'
-      button.style.cursor = 'pointer'
-      button.style.fontSize = '14px' // Ensure uniform text size
-
-      // Click event
-      button.addEventListener('click', async () => {
-        let scopeText
-        let numberOfExcerpts
-        Alerts.infoAlert({ title: role, text: selectedText })
-        let editor = OverleafUtils.getActiveEditor()
-        if (editor === 'Visual Editor') {
-          OverleafUtils.toggleEditor()
-        }
-        Alerts.showLoadingWindowDuringProcess('Reading document content...')
-        let documents = await OverleafUtils.getAllEditorContent()
-        if (scope === 'document') {
-          numberOfExcerpts = 3
-          scopeText = 'RESEARCH_PAPER: [' + LatexUtils.processTexDocument(documents) + ']'
-          Alerts.closeLoadingWindow()
-        } else if (scope === 'section') {
-          numberOfExcerpts = 2
-          const sectionsArray = OverleafUtils.extractSections(documents)
-          const sectionsFromText = this.extractSectionsFromText(selectedText)
-          const firstSection = sectionsFromText[0]
-          const scopedSection = sectionsArray.find(section => section.title === firstSection)
-          scopeText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
-          Alerts.closeLoadingWindow()
-        } else if (scope === 'excerpts') {
-          numberOfExcerpts = 1
-          scopeText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
-        }
-        const selectedRole = Object.values(Config.roles).find(el => el.name === role)
-        console.log(selectedRole)
-        let description = selectedRole.description
-        console.log(description)
-        let prompt = Config.prompts.getFeedback
-        prompt = prompt.replaceAll('[CONTENT]', scopeText)
-        prompt = prompt.replaceAll('[ROLE]', description)
-        prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
-        prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
-        console.log(prompt)
-        let htmlContent = ''
-        htmlContent += '<b>Content:</b> ' + scope + '<br>'
-        htmlContent += '<b>Role:</b> ' + role + '<br>'
-        htmlContent += '<b>Human Note:</b> ' + humanNote + '<br>'
-        // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>'
-        Alerts.infoAlert({
-          text: ` ${htmlContent}`,
-          title: `Prompt elaboration:`,
-          showCancelButton: false,
-          html: true, // Enable HTML rendering in the alert
-          callback: async () => {
-            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
-          }
-        })
-      })
-    }
-    return button
-  }
-
-  removePopupButton () {
-    // Select all buttons that match the pattern "popup-button-*"
-    document.querySelectorAll('[id^="popup-button-"]').forEach(button => {
-      button.remove()
-    })
   }
 
   extractSectionsFromText (text) {
@@ -724,8 +583,7 @@ class OverleafManager {
 
     const headerImprovementTitle = document.createElement('h4')
     headerImprovementTitle.classList.add('outline-header-name2')
-    headerImprovementTitle.textContent = 'Feedback' +
-      ' outline' // Update title to "Foundation outline"
+    headerImprovementTitle.textContent = 'TODOs outline' // Update title to "Foundation outline"
 
     // Append the caret and title to the header button, and the button to the header
     headerImprovementButton.appendChild(caretImprovementIcon)
