@@ -32,6 +32,26 @@ const Config = {
     unityBuilder: {
       name: 'Unify',
       description: 'You have to act as a Unity-Builder, you have to look to Strengthen coherence by connecting disparate elements into a unified whole without altering individual components.'
+    },
+    validatorRhetorical: {
+      name: 'Validate',
+      description: 'You have to act as a Validator to validate the content. Evaluates correctness, consistency, and logical coherence of existing content without suggesting improvements.'
+    },
+    enhancerRhetorical: {
+      name: 'Enhance',
+      description: 'You have to act as a Enhancer, you have to suggest improvements in content and rhetoric such as Refine clarity, readability, and effectiveness while preserving meaning and structure.'
+    },
+    gapFillerRhetorical: {
+      name: 'Gap Filling',
+      description: 'You have to act as a Gap-Filler  you have to look to Identify and addresses missing elements to ensure structural completeness without modifying existing content.'
+    },
+    alternativeProviderRhetorical: {
+      name: 'Alternatives',
+      description: 'You have to act as a Alternative-Provider  you have to look to Generate entirely new perspectives, theories, or approaches without evaluating or refining the original content.'
+    },
+    unityBuilderRhetorical: {
+      name: 'Unify',
+      description: 'You have to act as a Unity-Builder, you have to look to Strengthen coherence by connecting disparate elements into a unified whole without altering individual components.'
     }
   },
   prompts: {

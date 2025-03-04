@@ -15,12 +15,11 @@ class PromptConfiguration {
     this.setupDefinition('gapFiller')
     this.setupDefinition('alternativeProvider')
     this.setupDefinition('unityBuilder')
-
-    this.setupPrompt('annotatePrompt', this.checkAnnotatePrompt)
-    this.setupPrompt('newSectionPrompt', this.checkGeneralPrompt)
-    this.setupPrompt('deletedSectionPrompt', this.checkGeneralPrompt)
-    this.setupPrompt('modifiedSectionPrompt', this.checkGeneralPrompt)
-    this.setupPrompt('createTODOPrompt', this.checkGeneralPrompt)
+    this.setupDefinition('validatorRhetorical')
+    this.setupDefinition('enhancerRhetorical')
+    this.setupDefinition('gapFillerRhetorical')
+    this.setupDefinition('alternativeProviderRhetorical')
+    this.setupDefinition('unityBuilderRhetorical')
   }
 
   setupPrompt (type, validateFunction) {
@@ -150,15 +149,6 @@ class PromptConfiguration {
       let messageLabel = document.querySelector('#' + type + 'Message')
       messageLabel.innerHTML = 'Prompt saved'
     })
-  }
-
-  checkAnnotatePrompt (prompt) {
-    return prompt.includes('[C_DESCRIPTION]') && prompt.includes('[C_NAME]')
-  }
-
-  checkGeneralPrompt (prompt) {
-    // Add custom validation logic for other prompts if needed
-    return prompt.length > 0 // Example: ensure it is not empty
   }
 
   formatWithLineBreaks (text) {

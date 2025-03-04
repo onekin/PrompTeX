@@ -20,7 +20,7 @@
         <div class="jumbotron">
             </br></br>
             <img alt="PrompTeX logo" title="Review and go logo" class="logo" src="../images/32.png">
-            <h2 class="title">Role Configuration</h2>
+            <h2 class="title">Role Configuration for Content Space</h2>
             <div class="card">
                 <div class="card-header card-header bg-dark text-white">Validate</div>
                 <div class="card-body">
@@ -28,68 +28,55 @@
                         <label>Configure your <b>Validate</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="validator" class="promptTextArea" rows="10"></textarea>
-                            <div id="validatorPromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="validator" class="promptTextArea" rows="3"></textarea>
                             <br><br>
                             <button id="validatorButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
                             <button id="validatorSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
                             <label id="validatorMessage"></label>
                         </div>
                     </div>
-                </div >
-                <div class="card-header card-header bg-dark text-white">Enhance</div>
-                <div class="card-body">
+                    <hr>
                     <div id="enhancerContainer" class="Prompt-Configuration">
                         <label>Configure your <b>Enhance</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="enhancer" class="promptTextArea" rows="10"></textarea>
-                            <div id="enhancerStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="enhancer" class="promptTextArea" rows="3"></textarea>
                             <br><br>
                             <button id="enhancerButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
                             <button id="enhancerSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
                             <label id="enhancerMessage"></label>
                         </div>
                     </div>
-                </div >
-                <div class="card-header card-header bg-dark text-white">Gap filling</div>
-                <div class="card-body">
+                    <hr>
                     <div id="gapFillerContainer" class="Prompt-Configuration">
                         <label>Configure your <b>Gap filling</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="gapFiller" class="promptTextArea" rows="10"></textarea>
-                            <div id="gapFillerStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="gapFiller" class="promptTextArea" rows="3"></textarea>
                             <br><br>
                             <button id="gapFillerButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
                             <button id="gapFillerSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
                             <label id="gapFillerMessage"></label>
                         </div>
                     </div>
-                </div >
-                <div class="card-header card-header bg-dark text-white">Alternatives</div>
-                <div class="card-body">
+                    <hr>
                     <div id="alternativeProviderContainer" class="Prompt-Configuration">
                         <label>Configure your <b>Alternatives</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="alternativeProvider" class="promptTextArea" rows="10"></textarea>
-                            <div id="alternativeProviderStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="alternativeProvider" class="promptTextArea" rows="3"></textarea>
                             <br><br>
                             <button id="alternativeProviderButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
                             <button id="alternativeProviderSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
                             <label id="alternativeProviderMessage"></label>
                         </div>
                     </div>
-                </div >
-                <div class="card-header card-header bg-dark text-white">Unify</div>
-                <div class="card-body">
+                    <hr>
                     <div id="unityBuilderContainer" class="Prompt-Configuration">
                         <label>Configure your <b>Unify</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="unityBuilder" class="promptTextArea" rows="10"></textarea>
-                            <div id="unityBuilderStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="unityBuilder" class="promptTextArea" rows="3"></textarea>
                             <br><br>
                             <button id="unityBuilderButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
                             <button id="unityBuilderSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
@@ -98,79 +85,71 @@
                     </div>
                 </div >
             </div >
-            <h2 class="title">PrompTeX Prompt Configuration</h2>
+            <h2 class="title">Role Configuration for Rhetorical Space</h2>
             <div class="card">
-                <div class="card-header card-header bg-dark text-white">Improvement prompts</div>
+                <div class="card-header card-header bg-dark text-white">Validate</div>
                 <div class="card-body">
-                    <div id="annotatePromptContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Annotate Prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
+                    <div id="validatorRhetoricalContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Validate</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="annotatePrompt" class="promptTextArea" rows="10"></textarea>
-                            <div id="annotatePromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="validatorRhetorical" class="promptTextArea" rows="3"></textarea>
                             <br><br>
-                            <button id="annotatePromptButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="annotatePromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="annotatePromptMessage"></label>
-                        </div>
-                    </div>
-                </div >
-                <div class="card-header card-header bg-dark text-white">Consistent prompts</div>
-                <div class="card-body">
-                    <div id="newSectionPromptContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Consistent new section Prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="newSectionPrompt" class="promptTextArea" rows="10"></textarea>
-                            <div id="newSectionPromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
-                            <br><br>
-                            <button id="newSectionPromptButton" class="savePromptButtonClass btn btn-secondary">Get default prompt</button>
-                            <button id="newSectionPromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save prompt</button>
-                            <label id="newSectionPromptMessage"></label>
+                            <button id="validatorRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
+                            <button id="validatorRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
+                            <label id="validatorRhetoricalMessage"></label>
                         </div>
                     </div>
                     <hr>
-                    <div id="deletedSectionPromptContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Consistent deleted section Prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
+                    <div id="enhancerRhetoricalContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Enhance</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="deletedSectionPrompt" class="promptTextArea" rows="10"></textarea>
-                            <div id="deletedSectionPromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="enhancerRhetorical" class="promptTextArea" rows="3"></textarea>
                             <br><br>
-                            <button id="deletedSectionPromptButton" class="savePromptButtonClass btn btn-secondary">Get default prompt</button>
-                            <button id="deletedSectionPromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save prompt</button>
-                            <label id="deletedSectionPromptMessage"></label>
+                            <button id="enhancerRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
+                            <button id="enhancerRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
+                            <label id="enhancerRhetoricalMessage"></label>
                         </div>
                     </div>
                     <hr>
-                    <div id="modifiedSectionPromptContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Consistent modified section Prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
+                    <div id="gapFillerRhetoricalContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Gap filling</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="modifiedSectionPrompt" class="promptTextArea" rows="10"></textarea>
-                            <div id="modifiedSectionPromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="gapFillerRhetorical" class="promptTextArea" rows="3"></textarea>
                             <br><br>
-                            <button id="modifiedSectionPromptButton" class="savePromptButtonClass btn btn-secondary">Get default prompt</button>
-                            <button id="modifiedSectionPromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save prompt</button>
-                            <label id="modifiedSectionPromptMessage"></label>
+                            <button id="gapFillerRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
+                            <button id="gapFillerRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
+                            <label id="gapFillerRhetoricalMessage"></label>
                         </div>
                     </div>
                     <hr>
-                    <div id="createTODOPromptContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>TODO task creator prompt</b> here. Remember, only the text before "The format should be as follows:" is editable:</label>
+                    <div id="alternativeProviderRhetoricalContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Alternatives</b> definition here:</label>
                         <div class="form-check">
                             <br>
-                            <textarea id="createTODOPrompt" class="promptTextArea" rows="10"></textarea>
-                            <div id="createTODOPromptStatic" class="promptStaticText" style="background-color: #f5f5f5; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+                            <textarea id="alternativeProviderRhetorical" class="promptTextArea" rows="3"></textarea>
                             <br><br>
-                            <button id="createTODOPromptButton" class="savePromptButtonClass btn btn-secondary">Get default prompt</button>
-                            <button id="createTODOPromptSaveButton" class="savePromptButtonClass btn btn-secondary">Save prompt</button>
-                            <label id="createTODOPromptMessage"></label>
+                            <button id="alternativeProviderRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
+                            <button id="alternativeProviderRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
+                            <label id="alternativeProviderRhetoricalMessage"></label>
+                        </div>
+                    </div>
+                    <hr>
+                    <div id="unityBuilderRhetoricalContainer" class="Prompt-Configuration">
+                        <label>Configure your <b>Unify</b> definition here:</label>
+                        <div class="form-check">
+                            <br>
+                            <textarea id="unityBuilderRhetorical" class="promptTextArea" rows="3"></textarea>
+                            <br><br>
+                            <button id="unityBuilderRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
+                            <button id="unityBuilderRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
+                            <label id="unityBuilderRhetoricalMessage"></label>
                         </div>
                     </div>
                 </div >
             </div >
-        </div>
         </div>
     </div>
 </div>

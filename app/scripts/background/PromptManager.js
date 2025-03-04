@@ -72,6 +72,20 @@ class PromptManager {
         return true
       }
     })
+
+    chrome.runtime.onInstalled.addListener(() => {
+      // Create context menu items
+      chrome.contextMenus.create({ id: 'Validate', title: 'Validate', contexts: ['selection'] })
+      chrome.contextMenus.create({ id: 'Enhance', title: 'Enhance', contexts: ['selection'] })
+      chrome.contextMenus.create({ id: 'Gap Filling', title: 'Gap Filling', contexts: ['selection'] })
+      chrome.contextMenus.create({ id: 'Alternatives', title: 'Alternatives', contexts: ['selection'] })
+      chrome.contextMenus.create({ id: 'Unify', title: 'Unify', contexts: ['selection'] })
+    })
+
+    // Handle context menu clicks
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+      chrome.tabs.sendMessage(tab.id, { action: 'roleSelected', text: info.menuItemId })
+    })
   }
 }
 

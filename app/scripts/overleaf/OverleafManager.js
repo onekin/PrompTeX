@@ -4,7 +4,6 @@ const Alerts = require('../utils/Alerts')
 const LocalStorageManager = require('../storage/LocalStorageManager')
 const _ = require('lodash')
 const LatexUtils = require('./LatexUtils')
-const LLMClient = require('../llm/LLMClient')
 const Config = require('../Config')
 const Utils = require('../utils/Utils')
 
@@ -28,6 +27,90 @@ class OverleafManager {
     }
     // If the home icon is found, perform your desired actions
     that.projectManagement() // Replace this with the function handling actions when the icon is found
+    chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+      if (request.action === 'roleSelected') {
+        if (this.isSelectionInsidePanel()) {
+          const selection = window.getSelection() // Get the selected text
+          let selectedText
+          if (window.getSelection) {
+            selectedText = window.getSelection().toString()
+          } else if (document.selection && document.selection.type !== 'Control') {
+            selectedText = document.selection.createRange().text
+          }
+
+          // If there is selected text, show the button
+          if (selectedText.trim()) {
+            const range = selection.getRangeAt(0)
+            const rect = range.getBoundingClientRect()
+            let scope = ''
+            let humanNote = ''
+            if (selectedText.trim().includes('\\title{')) {
+              scope = 'document'
+            } else if (selectedText.trim().includes('\\section{')) {
+              scope = 'section'
+            } else {
+              scope = 'excerpts'
+            }
+            if (selectedText.trim().includes('\\humanNote{')) {
+              let notes = this.extractHumanNote(selectedText)
+              if (notes) {
+                humanNote = notes[0]
+              }
+            }
+            let scopedText
+            let numberOfExcerpts
+            Alerts.infoAlert({ title: request.text, text: selectedText })
+            let editor = OverleafUtils.getActiveEditor()
+            if (editor === 'Visual Editor') {
+              OverleafUtils.toggleEditor()
+            }
+            Alerts.showLoadingWindowDuringProcess('Reading document content...')
+            let documents = await OverleafUtils.getAllEditorContent()
+            if (scope === 'document') {
+              numberOfExcerpts = 3
+              scopedText = 'RESEARCH_PAPER: [' + LatexUtils.processTexDocument(documents) + ']'
+              Alerts.closeLoadingWindow()
+            } else if (scope === 'section') {
+              numberOfExcerpts = 2
+              const sectionsArray = OverleafUtils.extractSections(documents)
+              const sectionsFromText = this.extractSectionsFromText(selectedText)
+              const firstSection = sectionsFromText[0]
+              const scopedSection = sectionsArray.find(section => section.title === firstSection)
+              scopedText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
+              Alerts.closeLoadingWindow()
+            } else if (scope === 'excerpts') {
+              numberOfExcerpts = 1
+              scopedText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
+            }
+            const selectedRole = Object.values(Config.roles).find(el => el.name === request.text)
+            let description = selectedRole.description
+            console.log(description)
+            let prompt = Config.prompts.getFeedback
+            prompt = prompt.replaceAll('[CONTENT]', scopedText)
+            prompt = prompt.replaceAll('[ROLE]', description)
+            prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
+            prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
+            console.log(prompt)
+            let htmlContent = ''
+            htmlContent += '<b>Content:</b> ' + scope + '<br>'
+            htmlContent += '<b>Role:</b> ' + request.text + '<br>'
+            htmlContent += '<b>Human Note:</b> ' + humanNote + '<br>'
+            // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>'
+            Alerts.infoAlert({
+              text: ` ${htmlContent}`,
+              title: `Prompt elaboration:`,
+              showCancelButton: false,
+              html: true, // Enable HTML rendering in the alert
+              callback: async () => {
+                await CriterionActions.askForFeedback(documents, prompt, selectedRole.name)
+              }
+            })
+          }
+        } else {
+          console.log('Selection is outside the "panel-ide" element.')
+        }
+      }
+    })
   }
 
   findHomeIcon () {
@@ -55,7 +138,7 @@ class OverleafManager {
         // this._currentCriteriaList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
         // this._standardized = window.promptex.storageManager.client.getStandardizedStatus()
         // Example usage: listen for mouseup events
-        document.addEventListener('mouseup', (e) => {
+        /* document.addEventListener('mouseup', (e) => {
           e.stopPropagation() // Prevent propagation
           if (this.isSelectionInsidePanel()) {
             console.log('Selection is inside the "panel-ide" element.')
@@ -119,7 +202,7 @@ class OverleafManager {
           } else {
             console.log('Selection is outside the "panel-ide" element.')
           }
-        })
+        }) */
       })
     }
   }
@@ -497,350 +580,97 @@ class OverleafManager {
         window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
       })
     })
-  }
 
-  addStabilizeButton () {
-    // Create the 'Stabilize' button element
-    let stabilizeButton = document.createElement('div')
-    stabilizeButton.classList.add('toolbar-item')
-    stabilizeButton.innerHTML = `
-    <button type='button' class='btn btn-full-height' id='stabilizeBtn'>
-      <i class='fa fa-compress fa-fw' aria-hidden='true'></i>
-      <p class='toolbar-label'>Consolidate</p>
-    </button>
-  `
-    // Locate the toolbar where the button should be added
-    let toolbar = document.querySelector('.toolbar-right')
+    // Create the switch button container
+    let modeSwitchContainer = document.createElement('div')
+    modeSwitchContainer.classList.add('toolbar-item', 'mode-switch-container')
+    modeSwitchContainer.innerHTML = `
+      <label class="switch">
+        <input type="checkbox" id="modeToggle">
+        <span class="slider"></span>
+      </label>
+      <span id="modeLabel">Content Mode</span>
+    `
 
-    // Insert the 'Stabilize' button at the end of the toolbar list
+    // Insert the switch button **before** the "Review" button
     if (toolbar) {
-      toolbar.appendChild(stabilizeButton)
-    } else {
-      console.error('Toolbar not found')
+      toolbar.insertBefore(modeSwitchContainer, toolbar.firstChild)
     }
 
-    // Check if content is already standardized to disable the button
-    this.updateStandardizedButton()
-  }
-
-  updateStandardizedButton () {
-    // Check if content is already standardized to disable the button
-    let standarized = window.promptex.storageManager.client.getStandardizedStatus()
-    const button = document.querySelector('#stabilizeBtn')
-    const buttonText = button.querySelector('p')
-
-    // Define the click handler as a named function to ensure it can be removed
-    const clickHandler = async () => {
-      Alerts.infoAlert({
-        title: 'Consolidate Content',
-        text: 'Are you sure you want to consolidate the content?',
-        cancelButtonText: 'No',
-        confirmButtonText: 'Yes',
-        callback: async () => {
-          await this.stabilizeContent()
-        }
-      })
-    }
-
-    if (standarized) {
-      // Deactivate the button by changing its style and disabling it
-      button.style.cursor = 'not-allowed' // Cursor change to indicate non-clickable
-      button.disabled = true // Disable button functionality
-      buttonText.style.color = 'red' // Change text color to match disabled state
-
-      // Remove any previously attached click event listener
-      button.removeEventListener('click', clickHandler)
-    } else {
-      // Enable the button and reset styles
-      button.style.cursor = 'pointer' // Set cursor to pointer for clickable state
-      button.disabled = false // Enable button functionality
-      buttonText.style.color = 'green' // Set text color for active state
-
-      // Remove any existing listener and add a fresh click listener
-      button.removeEventListener('click', clickHandler)
-      button.addEventListener('click', clickHandler)
-    }
-  }
-
-  async stabilizeContent () {
-    let standarized = window.promptex.storageManager.client.getStandardizedStatus()
-    if (standarized) {
-      // If already standardized, show a message
-      Alerts.infoAlert({ title: 'Content Already Stabilized', text: 'The content"s structure is already stabilized. You can use the Improvement button for reviewing your draft' })
-    } else {
-      if (this._sidebar) {
-        this._sidebar.remove()
+    // Add styles dynamically for the switch button
+    let style = document.createElement('style')
+    style.innerHTML = `
+      .mode-switch-container {
+          display: flex;
+          align-items: center;
+          gap: 10px; /* Space between switch and text */
+          padding: 5px 12px;
+          background-color: #1c1f26; /* Match toolbar background */
+          border-radius: 6px;
+          height: 40px; /* Ensure it aligns with other buttons */
+          min-width: 180px; /* Enough space for text in one line */
       }
-      let editor = OverleafUtils.getActiveEditor()
-      if (editor === 'Visual Editor') {
-        OverleafUtils.toggleEditor()
+    
+      .switch {
+          position: relative;
+          display: inline-block;
+          width: 50px;
+          height: 25px;
       }
-      const originalDocument = await OverleafUtils.getAllEditorContent()
-      let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
-      const changedArray = OverleafUtils.extractSections(documents)
-      let summary = 'The content has been stabilized:\n'
-      window.promptex.storageManager.client.cleanCriterionValues(this._project).then(() => {
-        console.log('changed array:')
-        console.log(changedArray)
-        let titles = changedArray.map(section => section.title)
-        let titlesString = titles.join(',')
-        console.log('standarized array:')
-        const standardizedArray = window.promptex.storageManager.client.getStandardizedVersion() // The previous version.
-        console.log(standardizedArray)
-        const diffResult = LatexUtils.generateDiff(changedArray, standardizedArray)
-        console.log('Diff result:')
-        console.log(diffResult)
-        window.promptex._overleafManager.checkAndUpdateStandardized(true)
-        Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
-        chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
-          if (llm === '') {
-            llm = Config.review.defaultLLM
-          }
-          const llmProvider = llm.modelType
-          // Create an array of promises for processing each section
-          const processingPromises = diffResult.map((section) => {
-            Alerts.showLoadingWindowDuringProcess('Processing sections...')
-            return new Promise((resolve) => {
-              let foundSection = []
-              let combinedContent = ''
-              let deletedLinesString = ''
-              let newLinesString = ''
-              let prompt = ''
-              let typeOfChange = ''
-              let sectionTitle = section.title
-              let document = LatexUtils.processTexDocument(documents)
-              if (section.newSection) {
-                typeOfChange = 'New Section'
-                let newLines = section.content
-                if (newLines.length > 0) {
-                  newLinesString = newLines.join('\n')
-                }
-                prompt = Config.prompts.newSectionPrompt
-                prompt = prompt.replace('[C_DOCUMENT]', document)
-                prompt = prompt.replace('[C_TITLE]', sectionTitle)
-                prompt = prompt.replace('[C_NEWLINES]', newLinesString)
-                prompt = prompt.replace('C_TITLES', titlesString)
-              } else if (section.deletedSection) {
-                typeOfChange = 'Deleted Section'
-                let deletedLines = section.content
-                if (deletedLines.length > 0) {
-                  deletedLinesString = deletedLines.join('\n')
-                  prompt = Config.prompts.deletedSectionPrompt
-                  prompt = prompt.replace('[C_DOCUMENT]', document)
-                  prompt = prompt.replace('[C_TITLE]', sectionTitle)
-                  prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
-                  prompt = prompt.replace('C_TITLES', titlesString)
-                }
-              } else if (!(section.deletedSection || section.newSection)) {
-                typeOfChange = 'Modified Section'
-                if (section.deletedLines.length > 0 || section.newLines.length > 0) {
-                  let newLines = section.newLines
-                  if (newLines.length > 0) {
-                    newLinesString = newLines.join('\n')
-                  }
-                  let deletedLines = section.deletedLines
-                  if (deletedLines.length > 0) {
-                    deletedLinesString = deletedLines.join('\n')
-                  }
-
-                  foundSection = changedArray.find(s => s.title === section.title)
-                  combinedContent = foundSection ? foundSection.content.join('\n') : ''
-                  prompt = Config.prompts.modifiedSectionPrompt
-                  prompt = prompt.replace('[C_DOCUMENT]', document)
-                  prompt = prompt.replace('[C_TITLE]', sectionTitle)
-                  prompt = prompt.replace('[C_DELETED_LINES]', deletedLinesString)
-                  prompt = prompt.replace('[C_NEWLINES]', newLinesString)
-                  prompt = prompt.replace('[C_COMBINED_CONTENT]', combinedContent)
-                  prompt = prompt.replace('C_TITLES', titlesString)
-                }
-              }
-              if (prompt !== '') {
-                chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
-                  if (apiKey !== null && apiKey !== '') {
-                    let callback = (json) => {
-                      // Extracting details from the JSON
-                      const comment = json.comment
-                      const identifiedChanges = json.identifiedChanges
-                      const affectedSpots = json.affectedSpots
-
-                      // Constructing the summary content
-                      summary += '\n' + sectionTitle + ' - ' + typeOfChange + '\n'
-                      summary += `Comment: ${comment}\n`
-                      summary += 'Identified Changes:\n'
-
-                      // Adding details for each identified change
-                      for (const [key, value] of Object.entries(identifiedChanges)) {
-                        summary += `- ${key}: ${value}\n`
-                      }
-
-                      summary += '\nAffected Spots:\n'
-
-                      // Adding affected spots details
-                      affectedSpots.forEach((spot, index) => {
-                        summary += `  ${index + 1}. Affected Section: ${spot.affectedSection}\n`
-                        summary += `     Reason: ${spot.reason}\n`
-                      })
-                      resolve() // Resolve the promise when the API call is done
-                    }
-                    LLMClient.simpleQuestion({
-                      apiKey: apiKey,
-                      prompt: prompt,
-                      llm: llm,
-                      callback: callback
-                    })
-                  } else {
-                    Alerts.showErrorToast('No API key found for ' + llm)
-                    resolve() // Resolve even if no API key is found
-                  }
-                })
-              } else {
-                resolve() // Resolve if no prompt is generated
-              }
-            })
-          })
-
-          // Wait for all processing to complete before downloading the summary
-          await Promise.all(processingPromises)
-          // this.downloadSummaryAsHTML(summary)
-          Alerts.closeLoadingWindow()
-          Alerts.showLoadingWindowDuringProcess('Adding TODOs...')
-          this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
-          /* Alerts.infoAlert({
-            title: 'Stabilization Complete',
-            text: 'Do you want to add TODOs in the document?',
-            callback: () => {
-              Alerts.showLoadingWindowDuringProcess('Adding TODOs...')
-              this.addTODOs(summary, documents, llmProvider, originalDocument, llm)
-            }
-          }) */
-        })
-      })
-    }
-  }
-
-  // Function to download the summary as an HTML file
-  downloadSummaryAsHTML (summary) {
-    const htmlContent = `
-      <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Stabilization Summary</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          margin: 0;
-          padding: 20px;
-          box-sizing: border-box;
-        }
-        h1 {
-          text-align: center;
-          font-size: 24px;
-          margin-bottom: 20px;
-        }
-        .content-container {
-          max-width: 1500px;
-          margin: 0 auto;
-          background: #f9f9f9;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          overflow-wrap: break-word;
-        }
-        pre {
-          white-space: pre-wrap;
-          word-wrap: break-word;
-          background-color: #ffffff;
-          padding: 15px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          overflow: auto;
-          max-height: 400px;
-        }
-        @media (max-width: 600px) {
-          .content-container {
-            padding: 15px;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Stabilization Summary</h1>
-      <div class="content-container">
-        <pre>${summary}</pre>
-      </div>
-    </body>
-    </html>
-  `
-
-    // Create a Blob from the HTML content
-    const blob = new Blob([htmlContent], { type: 'text/html' })
-
-    // Create a download link
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'stabilization_summary.html'
-
-    // Append the link to the document, click it, and then remove it
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // Revoke the object URL to free memory
-    URL.revokeObjectURL(link.href)
-  }
-
-  async addTODOs (summary, documents, llmProvider, originalDocument, llm) {
-    let prompt = Config.prompts.createTODOPrompt
-    prompt = prompt.replace('[C_DOCUMENT]', documents)
-    prompt = prompt.replace('[C_REVIEW]', summary)
-    prompt = prompt.replace('[C_TITLES]', OverleafUtils.extractSections(documents).map(section => section.title).join(','))
-    // Get the API key for the LLM provider
-    chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
-      if (apiKey !== null && apiKey !== '') {
-        // Define the callback function to handle the LLM response
-        let callback = (json) => {
-          console.log('Raw LLM response:', json) // Debugging line
-
-          try {
-            // Ensure JSON parsing only when the response is a valid string
-            if (json.sections && Array.isArray(json.sections)) {
-              // Insert TODOs into the LaTeX document based on the response
-              originalDocument = LatexUtils.removeCommentsFromLatex(originalDocument)
-              let updatedDocument = this.insertTODOsIntoLatex(originalDocument, json.sections)
-              Alerts.closeLoadingWindow()
-              window.promptex._overleafManager.displayImprovementOutlineContent()
-              Alerts.showAlertToast('Updated LaTeX document with TODOs')
-              OverleafUtils.removeContent(() => {
-                if (window.promptex._overleafManager._sidebar) {
-                  window.promptex._overleafManager._sidebar.remove()
-                }
-                OverleafUtils.insertContent(updatedDocument)
-                window.promptex._overleafManager._readingDocument = false
-              })
-              // You may want to save or use the updated document here
-            } else {
-              console.error('Invalid response format. Expected JSON with "sections" array.')
-              Alerts.showErrorToast('Invalid LLM response format.')
-            }
-          } catch (error) {
-            console.error('Failed to parse LLM response:', error)
-            Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
-          }
-        }
-
-        // Send the prompt to the LLM using the LLM client
-        LLMClient.simpleQuestion({
-          apiKey: apiKey,
-          prompt: prompt,
-          llm: llm,
-          callback: callback
-        })
-      } else {
-        Alerts.showErrorToast('No API key found for ' + llm)
+    
+      .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
       }
+    
+      .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #2196F3;
+          transition: 0.4s;
+          border-radius: 25px;
+      }
+    
+      .slider:before {
+          position: absolute;
+          content: "";
+          height: 20px;
+          width: 20px;
+          left: 3px;
+          bottom: 2.5px;
+          background-color: white;
+          transition: 0.4s;
+          border-radius: 50%;
+      }
+    
+      input:checked + .slider {
+          background-color: #2196F3;
+      }
+    
+      input:checked + .slider:before {
+          transform: translateX(24px);
+      }
+    
+      #modeLabel {
+          font-size: 14px;
+          font-weight: bold;
+          color: white; /* Ensures visibility */
+          white-space: nowrap; /* Prevents text wrapping */
+      }
+    `
+
+    // Append the styles to the document head
+    document.head.appendChild(style)
+
+    // Add event listener to toggle between Content Mode and Rhetoric Mode
+    document.getElementById('modeToggle').addEventListener('change', function () {
+      let modeLabel = document.getElementById('modeLabel')
+      modeLabel.textContent = this.checked ? 'Rhetoric Mode' : 'Content Mode'
     })
   }
 

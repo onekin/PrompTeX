@@ -46,7 +46,10 @@
   "permissions": [
     "storage",
     "declarativeNetRequest",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "contextMenus",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://www.overleaf.com/*",
