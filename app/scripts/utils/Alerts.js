@@ -183,74 +183,57 @@ class Alerts {
     }
   }
 
-  static infoAnswerAlert ({text = chrome.i18n.getMessage('expectedInfoMessageNotFound'), title = 'Info', callback, confirmButtonText = 'OK', cancelButtonText = 'Cancel', showCancelButton = true}) {
+  static infoAlert ({
+    text = chrome.i18n.getMessage('expectedInfoMessageNotFound'),
+    title = 'Info',
+    callback,
+    confirmButtonText = '',
+    cancelButtonText = '',
+    showCancelButton = false,
+    showConfirmButton = false,
+    customClass = {},
+    didOpen = null // ✅ Allow passing `didOpen`
+  }) {
     Alerts.tryToLoadSwal()
+
     if (_.isNull(swal)) {
       if (_.isFunction(callback)) {
         callback(new Error('Unable to load swal'))
       }
     } else {
       swal.fire({
-        type: 'info',
         title: title,
         showCancelButton: showCancelButton,
-        cancelButtonText: cancelButtonText,
-        confirmButtonText: confirmButtonText,
-        html: text,
-        onBeforeOpen: () => {
-          // Add event listeners to the buttons after they are rendered
-          let element = document.querySelector('.swal2-popup')
-          element.style.width = '800px'
-
-          // Make the text smaller and justified
-          const content = element.querySelector('.swal2-html-container')
-          if (content) {
-            content.style.fontSize = '0.8em' // Adjust to the desired font size
-            content.style.textAlign = 'justify' // Add text justification
-          }
-        }
-      }).then((result) => {
-        if (result.value) {
-          if (_.isFunction(callback)) {
-            callback(null, result.value)
-          }
-        }
-      })
-    }
-  }
-
-  static infoAlert ({text = chrome.i18n.getMessage('expectedInfoMessageNotFound'), title = 'Info', callback, confirmButtonText = 'OK', cancelButtonText = 'Cancel', showCancelButton = true}) {
-    Alerts.tryToLoadSwal()
-    if (_.isNull(swal)) {
-      if (_.isFunction(callback)) {
-        callback(new Error('Unable to load swal'))
-      }
-    } else {
-      swal.fire({
-        type: 'info',
-        title: title,
-        showCancelButton: showCancelButton,
-        cancelButtonText: cancelButtonText,
-        confirmButtonText: confirmButtonText,
+        showConfirmButton: showConfirmButton,
+        confirmButtonText: confirmButtonText || '',
+        cancelButtonText: cancelButtonText || '',
         showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+        allowEnterKey: false,
+        customClass: {
+          confirmButton: customClass.confirmButton || '',
+          cancelButton: customClass.cancelButton || '',
+          popup: customClass.popup || ''
+        },
         html: text,
-        onBeforeOpen: () => {
-          // Add event listeners to the buttons after they are rendered
-          let element = document.querySelector('.swal2-popup')
-          element.style.width = '800px'
+        didOpen: (popup) => { // ✅ Ensure we get the popup element correctly
+          popup.style.width = '800px'
 
           // Make the text smaller and justified
-          const content = element.querySelector('.swal2-html-container')
+          const content = popup.querySelector('.swal2-html-container')
           if (content) {
-            content.style.fontSize = '0.8em' // Adjust to the desired font size
-            // content.style.textAlign = 'justify' // Add text justification
+            content.style.fontSize = '0.8em'
+          }
+
+          // ✅ If `didOpen` is provided, execute it
+          if (_.isFunction(didOpen)) {
+            didOpen(popup)
           }
         }
       }).then((result) => {
-        if (result.value) {
-          if (_.isFunction(callback)) {
-            callback(null, result.value)
-          }
+        if (result.isConfirmed && _.isFunction(callback)) {
+          callback(null, result.value)
         }
       })
     }

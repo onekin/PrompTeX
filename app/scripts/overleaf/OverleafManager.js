@@ -32,6 +32,7 @@ class OverleafManager {
         if (this.isSelectionInsidePanel()) {
           const selection = window.getSelection() // Get the selected text
           let selectedText
+          let firstSection
           if (window.getSelection) {
             selectedText = window.getSelection().toString()
           } else if (document.selection && document.selection.type !== 'Control') {
@@ -74,7 +75,7 @@ class OverleafManager {
               numberOfExcerpts = 2
               const sectionsArray = OverleafUtils.extractSections(documents)
               const sectionsFromText = this.extractSectionsFromText(selectedText)
-              const firstSection = sectionsFromText[0]
+              firstSection = sectionsFromText[0]
               const scopedSection = sectionsArray.find(section => section.title === firstSection)
               scopedText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
               Alerts.closeLoadingWindow()
@@ -93,29 +94,14 @@ class OverleafManager {
               modeInstructions = 'Please focus on the content of the text, not on the rhetorical aspects.'
             }
             const selectedRole = Object.values(Config.roles).find(el => el.name === role)
-            let description = selectedRole.description
+            let roleDescription = selectedRole.description
             let prompt = Config.prompts.getFeedback
             prompt = prompt.replaceAll('[CONTENT]', scopedText)
-            prompt = prompt.replaceAll('[ROLE]', description + ' ' + modeInstructions)
+            prompt = prompt.replaceAll('[ROLE]', roleDescription + ' ' + modeInstructions)
             prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
             prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
             console.log(prompt)
-            /* let htmlContent = ''
-            htmlContent += '<b>Content:</b> ' + scope + '<br>'
-            htmlContent += '<b>Role:</b> ' + request.text + '<br>'
-            htmlContent += '<b>Mode:</b> ' + spaceMode + '<br>'
-            htmlContent += '<b>Human Note:</b> ' + humanNote + '<br>'
-            // htmlContent += '<b>Prompt:</b> ' + prompt + '<br>' */
-            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode)
-            /* Alerts.infoAlert({
-              text: ` ${htmlContent}`,
-              title: `Prompt elaboration:`,
-              showCancelButton: false,
-              html: true, // Enable HTML rendering in the alert
-              callback: async () => {
-
-              }
-            }) */
+            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode, scopedText, roleDescription, modeInstructions, scope, firstSection)
           }
         } else {
           console.log('Selection is outside the "panel-ide" element.')

@@ -54,6 +54,20 @@ const Config = {
       description: 'Improve the rhetorical flow by connecting ideas and arguments into a cohesive and persuasive whole without modifying individual components'
     }
   },
+  actions: {
+    clarify: {
+      name: 'Clarify',
+      description: 'Provide a more detailed explanation of the suggestions given, ensuring that any ambiguous or unclear points are made explicit. Expand on any complex terms, vague statements, or assumptions to enhance the writer\'s understanding and allow for precise revisions.'
+    },
+    illustrate: {
+      name: 'Illustrate',
+      description: 'Offer a rationale for why each suggestion is relevant and necessary for improving the content. Explain the reasoning behind each suggestion, referencing academic writing standards, logical coherence, or stylistic principles to support the proposed changes.'
+    },
+    justify: {
+      name: 'Justify',
+      description: 'Provide concrete examples or scenarios to demonstrate how the suggested improvements can be applied effectively. Offer sample sentences, paragraph structures, or real-world analogies that help the writer visualize and implement the suggestions in context.'
+    }
+  },
   prompts: {
     getFeedback: '-[CONTENT]\n' +
       '-TASK: \n' +
@@ -99,7 +113,19 @@ const Config = {
       ' ... ' +
       '  ]\n' +
       '}\n' +
-      'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process. For the claims provide [NUMBER] excerpts in the array.'
+      'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process. For the claims provide [NUMBER] excerpts in the array.',
+    getSuggestionsFeedback: '-[CONTENT]\n' +
+      'Given the provided content, you acted as an academic writer and you performed as [ROLE]. ' +
+      'You provided a list of suggestions for the writer based on the role. ' +
+      'You provided the following suggestions: [SUGGESTIONS].\n' +
+      'TASK: \n' +
+      'Now, you have to [ACTION] on the suggestions provided. ' +
+      '-OUTPUT FORMAT:\n' +
+      'You must provide the response in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
+      '{\n' +
+      '  "answer": "[Provide your answer.]",\n' +
+      '}\n' +
+      'Please only return one answer element in the JSON, if there are more comments for different suggestions, you can include them in the same answer element.'
   }
 }
 

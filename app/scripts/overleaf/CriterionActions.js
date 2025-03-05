@@ -4,6 +4,48 @@ const Alerts = require('../utils/Alerts')
 const LLMClient = require('../llm/LLMClient')
 const LatexUtils = require('./LatexUtils')
 
+function addTODOs (document, todoComments, scope, scopedText, sectionName) {
+  // Insert TODOs into the LaTeX document based on the response
+  let updatedDocument = insertTODOsIntoLatex(document, todoComments, scope, sectionName, scopedText)
+  Alerts.closeLoadingWindow()
+  Alerts.showAlertToast('Updated LaTeX document with TODOs')
+  OverleafUtils.removeContent(() => {
+    if (window.promptex._overleafManager._sidebar) {
+      window.promptex._overleafManager._sidebar.remove()
+    }
+    OverleafUtils.insertContent(updatedDocument)
+    window.promptex._overleafManager._readingDocument = false
+  })
+}
+
+function insertTODOsIntoLatex (document, todoComments, scope, sectionName, scopedText) {
+  let updatedDocument = document
+  if (scope === 'document') {
+    // Insert TODOs after the \title{...} command
+    updatedDocument = updatedDocument.replace(
+      /(\\title\{.*?\})/i, // Match \title{...}
+      `$1\n${todoComments}`  // Insert TODOs on the next line
+    );
+
+  } else if (scope === 'section' && sectionName) {
+    // Insert TODOs after the \section{sectionName} command
+    let sectionRegex = new RegExp(`(\\\\section\\{\\s*${sectionName}\\s*\\})`, 'i'); // Match \section{Name}
+    updatedDocument = updatedDocument.replace(
+      sectionRegex,
+      `$1\n${todoComments}` // Insert TODOs on the next line
+    );
+
+  } else if (scope === 'excerpts' && scopedText) {
+    // Insert TODOs right before the scopedText occurrence
+    updatedDocument = updatedDocument.replace(
+      new RegExp(`(${scopedText})`, 'i'),
+      `${todoComments}$1` // Insert TODOs before the scoped text
+    );
+  }
+
+  return updatedDocument;
+}
+
 class CriterionActions {
   static async askCriterionAssessment (criterionLabel, description) {
     // Fetch document content
@@ -146,7 +188,7 @@ class CriterionActions {
     })
   }
 
-  static async askForFeedback (document, prompt, roleName, spaceName) {
+  static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName) {
     Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
       if (llm === '') {
@@ -161,7 +203,7 @@ class CriterionActions {
             console.log(json)
 
             // Ensure json has valid values
-            let feedback = json?.feedback || 'No feedback available.'
+            // let feedback = json?.feedback || 'No feedback available.'
             let suggestions = json?.suggestions || []
 
             // Generate suggestion list correctly with checkboxes aligned left and better text alignment
@@ -169,34 +211,164 @@ class CriterionActions {
               .map(
                 (item, index) =>
                   `<li style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; line-height: 1.4;">
-        <input type="checkbox" id="suggestion-${index}" class="suggestion-checkbox" style="flex-shrink: 0; margin-top: 2px;">
-        <label for="suggestion-${index}" style="flex-grow: 1; text-align: left;">${item.suggestion}</label>
-      </li>`
+                  <input type="checkbox" id="suggestion-${index}" class="suggestion-checkbox" style="flex-shrink: 0; margin-top: 2px;">
+                  <label for="suggestion-${index}" style="flex-grow: 1; text-align: left;">${item.suggestion}</label>
+                </li>`
               )
-              .join('');
+              .join('')
 
+            // ✅ Moved message-container **after** suggestions but **before** buttons
+            let buttonSection = `
+            <div id="message-container" style="margin-top: 10px; font-size: 14px; color: black; font-weight: bold;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              <div style="display: flex; gap: 6px;">
+                <button id="clarify-btn" class="small-btn">Clarify</button>
+                <button id="illustrate-btn" class="small-btn">Illustrate</button>
+                <button id="justify-btn" class="small-btn">Justify</button>
+              </div>
+              <button id="add-todo-btn" class="green-btn">Add TODOs in document</button>
+            </div>
+            <style>
+              .small-btn {
+                background: white;
+                color: black;
+                border: 1px solid black;
+                padding: 4px 10px;
+                font-size: 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background 0.2s, border-color 0.2s;
+              }
+              .small-btn:hover {
+                background: #ddd;
+              }
+          
+              /* ✅ Fixed CSS for Green Button */
+              .green-btn {
+                background: #28a745; /* ✅ Green background */
+                color: white; /* ✅ White text */
+                border: 1px solid #218838; /* ✅ Darker green border */
+                padding: 8px 14px;
+                font-size: 14px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background 0.2s, border-color 0.2s;
+              }
+              .green-btn:hover {
+                background: #218838;
+                border-color: #1e7e34;
+              }
+            </style>
+          `;
+            let scopeOfAnswer = 'Scope: '
+            if (scope === 'document') {
+              scopeOfAnswer += 'Full paper'
+            } else if (scope === 'section') {
+              scopeOfAnswer += sectionName + ' section'
+            } else if (scope === 'excerpts') {
+              scopeOfAnswer = scopedText
+            }
+            // Construct the full HTML content
             let htmlContent = `
-  <div style="font-size: 14px; line-height: 1.5;">
-    <ul style="padding-left: 0; list-style-type: none; margin: 0;">${suggestionList}</ul>
-  </div>`;
-
-// Show alert with HTML content
+            <div style="font-size: 14px; line-height: 1.5;">
+              <p style="text-align: justify; margin-bottom: 10px;">${scopeOfAnswer}</p> <!-- ✅ Justified Text -->
+              <hr style="border: 0; height: 1px; background: #ccc; margin: 10px 0;">             
+              <ul style="padding-left: 0; list-style-type: none; margin: 0;">${suggestionList}</ul>
+              ${buttonSection} <!-- ✅ Now message appears between suggestions and buttons -->
+              </div>
+            `
             Alerts.infoAlert({
-              text: htmlContent, // ✅ Use `html` instead of `text`
-              title: `Suggestions for ${roleName} in the ${spaceName}`,
+              text: htmlContent,
+              title: `Suggestions for ${roleName} in the ${spaceMode}`,
               showCloseButton: true,
               showCancelButton: false,
-              callback: async () => {
-                // Retrieve all checkboxes
-                let checkedSuggestions = [];
-                document.querySelectorAll('.suggestion-checkbox').forEach((checkbox, index) => {
-                  if (checkbox.checked) {
-                    checkedSuggestions.push(suggestions[index].suggestion);
-                  }
-                });
+              showConfirmButton: false,
+              didOpen: (popup) => { // ✅ Ensure alert is rendered before attaching event listeners
+                const messageContainer = popup.querySelector('#message-container')
+                if (messageContainer) {
+                  // ✅ Apply text justification
+                  messageContainer.style.textAlign = 'justify'
+                  messageContainer.style.display = 'block'
+                  messageContainer.style.marginTop = '10px'
+                  messageContainer.style.fontSize = '14px'
+                  messageContainer.style.lineHeight = '1.5'
+                }
 
-                // Log checked suggestions in the console
-                console.log('Checked Suggestions:', checkedSuggestions);
+                const updateMessage = (buttonName) => {
+                  let checkedSuggestions = []
+                  popup.querySelectorAll('.suggestion-checkbox').forEach((checkbox, index) => {
+                    if (checkbox.checked) {
+                      checkedSuggestions.push(suggestions[index].suggestion)
+                    }
+                  });
+
+                  if (messageContainer) {
+                    if (checkedSuggestions.length > 0) {
+                      if (buttonName === 'AddTODOs') {
+                        let todoComments = ''
+                        checkedSuggestions.forEach(suggestion => {
+                          todoComments += `%%TODO FROM PROMPTEX: ${suggestion}}\n`
+                        })
+                        addTODOs(document, todoComments, scope, scopedText, sectionName)
+                      } else {
+                        let suggestions = checkedSuggestions.join('\n')
+                        let action = Config.actions[buttonName].description
+                        let prompt = Config.prompts.getSuggestionsFeedback
+                          .replace('[CONTENT]', scopedText)
+                          .replace('[ROLE]', roleDescription + ' ' + modeInstructions)
+                          .replace('[SUGGESTIONS]', suggestions)
+                          .replace('[ACTION]', action)
+
+                        // ✅ Start the animated loading message
+                        let loadingMessages = ["Asking LLM", "Asking LLM.", "Asking LLM..", "Asking LLM..."]
+                        let loadingIndex = 0
+                        messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
+
+                        // ✅ Loop the loading animation every 500ms
+                        let loadingInterval = setInterval(() => {
+                          loadingIndex = (loadingIndex + 1) % loadingMessages.length
+                          messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
+                        }, 500)
+
+                        let callback = (json) => {
+                          console.log(json)
+                          clearInterval(loadingInterval) // ✅ Stop the animation
+                          let answer = json.answer
+                          messageContainer.innerHTML = `<span>${buttonName.toUpperCase()}: ${answer}</span>` // ✅ Display the real answer
+                        }
+
+                        LLMClient.simpleQuestion({
+                          apiKey: apiKey,
+                          prompt: prompt,
+                          llm: llm,
+                          callback: callback
+                        })
+                      }
+                    } else {
+                      messageContainer.innerHTML = `<span>No suggestions selected</span>`
+                    }
+                  }
+                }
+                // ✅ Attach event listeners safely using `popup.querySelector`
+                popup.querySelector('#clarify-btn').addEventListener('click', () => {
+                  console.log('✅ Clarify Button Clicked!')
+                  updateMessage('clarify')
+                })
+
+                popup.querySelector('#illustrate-btn').addEventListener('click', () => {
+                  console.log('✅ Illustrate Button Clicked!')
+                  updateMessage('illustrate')
+                })
+
+                popup.querySelector('#justify-btn').addEventListener('click', () => {
+                  console.log('✅ Justify Button Clicked!')
+                  updateMessage('justify')
+                })
+
+                popup.querySelector('#add-todo-btn').addEventListener('click', () => {
+                  console.log('✅ Add TODOs Button Clicked!')
+                  updateMessage('AddTODOs')
+                })
               }
             })
           }
