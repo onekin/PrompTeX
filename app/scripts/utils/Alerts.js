@@ -127,22 +127,32 @@ class Alerts {
   }
 
   static showLoadingWindowDuringProcess (content) {
-    swal.fire({
-      title: 'Loading',
-      html: content,
-      toast: true,
-      position: 'center',
-      showConfirmButton: false,
-      showCancelButton: false,
-      customClass: 'custom-loading-toast',
-      onBeforeOpen: () => {
-        swal.showLoading()
-      }
-    })
+    if (swal.getPopup()) {
+      swal.close() // ✅ Ensure alert closes first
+    }
+
+    setTimeout(() => { // ✅ Delay prevents timing issues
+      swal.fire({
+        title: 'Loading',
+        html: content,
+        toast: true,
+        position: 'center',
+        showConfirmButton: false,
+        showCancelButton: false,
+        customClass: 'custom-loading-toast',
+        didOpen: () => {
+          swal.showLoading()
+        }
+      })
+    }, 100) // ✅ Short delay ensures previous alert is closed
   }
 
   static closeLoadingWindow () {
     swal.hideLoading()
+    swal.close()
+  }
+
+  static closeWindow () {
     swal.close()
   }
 

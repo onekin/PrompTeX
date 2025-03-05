@@ -4,48 +4,6 @@ const Alerts = require('../utils/Alerts')
 const LLMClient = require('../llm/LLMClient')
 const LatexUtils = require('./LatexUtils')
 
-function addTODOs (document, todoComments, scope, scopedText, sectionName) {
-  // Insert TODOs into the LaTeX document based on the response
-  let updatedDocument = insertTODOsIntoLatex(document, todoComments, scope, sectionName, scopedText)
-  Alerts.closeLoadingWindow()
-  Alerts.showAlertToast('Updated LaTeX document with TODOs')
-  OverleafUtils.removeContent(() => {
-    if (window.promptex._overleafManager._sidebar) {
-      window.promptex._overleafManager._sidebar.remove()
-    }
-    OverleafUtils.insertContent(updatedDocument)
-    window.promptex._overleafManager._readingDocument = false
-  })
-}
-
-function insertTODOsIntoLatex (document, todoComments, scope, sectionName, scopedText) {
-  let updatedDocument = document
-  if (scope === 'document') {
-    // Insert TODOs after the \title{...} command
-    updatedDocument = updatedDocument.replace(
-      /(\\title\{.*?\})/i, // Match \title{...}
-      `$1\n${todoComments}`  // Insert TODOs on the next line
-    );
-
-  } else if (scope === 'section' && sectionName) {
-    // Insert TODOs after the \section{sectionName} command
-    let sectionRegex = new RegExp(`(\\\\section\\{\\s*${sectionName}\\s*\\})`, 'i'); // Match \section{Name}
-    updatedDocument = updatedDocument.replace(
-      sectionRegex,
-      `$1\n${todoComments}` // Insert TODOs on the next line
-    );
-
-  } else if (scope === 'excerpts' && scopedText) {
-    // Insert TODOs right before the scopedText occurrence
-    updatedDocument = updatedDocument.replace(
-      new RegExp(`(${scopedText})`, 'i'),
-      `${todoComments}$1` // Insert TODOs before the scoped text
-    );
-  }
-
-  return updatedDocument;
-}
-
 class CriterionActions {
   static async askCriterionAssessment (criterionLabel, description) {
     // Fetch document content
@@ -309,7 +267,72 @@ class CriterionActions {
                         checkedSuggestions.forEach(suggestion => {
                           todoComments += `%%TODO FROM PROMPTEX: ${suggestion}}\n`
                         })
-                        addTODOs(document, todoComments, scope, scopedText, sectionName)
+
+                        let loadingMessages = ["Including the TODOs in the Manuscript", "Including the TODOs in the Manuscript.", "Including the TODOs in the Manuscript..", "Including the TODOs in the Manuscript..."]
+                        let loadingIndex = 0
+                        messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
+                        // ✅ Loop the loading animation every 500ms
+                        let loadingInterval = setInterval(() => {
+                          loadingIndex = (loadingIndex + 1) % loadingMessages.length
+                          messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
+                        }, 500)
+                        let updatedDocument = document
+                        if (scope === 'document') {
+                          // Ensure \title{...} exists before replacing
+                          if (updatedDocument.match(/\\title\{.*?\}/i)) {
+                            updatedDocument = updatedDocument.replace(
+                              /(\\title\{.*?\})/i,
+                              `$1\n${todoComments}`  // Insert TODOs on the next line
+                            )
+                          } else {
+                            console.log('not found')
+                          }
+                        } else if (scope === 'section' && sectionName) {
+                          // Ensure \section{sectionName} exists before replacing
+                          let sectionRegex = new RegExp(`(\\\\section\\{\\s*${sectionName}\\s*\\})`, 'i'); // Match \section{Name}
+                          if (updatedDocument.match(sectionRegex)) {
+                            updatedDocument = updatedDocument.replace(
+                              sectionRegex,
+                              `$1\n${todoComments}`
+                            );
+                          } else {
+                            console.log('not found')
+                          }
+                        } else if (scope === 'excerpts' && scopedText) {
+                          // Ensure scopedText exists before replacing
+                          if (updatedDocument.includes(scopedText)) {
+                            updatedDocument = updatedDocument.replace(
+                              new RegExp(`(${scopedText})`, 'i'),
+                              `${todoComments}$1` // Insert TODOs before the scoped text
+                            );
+                          } else {
+                            console.log('not found')
+                            // Ensure \title{...} exists before replacing
+                            if (updatedDocument.match(/\\title\{.*?\}/i)) {
+                              updatedDocument = updatedDocument.replace(
+                                /(\\title\{.*?\})/i,
+                                `$1\n%% TODO Next suggestions apply to this excerpt:${scopedText} \n${todoComments}`  // Insert TODOs on the next line
+                              )
+                            } else {
+                              console.log('not found')
+                            }
+                          }
+                        }
+                        setTimeout(() => {
+                          OverleafUtils.removeContent(() => {
+                            setTimeout(() => {
+                              OverleafUtils.insertContent(updatedDocument)
+                              clearInterval(loadingInterval)
+
+                              // ✅ Close the alert **using `Alerts.closeWindow()`** instead of `swal.close()`
+                              Alerts.closeWindow()
+
+                              Alerts.showAlertToast('LaTeX document Updated with new TODOs')
+                              window.promptex._overleafManager._readingDocument = false
+                            }, 1000); // ✅ Delay of 1.5 seconds before executing removeContent
+                          })
+                        }, 1000); // ✅ Delay of 1.5 seconds before executing removeContent
+
                       } else {
                         let suggestions = checkedSuggestions.join('\n')
                         let action = Config.actions[buttonName].description
