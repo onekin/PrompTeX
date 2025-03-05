@@ -32,6 +32,30 @@
   height: 32px;
 }
 
+#title-btn {
+  position: relative; /* Ensures proper placement */
+  display: block; /* Makes it a block element */
+  padding: 8px 16px; /* Padding for a nice button size */
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d1d5db; /* Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  background-color: white;
+  color: #374151; /* Dark gray text */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none; /* Removes default focus outline */
+  text-align: left; /* Aligns text inside */
+}
+
+#title-btn:hover {
+  background-color: #f3f4f6; /* Light gray on hover */
+}
+
+#title-btn:focus {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2); /* Adds a subtle focus effect */
+}
+
 header.outline-header.opened h4 {
   display: block; /* Make sure it's not set to 'none' */
   visibility: visible; /* Ensure it's visible */

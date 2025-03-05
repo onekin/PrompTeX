@@ -55,17 +55,25 @@ const Config = {
     }
   },
   actions: {
-    clarify: {
-      name: 'Clarify',
-      description: 'Provide a more detailed explanation of the suggestions given, ensuring that any ambiguous or unclear points are made explicit. Expand on any complex terms, vague statements, or assumptions to enhance the writer\'s understanding and allow for precise revisions.'
+    concretize: {
+      'name': 'Concretize',
+      'description': 'Transform abstract concepts into tangible examples or precise definitions. Ensure that broad generalizations, specialized terminology, or vague claims are substantiated with concrete details. Provide specific cases, applications, or real-world instances that illustrate the claim in a clear and examinable manner.'
     },
-    illustrate: {
-      name: 'Illustrate',
-      description: 'Offer a rationale for why each suggestion is relevant and necessary for improving the content. Explain the reasoning behind each suggestion, referencing academic writing standards, logical coherence, or stylistic principles to support the proposed changes.'
+    elaborate: {
+      'name': 'Elaborate',
+      'description': 'Expand on initial insights by providing greater depth, nuance, or breadth of explanation. Break down key points, offer additional perspectives, and explore underlying complexities to enrich the argument. Extend observations by discussing their implications, variations, or supporting details.'
     },
-    justify: {
-      name: 'Justify',
-      description: 'Provide concrete examples or scenarios to demonstrate how the suggested improvements can be applied effectively. Offer sample sentences, paragraph structures, or real-world analogies that help the writer visualize and implement the suggestions in context.'
+    deconstruct: {
+      'name': 'Deconstruct',
+      'description': 'Analyze complex ideas by breaking them down into their essential components. Identify distinct elements, compare relationships, and systematically examine each part to reveal underlying structures. Clarify broad assertions by separating them into detailed subpoints for a more precise and critical evaluation.'
+    },
+    contextualize: {
+      'name': 'Contextualize',
+      'description': 'Situate ideas within broader frameworks, alternative viewpoints, or disciplinary perspectives. Connect observations to historical, theoretical, or practical contexts to enhance understanding. Provide comparisons, contrasting perspectives, or situational relevance to demonstrate the significance of the claim in different scenarios.'
+    },
+    substantiate: {
+      'name': 'Substantiate',
+      'description': 'Support claims with appropriate evidence, reasoning, and validation. Justify assertions with credible data, logical arguments, or references to established research. Identify underlying assumptions, examine alternative explanations, and ensure that the provided reasoning is thorough and well-founded.'
     }
   },
   prompts: {
@@ -74,58 +82,41 @@ const Config = {
       'Given the provided content, you have to act as an academic writer and provide feedback. ' +
       'You must perform the following TASK: [ROLE].\n' +
       'IMPORTANT TO CONSIDER: [NOTE]\n' +
-      'You have to provide constructive feedback and a list of suggestions for the writer based on the assigned TASK. ' +
+      'You have to provide a list of maximum 4 suggestions for the writer based on the assigned TASK. ' +
       '-OUTPUT FORMAT:\n' +
       'You must provide the response in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
-      '  "feedback": "[Provide detailed feedback based on the provided content, referencing specific excerpts where necessary.]",\n' +
       '  "suggestions": [\n' +
+      '    {\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '    },\n' +
       '    {\n' +
       '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
       '    },\n' +
       '    ... more suggestions if applicable\n' +
       '  ]\n' +
       '}\n' +
-      'The number of suggestions should be determined based on the depth of feedback required for the TASK, but ensure the quality of suggestions not the quantity.',
-    getAnnotations: '-[CONTENT]\n' +
-      '-TASK: \n' +
-      'Given the provided, assess the document to provide feedback. [ROLE].\n' +
-      '[NOTE]' +
-      '\n' +
-      'Identify Relevant Excerpts: Select up to [NUMBER] short excerpts from the document that directly relate to the task. Each excerpt must:\n' +
-      '- Include the original LaTeX syntax (e.g., \\textit{}, \\cite{}, \\footnote{}) as written in the document.\n' +
-      '- Serve as evidence for your assessment of how well the criterion is met.\n' +
-      '\n' +
-      'Determine whether the provided content meets the task asked to you using one of the following labels:\n' +
-      '- Green: The content fully meets the task.\n' +
-      '- Yellow: The content partially meets the task.\n' +
-      '- Red: The content does not meet the task.\n' +
-      '\n' +
-      '-OUTPUT FORMAT:\n' +
-      'You have to provide the answer in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
-      '{\n' +
-      '  "feedback": "[Provide your feedback. You can based your answer in the excerpts.]",\n' +
-      '  "sentiment": "[Use one of these values: green, yellow, red]",\n' +
-      '  "claims": [\n' +
-      '    {\n' +
-      '      "excerpt": "Include a relevant short text fragment from the LaTeX file. IMPORTANT: Preserve the original LaTeX syntax, including commands such as \\textit{}, \\cite{}, and nested commands like \\footnote{\\href{...}. Avoid text inside \\promptex commands.",\n' +
-      '    },\n' +
-      ' ... ' +
-      '  ]\n' +
-      '}\n' +
-      'Please remember to maintain the text of the excerpts as it is in the original latex file, it is very important for the evaluation process. For the claims provide [NUMBER] excerpts in the array.',
+      'The number of suggestions should be 4 or less, but ensure the quality of suggestions not the quantity.',
     getSuggestionsFeedback: '-[CONTENT]\n' +
       'Given the provided content, you acted as an academic writer and you performed as [ROLE]. ' +
-      'You provided a list of suggestions for the writer based on the role. ' +
-      'You provided the following suggestions: [SUGGESTIONS].\n' +
+      'You provided a list of suggestions for the writer based on the role, and I have selected some of the that I want you to clarify. ' +
+      'This are the suggestions: [SUGGESTIONS].\n' +
       'TASK: \n' +
-      'Now, you have to [ACTION] on the suggestions provided. ' +
+      'Now, in order to clarify them, you have to [ACTION] on the suggestions provided. ' +
       '-OUTPUT FORMAT:\n' +
       'You must provide the response in JSON format. The format should be as follows (ensure no extra text is added before or after the JSON):\n' +
       '{\n' +
-      '  "answer": "[Provide your answer.]",\n' +
+      '  "suggestions": [\n' +
+      '    {\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '    },\n' +
+      '    {\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '    },\n' +
+      '    ... more suggestions if applicable\n' +
+      '  ]\n' +
       '}\n' +
-      'Please only return one answer element in the JSON, if there are more comments for different suggestions, you can include them in the same answer element.'
+      'Please, your new suggestions have to be based on the previous suggestions. but applying the action you were required'
   }
 }
 

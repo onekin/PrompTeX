@@ -195,7 +195,6 @@ class Alerts {
 
   static infoAlert ({
     text = chrome.i18n.getMessage('expectedInfoMessageNotFound'),
-    title = 'Info',
     callback,
     confirmButtonText = '',
     cancelButtonText = '',
@@ -212,7 +211,6 @@ class Alerts {
       }
     } else {
       swal.fire({
-        title: title,
         showCancelButton: showCancelButton,
         showConfirmButton: showConfirmButton,
         confirmButtonText: confirmButtonText || '',
