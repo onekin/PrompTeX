@@ -366,13 +366,18 @@ class OverleafUtils {
     // OverleafUtils.toggleEditor()
   }
 
-  static async scrollToConsolidateContent (name) {
+  static async scrollToConsolidateContent (name, number, type) {
     window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
     }
-    let textToFind = `\\section{${name}`
+    let textToFind
+    if (type === 'title') {
+      textToFind = `\\title{${name}`
+    } else {
+      textToFind = `\\section{${name}`
+    }
     let onTop = false
     const editorContainer = document.querySelector('.cm-scroller')
     const contentEditable = document.querySelector('.cm-content')
@@ -536,7 +541,7 @@ class OverleafUtils {
       todoCount: 0,
       type: 'section'
     }
-    const todoRegex = /%%\s*PROMPTEX/ // ✅ Match TODOs even with variable spaces
+    const todoRegex = /%%\s*PROMPTEX-/ // ✅ Match TODOs even with variable spaces
 
     lines.forEach((line) => {
       // ✅ Check for \title{...} to treat as a separate section

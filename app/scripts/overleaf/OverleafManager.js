@@ -724,7 +724,7 @@ class OverleafManager {
 
                   // Log the extracted name, number, and navigation attribute
                   console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
-                  await OverleafUtils.scrollToConsolidateContent(name, parseInt(navigation))
+                  await OverleafUtils.scrollToConsolidateContent(name, parseInt(navigation), type)
                   if (navigation === number) {
                     categoryTitle.setAttribute('data-navigation', '1')
                   } else {
