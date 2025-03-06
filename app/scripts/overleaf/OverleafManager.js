@@ -364,7 +364,11 @@ class OverleafManager {
     if (!window.promptex._overleafManager._readingDocument) {
       elements.forEach((element) => {
         // if (!this.isSelectedInCodeEditor(element)) {
-        element.style.backgroundColor = '#FFD700'
+        if (element.textContent.trim().startsWith('%% PROMPTEX-COMMENT:')) {
+          element.style.backgroundColor = '#FFD700'
+        } else if (element.textContent.trim().startsWith('%% PROMPTEX-BOOKMARK:')) {
+          element.style.backgroundColor = '#ffb700'
+        }
         // }
       })
     }
@@ -419,36 +423,38 @@ class OverleafManager {
   }
 
   addConfigurationButton () {
-    // Create the 'Check Criteria' button element
-    let promptConfigurationBtn = document.createElement('div')
-    promptConfigurationBtn.classList.add('toolbar-item')
-    promptConfigurationBtn.innerHTML = `
+    // Locate the toolbar where the button should be added
+    let toolbar = document.querySelector('.toolbar-right')
+    if (!document.getElementById('checkCriteriaBtn')) {
+      // Create the 'Check Criteria' button element
+      let promptConfigurationBtn = document.createElement('div')
+      promptConfigurationBtn.classList.add('toolbar-item')
+      promptConfigurationBtn.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
         <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
         <p class='toolbar-label'>Configuration</p>
       </button>
     `
-    // Locate the toolbar where the button should be added
-    let toolbar = document.querySelector('.toolbar-right')
+      promptConfigurationBtn.addEventListener('click', async () => {
+        // const content = await OverleafUtils.getAllEditorContent()
+        promptConfigurationBtn.addEventListener('click', () => {
+          window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
+        })
+      })
 
-    // Insert the 'Check Criteria' button at the end of the toolbar list
-    if (toolbar) {
-      toolbar.appendChild(promptConfigurationBtn)
-    } else {
-      console.error('Toolbar not found')
+      // Insert the 'Check Criteria' button at the end of the toolbar list
+      if (toolbar) {
+        toolbar.appendChild(promptConfigurationBtn)
+      } else {
+        console.error('Toolbar not found')
+      }
     }
 
-    promptConfigurationBtn.addEventListener('click', async () => {
-      // const content = await OverleafUtils.getAllEditorContent()
-      promptConfigurationBtn.addEventListener('click', () => {
-        window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
-      })
-    })
-
-    // Create the switch button container
-    let modeSwitchContainer = document.createElement('div')
-    modeSwitchContainer.classList.add('toolbar-item', 'mode-switch-container')
-    modeSwitchContainer.innerHTML = `
+    if (!document.querySelector('.mode-switch-container')) {
+      // Create the switch button container
+      let modeSwitchContainer = document.createElement('div')
+      modeSwitchContainer.classList.add('toolbar-item', 'mode-switch-container')
+      modeSwitchContainer.innerHTML = `
       <label class="switch">
         <input type="checkbox" id="modeToggle">
         <span class="slider"></span>
@@ -456,14 +462,14 @@ class OverleafManager {
       <span id="modeLabel">Content Mode</span>
     `
 
-    // Insert the switch button **before** the "Review" button
-    if (toolbar) {
-      toolbar.insertBefore(modeSwitchContainer, toolbar.firstChild)
-    }
+      // Insert the switch button **before** the "Review" button
+      if (toolbar) {
+        toolbar.insertBefore(modeSwitchContainer, toolbar.firstChild)
+      }
 
-    // Add styles dynamically for the switch button
-    let style = document.createElement('style')
-    style.innerHTML = `
+      // Add styles dynamically for the switch button
+      let style = document.createElement('style')
+      style.innerHTML = `
       .mode-switch-container {
           display: flex;
           align-items: center;
@@ -528,14 +534,15 @@ class OverleafManager {
       }
     `
 
-    // Append the styles to the document head
-    document.head.appendChild(style)
+      // Append the styles to the document head
+      document.head.appendChild(style)
 
-    // Add event listener to toggle between Content Mode and Rhetoric Mode
-    document.getElementById('modeToggle').addEventListener('change', function () {
-      let modeLabel = document.getElementById('modeLabel')
-      modeLabel.textContent = this.checked ? 'Rhetoric Mode' : 'Content Mode'
-    })
+      // Add event listener to toggle between Content Mode and Rhetoric Mode
+      document.getElementById('modeToggle').addEventListener('change', function () {
+        let modeLabel = document.getElementById('modeLabel')
+        modeLabel.textContent = this.checked ? 'Rhetoric Mode' : 'Content Mode'
+      })
+    }
   }
 
   // Function to insert TODOs into the LaTeX content
@@ -663,58 +670,72 @@ class OverleafManager {
         rootList.setAttribute('role', 'tree')
         outlineBody.appendChild(rootList)
 
-        OverleafUtils.generateImprovementOutlineContent(async (outlineContent) => {
-          if (!outlineContent) {
-            Alerts.infoAlert({ title: 'No annotations found', text: 'No annotation found in the document.' })
+        OverleafUtils.generateConsolidateOutlineContent(async (outlineContent) => {
+          if (Object.keys(outlineContent).length === 0) {
+            Alerts.infoAlert({ title: 'No sections with TODOs found', text: 'No annotation found in the document.' })
           } else {
             // Iterate through the content to build the outline
             Object.keys(outlineContent).forEach((category) => {
-              outlineContent[category].forEach((subItem) => {
-                // Create a parent item for each category
-                const categoryLi = document.createElement('li')
-                categoryLi.classList.add('outline-item')
-                categoryLi.setAttribute('role', 'treeitem')
-                categoryLi.setAttribute('aria-expanded', 'true')
-                categoryLi.style.marginLeft = '5px' // Adjust this value as needed
+              // Create a parent item for each category
+              let cleanedValue
+              let value = outlineContent[category]
+              let type
+              const match = value.match(/^(.*\(\d+\))(.+)$/)
+              if (match) {
+                cleanedValue = match[1].trim()
+                type = match[2].trim()
+              } else {
+                console.log('No match found.')
+              }
+              var match2 = cleanedValue.match(/^(.+)\s\((\d+)\)$/)
+              let numberOfTODOs
+              if (match2) {
+                numberOfTODOs = match2[2]
+              }
+              const categoryLi = document.createElement('li')
+              categoryLi.classList.add('outline-item')
+              categoryLi.setAttribute('role', 'treeitem')
+              categoryLi.setAttribute('aria-expanded', 'true')
+              categoryLi.style.marginLeft = '5px' // Adjust this value as needed
 
-                const categoryDiv = document.createElement('div')
-                categoryDiv.classList.add('outline-item-row')
+              const categoryDiv = document.createElement('div')
+              categoryDiv.classList.add('outline-item-row')
 
-                const categoryTitle = document.createElement('button')
-                categoryTitle.classList.add('outline-item-link')
-                const categorySpan = document.createElement('span')
-                categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
-                categorySpan.textContent = subItem
-                categoryTitle.appendChild(categorySpan)
-                categoryTitle.setAttribute('data-navigation', '1')
-                categoryTitle.addEventListener('click', async () => {
-                  // Get criterion content
-                  var match = subItem.match(/^(.+)\s\((\d+)\)$/)
+              const categoryTitle = document.createElement('button')
+              categoryTitle.classList.add('outline-item-link')
+              const categorySpan = document.createElement('span')
+              categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
+              if (type === 'title') {
+                categorySpan.textContent = 'Full Content (' + numberOfTODOs + ')'
+              } else {
+                categorySpan.textContent = cleanedValue
+              }
+              categoryTitle.appendChild(categorySpan)
+              categoryTitle.setAttribute('data-navigation', '1')
+              categoryTitle.addEventListener('click', async () => {
+                // Get criterion content
+                var match = cleanedValue.match(/^(.+)\s\((\d+)\)$/)
+                if (match) {
+                  var name = match[1]
+                  var number = match[2]
 
-                  if (match) {
-                    // match[1] is the name (e.g., 'Artifact Detail')
-                    // match[2] is the number (e.g., '1')
-                    var name = match[1]
-                    var number = match[2]
+                  // Get the navigation attribute from the button
+                  var navigation = categoryTitle.getAttribute('data-navigation')
 
-                    // Get the navigation attribute from the button
-                    var navigation = categoryTitle.getAttribute('data-navigation')
-
-                    // Log the extracted name, number, and navigation attribute
-                    console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
-                    await OverleafUtils.scrollToImprovementContent(name, parseInt(navigation))
-                    if (navigation === number) {
-                      categoryTitle.setAttribute('data-navigation', '1')
-                    } else {
-                      let newNavigation = (parseInt(navigation) + 1).toString()
-                      categoryTitle.setAttribute('data-navigation', newNavigation)
-                    }
+                  // Log the extracted name, number, and navigation attribute
+                  console.log('Name:', name, '| Number:', number, '| Navigation:', navigation)
+                  await OverleafUtils.scrollToConsolidateContent(name, parseInt(navigation))
+                  if (navigation === number) {
+                    categoryTitle.setAttribute('data-navigation', '1')
+                  } else {
+                    let newNavigation = (parseInt(navigation) + 1).toString()
+                    categoryTitle.setAttribute('data-navigation', newNavigation)
                   }
-                })
-                categoryDiv.appendChild(categoryTitle)
-                categoryLi.appendChild(categoryDiv)
-                rootList.appendChild(categoryLi)
+                }
               })
+              categoryDiv.appendChild(categoryTitle)
+              categoryLi.appendChild(categoryDiv)
+              rootList.appendChild(categoryLi)
             })
             let treeDiv = document.getElementById('panel-file-tree')
             // Change the data-panel-size attribute

@@ -527,44 +527,55 @@ class OverleafUtils {
     return sections
   }
 
-  // Define a function to split sections based on \section command and count %TODO lines
-  // Define a function to split sections based on \section command and count %TODO lines
   static extractSectionsWithTodos (latexContent) {
     const lines = latexContent.split('\n')
     const sections = []
-    let currentSection = null
-    const todoRegex = /%\s*TODO/ // Adjusted regex to account for spaces
+    let currentSection = {
+      title: 'Document Title', // Default title section
+      content: [],
+      todoCount: 0,
+      type: 'section'
+    }
+    const todoRegex = /%%\s*PROMPTEX/ // ✅ Match TODOs even with variable spaces
 
     lines.forEach((line) => {
-      // Regex to capture \section{...} even if there is extra text after it, e.g., \label
+      // ✅ Check for \title{...} to treat as a separate section
+      const titleMatch = line.match(/\\title\{(.+?)\}/)
+      if (titleMatch && sections.length === 0) {
+        currentSection.title = titleMatch[1].trim() // Capture document title
+        currentSection.type = 'title'
+      }
+
+      // ✅ Check for \section{...} (even if there is extra text after it, e.g., \label)
       const sectionMatch = line.match(/\\section\{(.+?)\}/)
       if (sectionMatch) {
-        // If there's a current section being tracked, push it into the array
-        if (currentSection) {
-          // Remove empty lines from the content
-          currentSection.content = currentSection.content.filter(
-            (line) => line.trim() !== ''
-          )
+        // ✅ Push all pre-section content as the "title" section
+        if (currentSection.content.length > 0) {
+          currentSection.content = currentSection.content.filter(line => line.trim() !== '')
           sections.push(currentSection)
         }
 
-        // Create a new section object
+        // ✅ Create a new section object
         currentSection = {
-          title: sectionMatch[1], // Capture the section title
-          content: [line],
+          title: sectionMatch[1].trim(),
+          content: [line], // Start collecting content for this section
           todoCount: 0
         }
-      } else if (todoRegex.test(line)) {
-        // If the line is a TODO, increase the TODO count for the current section
-        if (currentSection) {
+      } else {
+        // ✅ If a TODO is found, count it and store the line
+        if (todoRegex.test(line)) {
           currentSection.todoCount += 1
-          currentSection.content.push(line) // Optionally add the TODO line to the content
         }
-      } else if (currentSection) {
-        // If a section is being tracked and it's not a TODO line, add it to the section's content
-        currentSection.content.push(line)
+        currentSection.content.push(line) // ✅ Store every line properly
       }
     })
+
+    // ✅ Push the last section (including title section) before returning
+    if (currentSection.content.length > 0) {
+      currentSection.content = currentSection.content.filter(line => line.trim() !== '')
+      sections.push(currentSection)
+    }
+
     return sections
   }
 
@@ -757,7 +768,7 @@ class OverleafUtils {
     const outlineContent = {}
     sections.forEach(section => {
       if (section.todoCount > 0) {
-        outlineContent[section.title] = `${section.title} (${section.todoCount})`
+        outlineContent[section.title] = `${section.title} (${section.todoCount})${section.type}`
       }
     })
     console.log('Outline content:', outlineContent)
