@@ -7,9 +7,11 @@ class Utils {
       b: parseInt(result[3], 16)
     } : null
   }
+
   static sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
+
   // Function to return an HTML representation of a colored face based on the value
   static getColoredFace (value) {
     if (value.toLowerCase() === 'green') {
@@ -21,6 +23,7 @@ class Utils {
     }
     return '' // Default to an empty string if the value doesn't match
   }
+
   // Helper function to darken a color
   static darkenColor (color, percentage) {
     let f = parseInt(color.slice(1), 16)
@@ -41,6 +44,19 @@ class Utils {
         .slice(1)
     )
   }
+
+  static getFormattedDateTime () {
+    let now = new Date()
+    let year = now.getFullYear()
+    let month = String(now.getMonth() + 1).padStart(2, '0') // Months are zero-based
+    let day = String(now.getDate()).padStart(2, '0')
+    let hours = String(now.getHours()).padStart(2, '0')
+    let minutes = String(now.getMinutes()).padStart(2, '0')
+    let seconds = String(now.getSeconds()).padStart(2, '0')
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  }
+
   static async performRequest (opts, reqOptions = {remainingAttempts: 4, attempt: 0}) {
     let that = this
     let url = opts.url

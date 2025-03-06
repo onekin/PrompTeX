@@ -31,7 +31,23 @@
   flex-shrink: 0;
   height: 32px;
 }
+/* ✅ Default Bookmark Button Style */
+.bookmark {
+  background: white;
+  color: black;
+  border: 1px solid black;
+  padding: 4px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
 
+/* ✅ Bookmark Activated (Toggled) */
+.bookmark.active {
+  background: black;
+  color: white;
+}
 
 
 .title-btn {

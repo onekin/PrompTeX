@@ -2,7 +2,7 @@ const OverleafUtils = require('./OverleafUtils')
 const Config = require('../Config')
 const Alerts = require('../utils/Alerts')
 const LLMClient = require('../llm/LLMClient')
-const LatexUtils = require('./LatexUtils')
+const Utils = require('../utils/Utils')
 
 class CriterionActions {
   static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName) {
@@ -37,11 +37,16 @@ class CriterionActions {
             // Generate buttons dynamically
             const actionButtons = Object.entries(Config.actions)
               .map(([key, action]) => `
-                  <button id="${key}-btn" class="small-btn">
-                      <i class="${action.icon}" aria-hidden="true"></i> ${action.name}
-                  </button>
-              `)
-              .join('')
+                <button id="${key}-btn" class="small-btn">
+                    <i class="${action.icon}" aria-hidden="true"></i> ${action.name}
+                </button>
+            `)
+              .join('') + `
+              <!-- ✅ Bookmark Button -->
+              <button id="bookmark-btn" class="small-btn bookmark">
+                  <i class="fa fa-bookmark"></i>
+              </button>
+          `
 
             // ✅ Now the buttons are dynamically inserted!
             let buttonSection = `
@@ -102,6 +107,13 @@ class CriterionActions {
               showCancelButton: false,
               showConfirmButton: false,
               didOpen: (popup) => { // ✅ Ensure alert is rendered before attaching event listeners
+                // ✅ Ensure event listener is attached dynamically
+                const bookmarkButton = popup.querySelector('#bookmark-btn')
+                if (bookmarkButton) {
+                  bookmarkButton.addEventListener('click', function () {
+                    bookmarkButton.classList.toggle('active') // ✅ Toggle class for color change
+                  })
+                }
                 const messageContainer = popup.querySelector('#message-container')
                 if (messageContainer) {
                   // ✅ Apply text justification
@@ -133,10 +145,13 @@ class CriterionActions {
                     if (checkedSuggestions.length > 0) {
                       if (buttonName === 'AddTODOs') {
                         let todoComments = ''
+                        const isBookmarkActive = popup.ownerDocument.getElementById('bookmark-btn').classList.contains('active')
+                        if (isBookmarkActive) {
+                          todoComments += '%%\bookmark: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + scope + '}{' + Utils.getFormattedDateTime() + '}\n'
+                        }
                         checkedSuggestions.forEach(suggestion => {
                           todoComments += `%%TODO FROM PROMPTEX: ${suggestion}}\n`
                         })
-
                         let loadingMessages = ['Including the TODOs in the Manuscript', 'Including the TODOs in the Manuscript.', 'Including the TODOs in the Manuscript..', 'Including the TODOs in the Manuscript...']
                         let loadingIndex = 0
                         messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
@@ -352,110 +367,6 @@ class CriterionActions {
                   updateMessage('AddTODOs')
                 })
               }
-            })
-          }
-          LLMClient.simpleQuestion({
-            apiKey: apiKey,
-            prompt: prompt,
-            llm: llm,
-            callback: callback
-          })
-        } else {
-          Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
-        }
-      })
-    })
-  }
-
-  static async askForAnnotations (document, prompt, roleName) {
-    Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
-    chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
-      if (llm === '') {
-        llm = Config.review.defaultLLM
-      }
-      const llmProvider = llm.modelType
-      Alerts.showLoadingWindowDuringProcess('Waiting ' + llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1) + ' to answer...')
-      chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
-        if (apiKey !== null && apiKey !== '') {
-          let callback = (json) => {
-            Alerts.closeLoadingWindow()
-            console.log(json)
-            const cleanExcerpts = json.claims.map(claim => {
-              // Convert the excerpt into a string with escape characters interpreted
-              let cleanedExcerpt = JSON.stringify(claim.excerpt)
-                .replace(/\\\\/g, '\\') // Replace double backslashes with a single backslash
-                .slice(1, -1) // Remove the quotes added by JSON.stringify
-              return cleanedExcerpt
-            })
-            console.log(cleanExcerpts)
-            let foundExcerpts = []
-            let notFoundExcerpts = []
-            cleanExcerpts.forEach(excerpt => {
-              if (document.includes(excerpt)) {
-                console.log(`Excerpt found for ${roleName}: "${excerpt}"`)
-                foundExcerpts.push(excerpt)
-              } else {
-                console.log(`Excerpt not found for ${roleName}: "${excerpt}"`)
-                notFoundExcerpts.push(excerpt)
-              }
-            })
-            // let excerpts = foundExcerpts.concat(notFoundExcerpts)
-            let feedback = {}
-            feedback.sentiment = json.sentiment
-            feedback.comment = json.feedback
-            // Call CriteriaDatabaseClient to update the
-            let commentID = LatexUtils.generateId()
-            let newContent = LatexUtils.addCommentsToLatexRoles(document, cleanExcerpts, feedback.sentiment, roleName, feedback, commentID)
-            newContent = LatexUtils.ensurePromptexCommandExists(newContent)
-            window.promptex.storageManager.client.createNewFeedback(feedback, commentID, () => {
-              OverleafUtils.removeContent(async () => {
-                OverleafUtils.insertContent(newContent)
-                window.promptex._overleafManager._readingDocument = false
-                if (foundExcerpts.length === 0) {
-                  Alerts.showWarningWindow('No excerpt found in the document for ' + roleName)
-                  // Create an HTML list of the found excerpts with improved styling
-                  const excerptList = notFoundExcerpts
-                    .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                    .join('')
-                  let htmlContent = `<h4>However, this excerpts can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-                  // htmlContent += `<p style="margin-top: 10px;">Suggestion for improvement: ${suggestion}</p>`
-                  Alerts.infoAlert({
-                    text: ` ${htmlContent}`,
-                    title: `Retrieved excerpts do not match with the document text.`,
-                    showCancelButton: false,
-                    html: true, // Enable HTML rendering in the alert
-                    callback: async () => {
-                      console.log('finished')
-                    }
-                  })
-                } else {
-                  // Create an HTML list of the found excerpts with improved styling
-                  const excerptList = foundExcerpts
-                    .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                    .join('')
-                  let htmlContent = ''
-                  // htmlContent += `<p style="margin-top: 10px;"><b>Suggestion for improvement:</b> ${suggestion}</p>`
-                  htmlContent += `<h4>Annotated content:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-                  if (notFoundExcerpts.length > 0) {
-                    // Create an HTML list of the found excerpts with improved styling
-                    const notFoundExcerptList = notFoundExcerpts
-                      .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-                      .join('')
-                    htmlContent += `<h4>The AI also retrieved these excerpts that can be similar to those in the document: </h4><ul style="padding-left: 20px; list-style-type: disc;">${notFoundExcerptList}</ul>`
-                  }
-                  Alerts.infoAlert({
-                    text: ` ${htmlContent}`,
-                    title: `Excerpt(s) found for ${roleName}`,
-                    showCancelButton: false,
-                    html: true, // Enable HTML rendering in the alert
-                    callback: async () => {
-                      console.log('finished')
-                    }
-                  })
-                }
-              }).catch(err => {
-                console.error('Failed to update criterion:', err)
-              })
             })
           }
           LLMClient.simpleQuestion({
