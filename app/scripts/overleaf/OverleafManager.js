@@ -165,16 +165,24 @@ class OverleafManager {
     // Use setInterval to check every second (1000ms)
     setInterval(() => {
       // Get all elements with the class 'ol-cm-command-promptex'
-      let visualElements = document.querySelectorAll('.ol-cm-command-promptex')
-      this.monitorVisualEditorContent(visualElements)
-      let codeElements = document.querySelectorAll('span.tok-typeName')
+      // let visualElements = document.querySelectorAll('.ol-cm-command-promptex')
+      // this.monitorVisualEditorContent(visualElements)
+      // let codeElements = document.querySelectorAll('span.tok-typeName')
       // Filter the elements to find ones containing '\promptex'
-      const promptexElements = Array.from(codeElements).filter(element =>
-        element.textContent.trim() === '\\promptex'
-      )
+      // const promptexElements = Array.from(codeElements).filter(element =>
+      //   element.textContent.trim() === '\\promptex'
+      // )
+      // let editor = OverleafUtils.getActiveEditor()
+      // if (editor === 'Code Editor') {
+      //   this.monitorCodeEditorContent(promptexElements)
+      // }
+      let codeElements = document.querySelectorAll('div.cm-line')
+      // ✅ Filter elements that contain comments starting with "%% PROMPTEX"
+      let promptexComments = Array.from(codeElements)
+        .filter(element => element.textContent.startsWith('%% PROMPTEX')) // Keep only matching comments
       let editor = OverleafUtils.getActiveEditor()
       if (editor === 'Code Editor') {
-        this.monitorCodeEditorContent(promptexElements)
+        this.monitorCodeEditorContentPromptex(promptexComments)
       }
     }, 500) // Every second
   }
@@ -348,6 +356,16 @@ class OverleafManager {
             // Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
           }
         }
+      })
+    }
+  }
+
+  monitorCodeEditorContentPromptex (elements) {
+    if (!window.promptex._overleafManager._readingDocument) {
+      elements.forEach((element) => {
+        // if (!this.isSelectedInCodeEditor(element)) {
+        element.style.backgroundColor = '#FFD700'
+        // }
       })
     }
   }

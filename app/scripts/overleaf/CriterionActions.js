@@ -147,10 +147,10 @@ class CriterionActions {
                         let todoComments = ''
                         const isBookmarkActive = popup.ownerDocument.getElementById('bookmark-btn').classList.contains('active')
                         if (isBookmarkActive) {
-                          todoComments += '%%\bookmark: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + scope + '}{' + Utils.getFormattedDateTime() + '}\n'
+                          todoComments += '%% PROMPTEX-BOOKMARK: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + scope + '}{' + Utils.getFormattedDateTime() + '}\n'
                         }
                         checkedSuggestions.forEach(suggestion => {
-                          todoComments += `%%TODO FROM PROMPTEX: ${suggestion}}\n`
+                          todoComments += `%% PROMPTEX-COMMENT: ${suggestion}}\n`
                         })
                         let loadingMessages = ['Including the TODOs in the Manuscript', 'Including the TODOs in the Manuscript.', 'Including the TODOs in the Manuscript..', 'Including the TODOs in the Manuscript...']
                         let loadingIndex = 0
