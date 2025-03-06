@@ -32,27 +32,21 @@
   height: 32px;
 }
 
-#title-btn {
+
+
+.title-btn {
   position: relative; /* Ensures proper placement */
   display: block; /* Makes it a block element */
-  padding: 8px 16px; /* Padding for a nice button size */
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid #d1d5db; /* Light gray border */
-  border-radius: 8px; /* Rounded corners */
-  background-color: white;
-  color: #374151; /* Dark gray text */
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  outline: none; /* Removes default focus outline */
   text-align: left; /* Aligns text inside */
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
-#title-btn:hover {
+.title-btn:hover {
   background-color: #f3f4f6; /* Light gray on hover */
 }
 
-#title-btn:focus {
+.title-btn:focus {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.2); /* Adds a subtle focus effect */
 }
 
@@ -135,6 +129,49 @@ body[data-loading="true"] #loading-overlay {
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
+}
+/* ✅ Ensure tooltip container is aligned to the right */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* ✅ Tooltip Text (Initially Hidden) */
+.tooltip-container .tooltip-text {
+  visibility: hidden;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding: 6px;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 125%; /* Positions tooltip above the button */
+  right: 0; /* Align tooltip text to the right */
+  transform: translateX(0);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+/* ✅ Show Tooltip on Hover */
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ✅ Ensure button aligns to the right */
+.button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px; /* Adjust spacing */
+}
+
+
+#add-todo-btn {
+  display: block;
+  margin-left: auto;  /* ✅ Pushes the button to the right */
 }
 
 /* Change button on hover to give it an effect */

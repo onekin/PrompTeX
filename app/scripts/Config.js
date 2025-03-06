@@ -57,23 +57,28 @@ const Config = {
   actions: {
     concretize: {
       'name': 'Concretize',
-      'description': 'Transform abstract concepts into tangible examples or precise definitions. Ensure that broad generalizations, specialized terminology, or vague claims are substantiated with concrete details. Provide specific cases, applications, or real-world instances that illustrate the claim in a clear and examinable manner.'
+      'description': 'Transform abstract concepts into tangible examples or precise definitions. Ensure that broad generalizations, specialized terminology, or vague claims are substantiated with concrete details. Provide specific cases, applications, or real-world instances that illustrate the claim in a clear and examinable manner.',
+      'icon': 'fa fa-check-circle'
     },
     elaborate: {
       'name': 'Elaborate',
-      'description': 'Expand on initial insights by providing greater depth, nuance, or breadth of explanation. Break down key points, offer additional perspectives, and explore underlying complexities to enrich the argument. Extend observations by discussing their implications, variations, or supporting details.'
+      'description': 'Expand on initial insights by providing greater depth, nuance, or breadth of explanation. Break down key points, offer additional perspectives, and explore underlying complexities to enrich the argument. Extend observations by discussing their implications, variations, or supporting details.',
+      'icon': 'fa fa-lightbulb'
     },
     deconstruct: {
       'name': 'Deconstruct',
-      'description': 'Analyze complex ideas by breaking them down into their essential components. Identify distinct elements, compare relationships, and systematically examine each part to reveal underlying structures. Clarify broad assertions by separating them into detailed subpoints for a more precise and critical evaluation.'
+      'description': 'Analyze complex ideas by breaking them down into their essential components. Identify distinct elements, compare relationships, and systematically examine each part to reveal underlying structures. Clarify broad assertions by separating them into detailed subpoints for a more precise and critical evaluation.',
+      'icon': 'fa fa-tools'
     },
     contextualize: {
       'name': 'Contextualize',
-      'description': 'Situate ideas within broader frameworks, alternative viewpoints, or disciplinary perspectives. Connect observations to historical, theoretical, or practical contexts to enhance understanding. Provide comparisons, contrasting perspectives, or situational relevance to demonstrate the significance of the claim in different scenarios.'
+      'description': 'Situate ideas within broader frameworks, alternative viewpoints, or disciplinary perspectives. Connect observations to historical, theoretical, or practical contexts to enhance understanding. Provide comparisons, contrasting perspectives, or situational relevance to demonstrate the significance of the claim in different scenarios.',
+      'icon': 'fa fa-book'
     },
     substantiate: {
       'name': 'Substantiate',
-      'description': 'Support claims with appropriate evidence, reasoning, and validation. Justify assertions with credible data, logical arguments, or references to established research. Identify underlying assumptions, examine alternative explanations, and ensure that the provided reasoning is thorough and well-founded.'
+      'description': 'Support claims with appropriate evidence, reasoning, and validation. Justify assertions with credible data, logical arguments, or references to established research. Identify underlying assumptions, examine alternative explanations, and ensure that the provided reasoning is thorough and well-founded.',
+      'icon': 'fa fa-balance-scale'
     }
   },
   prompts: {

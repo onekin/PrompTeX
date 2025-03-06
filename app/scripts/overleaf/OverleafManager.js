@@ -42,6 +42,7 @@ class OverleafManager {
           // If there is selected text, show the button
           if (selectedText.trim()) {
             const range = selection.getRangeAt(0)
+            /* eslint-disable no-unused-vars */
             const rect = range.getBoundingClientRect()
             let scope = ''
             let humanNote = ''
