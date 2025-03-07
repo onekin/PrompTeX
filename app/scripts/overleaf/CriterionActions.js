@@ -5,7 +5,7 @@ const LLMClient = require('../llm/LLMClient')
 const Utils = require('../utils/Utils')
 
 class CriterionActions {
-  static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName) {
+  static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName, humanNote) {
     Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
       if (llm === '') {
@@ -43,9 +43,12 @@ class CriterionActions {
             `)
               .join('') + `
               <!-- ✅ Bookmark Button -->
-              <button id="bookmark-btn" class="small-btn bookmark">
-                  <i class="fa fa-bookmark"></i>
-              </button>
+              <div class="tooltip-container" style="display: flex; justify-content: flex-end;">
+                <button id="bookmark-btn" class="small-btn bookmark">
+                    <i class="fa fa-bookmark"></i>
+                </button>
+                <span class="tooltip-text">Save the timestamp</span>
+              </div>
           `
 
             // ✅ Now the buttons are dynamically inserted!
@@ -68,7 +71,7 @@ class CriterionActions {
                   transition: background 0.2s, border-color 0.2s;
                 }
                 .small-btn:hover {
-                  background: #ddd;
+                  background: #ddd
                 }
               </style>
             `
@@ -78,7 +81,11 @@ class CriterionActions {
             } else if (scope === 'section') {
               scopeOfAnswer += sectionName + ' section'
             } else if (scope === 'excerpts') {
-              scopeOfAnswer = scopedText
+              scopeOfAnswer = 'Fragment: ' + scopedText.replaceAll('RESEARCH_PAPER FRAGMENT: [', '').replaceAll(']', '')
+            }
+            let question = roleName.toUpperCase().replaceAll('Rhetorical', '')
+            if (humanNote !== '' && humanNote !== null) {
+              question += ': ' + humanNote
             }
             // Construct the full HTML content
             let htmlContent = `
@@ -87,14 +94,14 @@ class CriterionActions {
                 <hr style="border: 0; height: 1px; background: #ccc; margin: 10px 0;">      
                 <div class="suggestion-batch" style="background-color: ${batchBgColor}; padding: 10px;">
                 <!--<div class="suggestion-batch" style="background-color: ${batchBgColor}; padding: 10px; border-radius: 6px; margin-bottom: 10px;">-->
-                  <span class="title-btn">${roleName.toUpperCase()}</span>       
+                  <span class="title-btn">${question}</span>       
                   <ul style="padding-left: 0; list-style-type: none; margin: 0;">${suggestionList}</ul>
                   <!-- ✅ Tooltip Container to Ensure Proper Hover Effect -->
                   <div class="tooltip-container" style="display: flex; justify-content: flex-end;">
                       <button id="add-todo-btn" class="small-btn">
                           <i class="fa fa-list-alt" aria-hidden="true"></i>
                       </button>
-                      <span class="tooltip-text">Add TODOs in the document</span>
+                      <span class="tooltip-text">Add TODOs</span>
                   </div>                
             
                 </div>
@@ -137,7 +144,7 @@ class CriterionActions {
                   let checkedSuggestions = []
                   popup.querySelectorAll('.suggestion-checkbox:not(:disabled)').forEach((checkbox, index) => {
                     if (checkbox.checked) {
-                      checkedSuggestions.push(checkbox.nextSibling.textContent.trim()) // ✅ Get the corresponding suggestion text
+                      checkedSuggestions.push(checkbox.nextElementSibling.textContent.trim()) // ✅ Get the corresponding suggestion text
                     }
                   })
 
@@ -146,8 +153,20 @@ class CriterionActions {
                       if (buttonName === 'AddTODOs') {
                         let todoComments = ''
                         const isBookmarkActive = popup.ownerDocument.getElementById('bookmark-btn').classList.contains('active')
+                        let target
+                        if (scope === 'document') {
+                          target = 'Full paper'
+                        } else if (scope === 'section') {
+                          target = sectionName + ' section'
+                        } else if (scope === 'excerpts') {
+                          target = 'excerpt'
+                        }
                         if (isBookmarkActive) {
-                          todoComments += '%% PROMPTEX-BOOKMARK: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + scope + '}{' + Utils.getFormattedDateTime() + '}\n'
+                          if (humanNote !== '' && humanNote !== null) {
+                            todoComments += '%% PROMPTEX-TIMESTAMP: {' + roleName + ': ' + humanNote + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
+                          } else {
+                            todoComments += '%% PROMPTEX-TIMESTAMP: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
+                          }
                         }
                         checkedSuggestions.forEach(suggestion => {
                           todoComments += `%% PROMPTEX-COMMENT: ${suggestion}}\n`
@@ -183,12 +202,11 @@ class CriterionActions {
                             console.log('not found')
                           }
                         } else if (scope === 'excerpts' && scopedText) {
-                          // Ensure scopedText exists before replacing
-                          if (updatedDocument.includes(scopedText)) {
-                            updatedDocument = updatedDocument.replace(
-                              new RegExp(`(${scopedText})`, 'i'),
-                              `${todoComments}$1` // Insert TODOs before the scoped text
-                            )
+                          let text = scopedText.replaceAll('RESEARCH_PAPER FRAGMENT: [', '').replaceAll(']', '')
+
+                          // Properly escape SINGLE backslashes without doubling already escaped ones
+                          if (updatedDocument.includes(text)) {
+                            updatedDocument = updatedDocument.replaceAll(text, `${todoComments}${text}`)
                           } else {
                             console.log('not found')
                             // Ensure \title{...} exists before replacing
@@ -257,7 +275,7 @@ class CriterionActions {
 
                           // ✅ Create new action title dynamically as a button
                           let actionTitle = popup.ownerDocument.createElement('span')
-                          actionTitle.textContent = buttonName.toUpperCase()
+                          actionTitle.textContent = buttonName.toUpperCase().replaceAll('Rhetorical', '')
                           actionTitle.className = 'title-btn'
                           actionTitle.style.display = 'block' // Ensures it appears on a new line
 
@@ -314,7 +332,7 @@ class CriterionActions {
 
                           let tooltipSpan = popup.ownerDocument.createElement('span')
                           tooltipSpan.className = 'tooltip-text'
-                          tooltipSpan.textContent = 'Click to add TODOs' // ✅ Tooltip text
+                          tooltipSpan.textContent = 'Add TODOs' // ✅ Tooltip text
 
                           let icon = popup.ownerDocument.createElement('i')
                           icon.className = 'fa fa-list-alt' // ✅ FontAwesome icon

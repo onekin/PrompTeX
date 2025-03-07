@@ -18,7 +18,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 100)
+        setTimeout(resolve, 10)
       })
     }
 
@@ -136,7 +136,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 100)
+        setTimeout(resolve, 10)
       })
     }
 
@@ -264,7 +264,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 100)
+        setTimeout(resolve, 10)
       })
     }
 
@@ -393,7 +393,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 100)
+        setTimeout(resolve, 10)
       })
     }
 

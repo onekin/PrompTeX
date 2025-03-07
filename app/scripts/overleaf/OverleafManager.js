@@ -102,7 +102,7 @@ class OverleafManager {
             prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
             prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
             console.log(prompt)
-            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode, scopedText, roleDescription, modeInstructions, scope, firstSection)
+            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode, scopedText, roleDescription, modeInstructions, scope, firstSection, humanNote)
           }
         } else {
           console.log('Selection is outside the "panel-ide" element.')
@@ -187,186 +187,13 @@ class OverleafManager {
     }, 500) // Every second
   }
 
-  monitorVisualEditorContent (elements) {
-    elements.forEach((element) => {
-      if (!this.isSelected(element)) {
-        // Find the first .ol-cm-command-textit inside the element
-        let commandTextit = element.querySelector('.ol-cm-command-textit')
-
-        if (commandTextit) {
-          // Extract the text content from the .ol-cm-command-textit element
-          let commandText = commandTextit.textContent
-          let criterion = ''
-          let feedbackId = ''
-          // Check if the content matches the format 'text::number'
-          const match = commandText.match(/(.*)::(\d+)::(.*)/)
-
-          if (match) {
-            criterion = match[1]
-            feedbackId = match[3]
-            const number = parseInt(match[2], 10)
-
-            // Apply background color based on the number
-            if (number === 0) {
-              element.style.backgroundColor = '#8ACF8F' // Set background to green
-            } else if (number === 1) {
-              element.style.backgroundColor = 'yellow' // Set background to yellow
-            } else if (number === 2) {
-              element.style.backgroundColor = '#ff6666' // Set background to red
-            } else {
-              element.style.backgroundColor = '' // Reset background for other cases
-            }
-          }
-
-          // Set the display of the first .ol-cm-command-textit element to 'none'
-          commandTextit.style.display = 'none'
-          // Hide the first two .tok-punctuation.ol-cm-punctuation elements
-          const previousSibling = element.previousElementSibling
-          const secondPreviousSibling = previousSibling?.previousElementSibling
-          const nextSibling = element.nextElementSibling
-          if (previousSibling && secondPreviousSibling) {
-            previousSibling.style.display = 'none' // cm-matchingBracket
-            secondPreviousSibling.style.display = 'none' // \promptex
-            nextSibling.style.display = 'none' // cm-punctuation
-            // firstBracket.style.display = 'none'; // cm-punctuation
-          }
-          if (secondPreviousSibling && secondPreviousSibling.textContent && secondPreviousSibling.textContent === 'ex') {
-            const thirdPreviousSibling = secondPreviousSibling.previousElementSibling
-            const forthPreviousSibling = thirdPreviousSibling.previousElementSibling
-            thirdPreviousSibling.style.display = 'none' // cm-punctuation
-            forthPreviousSibling.style.display = 'none' // cm-punctuation
-          }
-          // Select all elements with both classes 'tok-punctuation' and 'ol-cm-punctuation' inside the current item
-          element.querySelectorAll('.tok-punctuation.ol-cm-punctuation').forEach(punctuationElement => {
-            // Hide the punctuation element by setting display to 'none'
-            punctuationElement.style.display = 'none'
-          })
-          element.addEventListener('contextmenu', function (event) {
-            event.preventDefault() // Prevent the default right-click menu
-            let feedback = window.promptex.storageManager.client.findFeedback(feedbackId).feedback
-            let info = ''
-            if (feedback && feedback.comment && feedback.sentiment) {
-              const assessmentFace = Utils.getColoredFace(feedback.sentiment)
-              info += '<b>Feedback</b> ' + assessmentFace + ': ' + feedback.comment + '<br><br>'
-            }
-            // Show alert with the tooltip message
-            Alerts.infoAnswerAlert({ title: criterion, text: info })
-            return false // Additional return to ensure default action is canceled
-          })
-        }
-      }
-    })
-  }
-
-  monitorCodeEditorContent (elements) {
-    if (!window.promptex._overleafManager._readingDocument) {
-      // Get all elements with the class 'ol-cm-command-promptex'
-      elements.forEach((element) => {
-        if (!this.isSelectedInCodeEditor(element)) {
-          let parent = element.parentElement
-          let promptexFound = false // Flag to mark when we find '\\promptex'
-          let punctuationCount = 0 // Counter to track the number of 'tok-punctuation' spans
-          let desiredTextNode = null
-          // Iterate over the child nodes of the parent element
-          for (let i = 0; i < parent.childNodes.length; i++) {
-            const node = parent.childNodes[i]
-            // Check for '\\promptex' in 'tok-typeName' class
-            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tok-typeName') && node.textContent.trim() === '\\promptex') {
-              promptexFound = true // Found the '\\promptex'
-            }
-            // If '\\promptex' has been found, start counting punctuations
-            if (promptexFound) {
-              if (node.nodeType === Node.ELEMENT_NODE && (node.classList.contains('tok-punctuation') || node.classList.contains('cm-lintRange'))) {
-                punctuationCount++ // Increment the punctuation count
-              }
-              // If we are past the second punctuation, find the first text node
-              if (punctuationCount === 2) {
-                // Move to the next nodes to find a text node
-                for (let j = i + 1; j < parent.childNodes.length; j++) {
-                  const nextNode = parent.childNodes[j]
-                  if (nextNode.nodeType === Node.TEXT_NODE && nextNode.textContent.trim() !== '') {
-                    desiredTextNode = nextNode.textContent.trim()
-                    // Check if the previous sibling is a span with class "ol-cm-spelling-error"
-                    const previousNode = nextNode.previousSibling
-                    if (
-                      previousNode &&
-                      previousNode.nodeType === Node.ELEMENT_NODE &&
-                      previousNode.tagName === 'SPAN' &&
-                      previousNode.classList.contains('ol-cm-spelling-error') &&
-                      previousNode.textContent.trim() !== ''
-                    ) {
-                      desiredTextNode = previousNode.textContent.trim() + ' ' + desiredTextNode
-                      console.log('Added text from previous span with spelling error:', previousNode.textContent.trim())
-                    }
-                    // Check if the next sibling is a span with class "ol-cm-spelling-error"
-                    const followingNode = nextNode.nextSibling
-                    if (
-                      followingNode &&
-                      followingNode.nodeType === Node.ELEMENT_NODE &&
-                      followingNode.tagName === 'SPAN' &&
-                      followingNode.classList.contains('ol-cm-spelling-error') &&
-                      followingNode.textContent.trim() !== ''
-                    ) {
-                      desiredTextNode += ' ' + followingNode.textContent.trim()
-                      console.log('Added text from next span with spelling error:', followingNode.textContent.trim())
-                    }
-                    break
-                  }
-                }
-                break // Stop the outer loop as we have found our result
-              }
-            }
-          }
-          // Log the desired text node
-          if (!desiredTextNode) {
-            console.log('Text node after second punctuation not found.')
-          }
-          try {
-            // Check if the content matches the format 'text::number'
-            const match = desiredTextNode.match(/(.*)::(\d+)::(.*)/)
-            const criterion = match[1]
-            const feedbackId = match[3]
-            if (match) {
-              const number = parseInt(match[2], 10)
-              // Apply background color based on the number
-              if (number === 0) {
-                parent.style.backgroundColor = '#8ACF8F' // Set background to green
-              } else if (number === 1) {
-                parent.style.backgroundColor = 'yellow' // Set background to yellow
-              } else if (number === 2) {
-                parent.style.backgroundColor = '#ff6666' // Set background to red
-              } else {
-                parent.style.backgroundColor = '' // Reset background for other cases
-              }
-            }
-            parent.addEventListener('contextmenu', function (event) {
-              event.preventDefault() // Prevent the default right-click menu
-              let feedback = window.promptex.storageManager.client.findFeedback(feedbackId).feedback
-              let info = ''
-              if (feedback && feedback.comment && feedback.sentiment) {
-                const assessmentFace = Utils.getColoredFace(feedback.sentiment)
-                info += '<b>Feedback</b> ' + assessmentFace + ': ' + feedback.comment + '<br><br>'
-              }
-              // Show alert with the tooltip message
-              Alerts.infoAnswerAlert({ title: criterion, text: info })
-              return false // Additional return to ensure default action is canceled
-            })
-          } catch (error) {
-            // console.error('Failed to parse LLM response:', error)
-            // Alerts.showErrorToast('Failed to parse LLM response. Please ensure the response is in valid JSON format.')
-          }
-        }
-      })
-    }
-  }
-
   monitorCodeEditorContentPromptex (elements) {
     if (!window.promptex._overleafManager._readingDocument) {
       elements.forEach((element) => {
         // if (!this.isSelectedInCodeEditor(element)) {
         if (element.textContent.trim().startsWith('%% PROMPTEX-COMMENT:')) {
           element.style.backgroundColor = '#FFD700'
-        } else if (element.textContent.trim().startsWith('%% PROMPTEX-BOOKMARK:')) {
+        } else if (element.textContent.trim().startsWith('%% PROMPTEX-TIMESTAMP:')) {
           element.style.backgroundColor = '#ffb700'
         }
         // }
@@ -431,8 +258,8 @@ class OverleafManager {
       promptConfigurationBtn.classList.add('toolbar-item')
       promptConfigurationBtn.innerHTML = `
       <button type='button' class='btn btn-full-height' id='checkCriteriaBtn'>
-        <i class='fa fa-arrow-up fa-fw' aria-hidden='true'></i>
-        <p class='toolbar-label'>Configuration</p>
+        <i class='fa fa-book fa-fw' aria-hidden='true'></i>
+        <p class='toolbar-label'>Role definition</p>
       </button>
     `
       promptConfigurationBtn.addEventListener('click', async () => {
@@ -595,43 +422,14 @@ class OverleafManager {
 
     const headerImprovementTitle = document.createElement('h4')
     headerImprovementTitle.classList.add('outline-header-name2')
-    headerImprovementTitle.textContent = 'TODOs outline' // Update title to "Foundation outline"
+    headerImprovementTitle.textContent = 'TODOs by section' // Update title to "Foundation outline"
 
     // Append the caret and title to the header button, and the button to the header
     headerImprovementButton.appendChild(caretImprovementIcon)
     headerImprovementButton.appendChild(headerImprovementTitle)
     newImprovementHeader.appendChild(headerImprovementButton)
     newImprovementOutlinePane.appendChild(newImprovementHeader)
-    /*
-    // Create a new pane for the outline
-    const newConsolidateOutlinePane = document.createElement('div')
-    newConsolidateOutlinePane.classList.add('outline-pane2')
 
-    // Create the header for the new outline
-    const newConsolidateHeader = document.createElement('header')
-    newConsolidateHeader.classList.add('outline-header')
-    newConsolidateHeader.classList.add('closed')
-
-    const headerConsolidateButton = document.createElement('button')
-    headerConsolidateButton.classList.add('outline-header-expand-collapse-btn')
-    headerConsolidateButton.setAttribute('aria-label', 'Show Foundation outline')
-    headerConsolidateButton.setAttribute('aria-expanded', 'false') // Initially collapsed
-
-    const caretConsolidateIcon = document.createElement('span')
-    caretConsolidateIcon.classList.add('material-symbols', 'outline-caret-icon')
-    caretConsolidateIcon.setAttribute('aria-hidden', 'true')
-    caretConsolidateIcon.textContent = 'keyboard_arrow_right' // Initially right arrow (collapsed)
-
-    const headerConsolidateTitle = document.createElement('h4')
-    headerConsolidateTitle.classList.add('outline-header-name2')
-    headerConsolidateTitle.textContent = 'Consolidate outline' // Update title to "Foundation outline"
-
-    // Append the caret and title to the header button, and the button to the header
-    headerConsolidateButton.appendChild(caretConsolidateIcon)
-    headerConsolidateButton.appendChild(headerConsolidateTitle)
-    newConsolidateHeader.appendChild(headerConsolidateButton)
-    newConsolidateOutlinePane.appendChild(newConsolidateHeader)
-    */
     // Append the new outline pane to the container BEFORE the original outline
     const originalOutline = document.querySelector('.outline-pane')
     // outlineContainer.insertBefore(newConsolidateOutlinePane, originalOutline)
@@ -706,7 +504,7 @@ class OverleafManager {
               const categorySpan = document.createElement('span')
               categorySpan.style.paddingLeft = '20px' // Adjust the value as needed
               if (type === 'title') {
-                categorySpan.textContent = 'Full Content (' + numberOfTODOs + ')'
+                categorySpan.textContent = 'Full Manuscript (' + numberOfTODOs + ')'
               } else {
                 categorySpan.textContent = cleanedValue
               }
