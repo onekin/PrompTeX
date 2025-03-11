@@ -160,6 +160,7 @@ class CriterionActions {
                           target = sectionName + ' section'
                         } else if (scope === 'excerpts') {
                           target = 'excerpt'
+                          todoComments += '\n'
                         }
                         if (isBookmarkActive) {
                           if (humanNote !== '' && humanNote !== null) {
