@@ -160,13 +160,12 @@ class CriterionActions {
                           target = sectionName + ' section'
                         } else if (scope === 'excerpts') {
                           target = 'excerpt'
-                          todoComments += '\n'
                         }
                         if (isBookmarkActive) {
                           if (humanNote !== '' && humanNote !== null) {
-                            todoComments += '%% PROMPTEX-TIMESTAMP: {' + roleName + ': ' + humanNote + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
+                            todoComments += '\n%% PROMPTEX-TIMESTAMP: {' + roleName + ': ' + humanNote + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
                           } else {
-                            todoComments += '%% PROMPTEX-TIMESTAMP: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
+                            todoComments += '\n%% PROMPTEX-TIMESTAMP: {' + roleName + '}{' + spaceMode.replace(' Mode', ' Space') + '}{' + target + '}{' + llm.modelType + ':' + llm.model + '}{' + Utils.getFormattedDateTime() + '}\n'
                           }
                         }
                         checkedSuggestions.forEach(suggestion => {
