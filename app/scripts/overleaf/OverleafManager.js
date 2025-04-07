@@ -164,18 +164,6 @@ class OverleafManager {
   monitorEditorContent () {
     // Use setInterval to check every second (1000ms)
     setInterval(() => {
-      // Get all elements with the class 'ol-cm-command-promptex'
-      // let visualElements = document.querySelectorAll('.ol-cm-command-promptex')
-      // this.monitorVisualEditorContent(visualElements)
-      // let codeElements = document.querySelectorAll('span.tok-typeName')
-      // Filter the elements to find ones containing '\promptex'
-      // const promptexElements = Array.from(codeElements).filter(element =>
-      //   element.textContent.trim() === '\\promptex'
-      // )
-      // let editor = OverleafUtils.getActiveEditor()
-      // if (editor === 'Code Editor') {
-      //   this.monitorCodeEditorContent(promptexElements)
-      // }
       let codeElements = document.querySelectorAll('div.cm-line')
       // ✅ Filter elements that contain comments starting with "%% PROMPTEX"
       let promptexComments = Array.from(codeElements)
@@ -216,30 +204,6 @@ class OverleafManager {
       }
       // Check if the element contains the caret container (either directly or via descendants)
       if (element.contains(caretContainer)) {
-        return true
-      } else {
-        return false
-      }
-    } else {
-      return false
-    }
-  }
-
-  isSelectedInCodeEditor (element) {
-    const selection = window.getSelection()
-
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0) // Get the first range (caret position)
-
-      // Find the container where the caret is located (text node or element)
-      let caretContainer = range.startContainer
-
-      // If the caret is inside a text node, get its parent element
-      if (caretContainer.nodeType === Node.TEXT_NODE) {
-        caretContainer = caretContainer.parentNode
-      }
-      // Check if the element contains the caret container (either directly or via descendants)
-      if (element.parentElement.contains(caretContainer)) {
         return true
       } else {
         return false
@@ -372,28 +336,6 @@ class OverleafManager {
     }
   }
 
-  // Function to insert TODOs into the LaTeX content
-  insertTODOsIntoLatex (document, sections) {
-    let updatedDocument = document
-    // Iterate through each section from the JSON response
-    sections.forEach(section => {
-      const sectionName = section.name
-      const comment = section.comment
-      const todos = section.todo.split(',')
-      // Create the TODO lines for this section
-      const todoLines = todos.map(todo => `%%TODO: ${todo.trim()}`).join('\n')
-
-      // Regex pattern to find the specific section in the LaTeX document
-      const sectionPattern = new RegExp(`\\\\section\\{${sectionName}\\}`, 'i')
-      // Find and replace the section with the TODOs added after it
-      updatedDocument = updatedDocument.replace(
-        sectionPattern,
-        `\\section{${sectionName}}\n%%Changes in this section: ${comment}\n\n${todoLines}`
-      )
-    })
-    return updatedDocument
-  }
-
   addOutlineButton () {
     // Check if the outline already exists
     if (document.querySelector('.newImprovementOutlinePane')) {
@@ -517,110 +459,6 @@ class OverleafManager {
       }
       caretImprovementIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
     })
-  }
-
-  displayImprovementOutlineContent () {
-    let newImprovementHeader = document.querySelector('.newImprovementHeader')
-    let newImprovementOutlineBody = document.querySelector('.newImprovementOutlineBody')
-    if (newImprovementHeader && newImprovementOutlineBody) {
-      newImprovementHeader.click()
-      newImprovementHeader.click()
-    } else {
-      newImprovementHeader.click()
-    }
-  }
-
-  showCriteriaSidebar (defaultList = 0) {
-    // Check if the sidebar already exists
-    let existingSidebar = document.getElementById('criteriaSidebar')
-
-    if (!existingSidebar) {
-      // Create the sidebar
-      let sidebar = document.createElement('div')
-      sidebar.id = 'criteriaSidebar'
-      sidebar.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <br>
-        <h2 style="margin: 0; flex-grow: 1;">Improvement Cycle</h2>
-        <button id='closeSidebar' style="background-color: transparent; border: none; font-size: 16px; cursor: pointer; align-self: flex-start;">X</button>
-        <hr>
-      </div>
-      <div id='dropdown-container'>
-        <select id='criteriaSelector'>
-          ${Object.keys(window.promptex.storageManager.client.getSchemas()).map(list => `<option value='${list}'>${list}</option>`).join('')}
-        </select>
-        <button id='createNewList' class='createButton'>+Schema</button>
-        <!--<button id='addCategoryBtn' class='createButton'>+Category</button>-->
-      </div>
-      <div id='criteriaContent'></div>
-      <div id='importForm' style='display: none'>
-        <h3>Import Criteria List</h3>
-        <label>Criteria List Name:</label>
-        <input type='text' id='newListName' placeholder='Enter list name' />
-        <label>Categories:</label>
-        <textarea id='newCategories' placeholder='Enter categories and criteria (format: category1: criterion1, criterion2 category2: criterion3)' style='width: 100% height: 80px'></textarea>
-        <button id='submitNewCriteria'>Save</button>
-      </div>
-      <hr>
-      <button id='promptConfigurationBtn' style="background-color: #318098; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Prompt Configuration</button></br>
-      <button id='resetDatabaseBtn' style="background-color: #ff6666; color: white; border: 1px solid #ccc; padding: 10px; cursor: pointer; width: 100%;">Reset</button>
-    `
-
-      document.body.appendChild(sidebar)
-      this._sidebar = sidebar
-      // Add event listener to the dropdown to dynamically load new criteria
-      let selector = document.getElementById('criteriaSelector')
-      selector.addEventListener('change', (event) => {
-        this.loadCriteriaList(event.target.value, window.promptex.storageManager.client.getSchemas())
-        this._currentCriteriaList = event.target.value
-      })
-      if (!this._currentCriteriaList) {
-        // Load the default list (first list) when the sidebar first opens
-        let defaultList = Object.keys(window.promptex.storageManager.client.getSchemas())[0]
-        this.loadCriteriaList(defaultList, window.promptex.storageManager.client.getSchemas())
-      } else {
-        this.loadCriteriaList(this._currentCriteriaList, window.promptex.storageManager.client.getSchemas())
-      }
-
-      // Add close functionality to the sidebar
-      let closeButton = document.getElementById('closeSidebar')
-      closeButton.addEventListener('click', () => {
-        sidebar.remove() // Close the sidebar by removing it from the DOM
-      })
-
-      // Handle submitting new criteria
-      let createListBtn = document.getElementById('createNewList')
-      createListBtn.addEventListener('click', () => {
-        this.createNewList()
-      })
-
-      // Add event listener for 'Reset Database' button
-      let resetDatabaseBtn = document.getElementById('resetDatabaseBtn')
-      resetDatabaseBtn.addEventListener('click', () => {
-        const projectId = window.promptex._overleafManager._project // Replace with your method to retrieve the current project ID
-        // Call the cleanDatabase function
-        window.promptex.storageManager.cleanDatabase(projectId, async (error) => {
-          if (error) {
-            console.error('Failed to reset the database:', error)
-            alert('Failed to reset the database. Please try again.')
-          } else {
-            console.log('Database reset successfully.')
-            alert('Database has been reset to default.')
-            // Optionally reload the criteria list to reflect the reset state
-            // this.loadCriteriaList(Object.keys(window.promptex.storageManager.client.getSchemas())[0], window.promptex.storageManager.client.getSchemas())
-            // const originalDocument = await OverleafUtils.getAllEditorContent()
-            // let documents = LatexUtils.removeCommentsFromLatex(originalDocument)
-            // OverleafUtils.insertContent(documents)
-            window.location.reload()
-            // window.location.reload()
-          }
-        })
-      })
-      let promptConfigurationBtn = document.getElementById('promptConfigurationBtn')
-      promptConfigurationBtn.addEventListener('click', () => {
-        window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
-      })
-    }
   }
 
   loadCriteriaList (listName, database) {
@@ -904,24 +742,6 @@ class OverleafManager {
     }
   }
 
-  // Function to add a new category to the selected criteria list
-  addNewCategory () {
-    let selectedList = document.getElementById('criteriaSelector').value // The selected list (e.g., Engineering Research, Action Research)
-    let newCategoryName = prompt('Enter the name of the new category:')
-
-    if (newCategoryName) {
-      // Call CriteriaDatabaseClient to add the new category
-      window.promptex.storageManager.client.addCategoryToCriteriaList(selectedList, newCategoryName)
-        .then(() => {
-          alert('Category added successfully')
-        })
-        .catch(err => {
-          console.error('Failed to add category:', err)
-          alert('Failed to add category')
-        })
-    }
-  }
-
   // Function to add a new criterion to a category
   addNewCriterion (listName, category) {
     let criteriaName
@@ -965,21 +785,6 @@ class OverleafManager {
     })
   }
 
-  createNewList () {
-    const newListName = prompt('Enter the name of the new criteria list:')
-    if (newListName) {
-      window.promptex.storageManager.client.createCriteriaList(newListName, (error, message) => {
-        if (error) {
-          alert('Error: ' + error.message)
-        } else {
-          alert(message)
-          // Update the dropdown to include the new list
-          window.promptex._overleafManager._sidebar.remove()
-        }
-      })
-    }
-  }
-
   getProject () {
     // Get the current URL
     let currentURL = window.location.href
@@ -1010,25 +815,6 @@ class OverleafManager {
         }
       }
     })
-  }
-
-  // Method to check and update standardized value if needed
-  checkAndUpdateStandardized (expectedStatus) {
-    // Retrieve the standardized status
-    if (this._standardized !== expectedStatus) {
-      // Set the standardized status to the expectedStatus if the expected status is not met
-      window.promptex.storageManager.client.setStandardizedStatus(this._project, expectedStatus, (setError, message) => {
-        if (setError) {
-          console.error('Error setting standardized status to false:', setError)
-        } else {
-          console.log('Standardized status updated successfully:', message)
-          this._standardized = expectedStatus // Update the local value
-        }
-      })
-    } else {
-      console.log('Standardized status is already okay, no action needed.')
-    }
-    this.updateStandardizedButton()
   }
 }
 

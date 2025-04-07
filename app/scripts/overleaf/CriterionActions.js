@@ -3,6 +3,7 @@ const Config = require('../Config')
 const Alerts = require('../utils/Alerts')
 const LLMClient = require('../llm/LLMClient')
 const Utils = require('../utils/Utils')
+const LatexUtils = require('./LatexUtils')
 
 class CriterionActions {
   static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName, humanNote) {
@@ -179,6 +180,9 @@ class CriterionActions {
                           loadingIndex = (loadingIndex + 1) % loadingMessages.length
                           messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
                         }, 500)
+                        console.log('DOCUMENT')
+
+                        console.log(document)
                         let updatedDocument = document
                         if (scope === 'document') {
                           // Ensure \title{...} exists before replacing
@@ -198,6 +202,7 @@ class CriterionActions {
                               sectionRegex,
                               `$1\n${todoComments}`
                             )
+                            console.log(updatedDocument)
                           } else {
                             console.log('not found')
                           }
@@ -223,6 +228,8 @@ class CriterionActions {
                         setTimeout(() => {
                           OverleafUtils.removeContent(() => {
                             setTimeout(() => {
+                              console.log(updatedDocument)
+                              updatedDocument = LatexUtils.ensureHumanNoteCommandExists(updatedDocument)
                               OverleafUtils.insertContent(updatedDocument)
                               clearInterval(loadingInterval)
 

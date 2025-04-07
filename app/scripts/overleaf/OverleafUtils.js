@@ -18,7 +18,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 10)
+        setTimeout(resolve, 120)
       })
     }
 
@@ -136,7 +136,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 10)
+        setTimeout(resolve, 120)
       })
     }
 
@@ -264,7 +264,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 10)
+        setTimeout(resolve, 120)
       })
     }
 
@@ -393,7 +393,7 @@ class OverleafUtils {
     function scrollEditor (position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
-        setTimeout(resolve, 10)
+        setTimeout(resolve, 120)
       })
     }
 
@@ -644,7 +644,7 @@ class OverleafUtils {
       const lines = text.split('\n')
       for (let line of lines) {
         insertTextAtCursor(line + '\n')
-        // await new Promise((resolve) => setTimeout(resolve, 5)) // Simulate typing delay
+        // await new Promise((resolve) => setTimeout(resolve, 120)) // Simulate typing delay
       }
     }
 

@@ -1,9 +1,9 @@
 const Utils = require('../utils/Utils')
 
 class LatexUtils {
-  static ensurePromptexCommandExists (latexText) {
+  static ensureHumanNoteCommandExists (latexText) {
     // Define the new command string
-    const promtexCommand = '\\newcommand{\\promptex}[2]{#2}'
+    const promtexCommand = '\\newcommand{\\humanNote}[2]{#2}'
     const beginDoc = '\\begin{document}'
 
     // Check if the command already exists in the text
