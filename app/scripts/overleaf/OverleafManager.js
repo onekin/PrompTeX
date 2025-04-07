@@ -46,11 +46,28 @@ class OverleafManager {
             const rect = range.getBoundingClientRect()
             let scope = ''
             let humanNote = ''
-            if (selectedText.trim().includes('\\title{')) {
-              scope = 'document'
-            } else if (selectedText.trim().includes('\\section{')) {
-              scope = 'section'
-            } else {
+            const structureOrder = ['title', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
+            const regexMap = {
+              title: /\\title\s*{/,
+              section: /\\section\s*{/,
+              subsection: /\\subsection\s*{/,
+              subsubsection: /\\subsubsection\s*{/,
+              paragraph: /\\paragraph\s*{/,
+              subparagraph: /\\subparagraph\s*{/
+            }
+
+            // Find the first structure that appears in the selected text
+            let firstMatchIndex = Infinity
+            for (const key of structureOrder) {
+              const match = selectedText.match(regexMap[key])
+              if (match && match.index < firstMatchIndex) {
+                scope = key
+                firstMatchIndex = match.index
+              }
+            }
+
+            // Fallback if no LaTeX structure is matched
+            if (!scope) {
               scope = 'excerpts'
             }
             if (selectedText.trim().includes('\\humanNote{')) {
@@ -68,16 +85,18 @@ class OverleafManager {
             }
             Alerts.showLoadingWindowDuringProcess('Reading document content...')
             let documents = await OverleafUtils.getAllEditorContent()
-            if (scope === 'document') {
+            if (scope === 'title') {
               numberOfExcerpts = 3
               scopedText = 'RESEARCH_PAPER: [' + LatexUtils.processTexDocument(documents) + ']'
               Alerts.closeLoadingWindow()
-            } else if (scope === 'section') {
+            } else if (scope === 'section' || scope === 'subsection' || scope === 'subsubsection' || scope === 'paragraph' || scope === 'subparagraph') {
               numberOfExcerpts = 2
-              const sectionsArray = OverleafUtils.extractSections(documents)
-              const sectionsFromText = this.extractSectionsFromText(selectedText)
+              const sectionsArray = OverleafUtils.extractStructuralBlocks(scope, documents)
+              console.log(sectionsArray)
+              const sectionsFromText = this.extractBlockTitlesFromText(scope, selectedText)
               firstSection = sectionsFromText[0]
               const scopedSection = sectionsArray.find(section => section.title === firstSection)
+              let blockContent = this.filterScopedContent(scopedSection.content.join('\n'), scope)
               scopedText = 'RESEARCH_PAPER SECTION: [' + scopedSection.content.join('\n') + ']'
               Alerts.closeLoadingWindow()
             } else if (scope === 'excerpts') {
@@ -111,6 +130,28 @@ class OverleafManager {
     })
   }
 
+  filterScopedContent (content, currentScope) {
+    const levels = ['title', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
+    const currentLevelIndex = levels.indexOf(currentScope)
+
+    if (currentLevelIndex === -1) return content
+
+    const stopPatterns = levels
+      .slice(0, currentLevelIndex + 1)
+      .map(level => `\\\\${level}\\{`)
+    const stopRegex = new RegExp(`^(${stopPatterns.join('|')})`)
+
+    const lines = content.split('\n')
+    const filteredLines = []
+
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0 && stopRegex.test(lines[i])) break
+      filteredLines.push(lines[i])
+    }
+
+    return filteredLines.join('\n')
+  }
+
   findHomeIcon () {
     // Check for Font Awesome icon
     let faIcon = document.querySelector('i.fa.fa-home.fa-fw')
@@ -141,6 +182,13 @@ class OverleafManager {
     const sectionPattern = /\\section{(.*?)}/g // RegEx pattern to capture content inside \section{}
     const matches = [...text.matchAll(sectionPattern)] // Extract all matches
     return matches.map(match => match[1]) // Return only the content inside {}
+  }
+
+  extractBlockTitlesFromText (level, text) {
+    const command = `\\\\${level}` // matches \\subsection
+    const pattern = new RegExp(`${command}\\{(.*?)\\}`, 'g')
+    const matches = [...text.matchAll(pattern)]
+    return matches.map(match => match[1])
   }
 
   extractHumanNote (text) {

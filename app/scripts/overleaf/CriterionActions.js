@@ -77,12 +77,12 @@ class CriterionActions {
               </style>
             `
             let scopeOfAnswer = 'Scope: '
-            if (scope === 'document') {
+            if (scope === 'title') {
               scopeOfAnswer += 'Full paper'
-            } else if (scope === 'section') {
-              scopeOfAnswer += sectionName + ' section'
             } else if (scope === 'excerpts') {
               scopeOfAnswer = 'Fragment: ' + scopedText.replaceAll('RESEARCH_PAPER FRAGMENT: [', '').replaceAll(']', '')
+            } else {
+              scopeOfAnswer += sectionName + ' ' + scope
             }
             let question = roleName.toUpperCase().replaceAll('Rhetorical', '')
             if (humanNote !== '' && humanNote !== null) {
@@ -155,12 +155,12 @@ class CriterionActions {
                         let todoComments = ''
                         const isBookmarkActive = popup.ownerDocument.getElementById('bookmark-btn').classList.contains('active')
                         let target
-                        if (scope === 'document') {
+                        if (scope === 'title') {
                           target = 'Full paper'
-                        } else if (scope === 'section') {
-                          target = sectionName + ' section'
                         } else if (scope === 'excerpts') {
                           target = 'excerpt'
+                        } else {
+                          target = sectionName + ' ' + scope
                         }
                         if (isBookmarkActive) {
                           if (humanNote !== '' && humanNote !== null) {
@@ -184,25 +184,13 @@ class CriterionActions {
 
                         console.log(document)
                         let updatedDocument = document
-                        if (scope === 'document') {
+                        if (scope === 'title') {
                           // Ensure \title{...} exists before replacing
                           if (updatedDocument.match(/\\title\{.*?\}/i)) {
                             updatedDocument = updatedDocument.replace(
                               /(\\title\{.*?\})/i,
                               `$1\n${todoComments}`
                             )
-                          } else {
-                            console.log('not found')
-                          }
-                        } else if (scope === 'section' && sectionName) {
-                          // Ensure \section{sectionName} exists before replacing
-                          let sectionRegex = new RegExp(`(\\\\section\\{\\s*${sectionName}\\s*\\})`, 'i') // Match \section{Name}
-                          if (updatedDocument.match(sectionRegex)) {
-                            updatedDocument = updatedDocument.replace(
-                              sectionRegex,
-                              `$1\n${todoComments}`
-                            )
-                            console.log(updatedDocument)
                           } else {
                             console.log('not found')
                           }
@@ -223,6 +211,18 @@ class CriterionActions {
                             } else {
                               console.log('not found')
                             }
+                          }
+                        } else {
+                          // Ensure \section{sectionName} exists before replacing
+                          let sectionRegex = new RegExp(`(\\\\${scope}\\{\\s*${sectionName}\\s*\\})`, 'i') // Match \section{Name}
+                          if (updatedDocument.match(sectionRegex)) {
+                            updatedDocument = updatedDocument.replace(
+                              sectionRegex,
+                              `$1\n${todoComments}`
+                            )
+                            console.log(updatedDocument)
+                          } else {
+                            console.log('not found')
                           }
                         }
                         setTimeout(() => {

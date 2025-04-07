@@ -496,6 +496,71 @@ class OverleafUtils {
     // OverleafUtils.toggleEditor()
   }
 
+  static extractStructuralBlocks (level, latexContent) {
+    const levelsHierarchy = ['title', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
+    const currentLevelIndex = levelsHierarchy.indexOf(level)
+
+    if (currentLevelIndex === -1) {
+      throw new Error(`Unknown LaTeX level: ${level}`)
+    }
+
+    const pattern = new RegExp(`\\\\${level}\\{(.+?)\\}`)
+    const stopPatterns = levelsHierarchy
+      .slice(0, currentLevelIndex + 1) // levels at or above current
+      .map(lvl => `\\\\${lvl}\\{`)
+    const stopRegex = new RegExp(`^(${stopPatterns.join('|')})`)
+
+    const lines = latexContent.split('\n')
+    const blocks = []
+    let currentBlock = null
+
+    for (let line of lines) {
+      const match = line.match(pattern)
+
+      if (match) {
+        // Close previous block if one was open
+        if (currentBlock) {
+          currentBlock.content = currentBlock.content.filter(l => l.trim() !== '')
+          blocks.push(currentBlock)
+        }
+
+        currentBlock = {
+          title: match[1],
+          content: [line]
+        }
+        continue
+      }
+
+      if (currentBlock) {
+        // Check if this line starts a new block at same or higher level
+        if (stopRegex.test(line)) {
+          // Close current block
+          currentBlock.content = currentBlock.content.filter(l => l.trim() !== '')
+          blocks.push(currentBlock)
+          currentBlock = null
+
+          // Re-check this line in case it's a start of a new block (important)
+          const nextMatch = line.match(pattern)
+          if (nextMatch) {
+            currentBlock = {
+              title: nextMatch[1],
+              content: [line]
+            }
+          }
+        } else {
+          currentBlock.content.push(line)
+        }
+      }
+    }
+
+    if (currentBlock) {
+      currentBlock.content = currentBlock.content.filter(l => l.trim() !== '')
+      blocks.push(currentBlock)
+    }
+
+    return blocks
+  }
+
   // Define a function to split sections based on \section command
   static extractSections (latexContent) {
     const lines = latexContent.split('\n')
