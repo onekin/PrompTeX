@@ -1,6 +1,8 @@
 const { loadQAStuffChain } = require('langchain/chains')
 const { ChatOpenAI } = require('langchain/chat_models/openai')
 const { ChatAnthropic } = require('langchain/chat_models/anthropic')
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai')
+const { ChatGroq } = require('@langchain/groq')
 const { TokenTextSplitter } = require('langchain/text_splitter')
 const { OpenAIEmbeddings } = require('langchain/embeddings/openai')
 const { MemoryVectorStore } = require('langchain/vectorstores/memory')
@@ -96,6 +98,18 @@ class LLMManagerBackground {
               err => sendResponse({ err: err })
             )// Return the error inside the message handler
           }
+          return true // Return true inside the message handler
+        } else if (request.cmd === 'gemini') {
+          this.askLLMGemini(request).then(
+            res => sendResponse({ res: res }),
+            err => sendResponse({ err: err })
+          )// Return the error inside the message handler
+          return true // Return true inside the message handler
+        } else if (request.cmd === 'groq') {
+          this.askLLMGroq(request).then(
+            res => sendResponse({ res: res }),
+            err => sendResponse({ err: err })
+          )// Return the error inside the message handler
           return true // Return true inside the message handler
         }
       }
@@ -281,6 +295,98 @@ class LLMManagerBackground {
       temperature: 0.2,
       anthropicApiKey: apiKey,
       modelName: modelName,
+      callbacks: [
+        {
+          handleLLMEnd: (output, runId, parentRunId, tags) => {
+            const { completionTokens, promptTokens, totalTokens } = output.llmOutput?.tokenUsage || { completionTokens: 0, promptTokens: 0, totalTokens: 0 }
+
+            totalCompletionTokens += completionTokens
+            totalPromptTokens += promptTokens
+            totalExecutionTokens += totalTokens
+
+            console.log(`Total completion tokens: ${totalCompletionTokens}`)
+            console.log(`Total prompt tokens: ${totalPromptTokens}`)
+            console.log(`Total execution tokens: ${totalExecutionTokens}`)
+          }
+        }
+      ]
+    })
+
+    const promptTemplate = PromptTemplate.fromTemplate(
+      '{query}'
+    )
+    // Create QA chain
+    const chain = promptTemplate.pipe(model)
+    return chain.invoke({ query: query }).then(res => {
+      return res.text // Return the result so it can be used in the next .then()
+    }).catch(async err => {
+      console.log(err.toString())
+      if (err.toString().startsWith('Error: 401')) {
+        return { error: 'Incorrect API key provided.' }
+      } else {
+        return { error: err.toString() }
+      }
+    })
+  }
+
+  async askLLMGroq (request) {
+    const apiKey = request.data.apiKey
+    const query = request.data.query
+    const modelName = request.data.llm.model
+    // create model
+    let totalCompletionTokens = 0
+    let totalPromptTokens = 0
+    let totalExecutionTokens = 0
+    const model = new ChatGroq({
+      temperature: 0.2,
+      apiKey: apiKey,
+      model: modelName,
+      callbacks: [
+        {
+          handleLLMEnd: (output, runId, parentRunId, tags) => {
+            const { completionTokens, promptTokens, totalTokens } = output.llmOutput?.tokenUsage || { completionTokens: 0, promptTokens: 0, totalTokens: 0 }
+
+            totalCompletionTokens += completionTokens
+            totalPromptTokens += promptTokens
+            totalExecutionTokens += totalTokens
+
+            console.log(`Total completion tokens: ${totalCompletionTokens}`)
+            console.log(`Total prompt tokens: ${totalPromptTokens}`)
+            console.log(`Total execution tokens: ${totalExecutionTokens}`)
+          }
+        }
+      ]
+    })
+
+    const promptTemplate = PromptTemplate.fromTemplate(
+      '{query}'
+    )
+    // Create QA chain
+    const chain = promptTemplate.pipe(model)
+    return chain.invoke({ query: query }).then(res => {
+      return res.text // Return the result so it can be used in the next .then()
+    }).catch(async err => {
+      console.log(err.toString())
+      if (err.toString().startsWith('Error: 401')) {
+        return { error: 'Incorrect API key provided.' }
+      } else {
+        return { error: err.toString() }
+      }
+    })
+  }
+
+  async askLLMGemini (request) {
+    const apiKey = request.data.apiKey
+    const query = request.data.query
+    const modelName = request.data.llm.model
+    // create model
+    let totalCompletionTokens = 0
+    let totalPromptTokens = 0
+    let totalExecutionTokens = 0
+    const model = new ChatGoogleGenerativeAI({
+      temperature: 0.2,
+      apiKey: apiKey,
+      model: modelName,
       callbacks: [
         {
           handleLLMEnd: (output, runId, parentRunId, tags) => {

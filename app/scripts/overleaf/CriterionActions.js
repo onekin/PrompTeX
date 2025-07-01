@@ -38,9 +38,12 @@ class CriterionActions {
             // Generate buttons dynamically
             const actionButtons = Object.entries(Config.actions)
               .map(([key, action]) => `
+                <div class="tooltip-container" style="display: flex; justify-content: flex-end;">
                 <button id="${key}-btn" class="small-btn">
                     <i class="${action.icon}" aria-hidden="true"></i> ${action.name}
                 </button>
+                <span class="tooltip-text">${action.shortDescription}</span>
+              </div>
             `)
               .join('') + `
               <!-- ✅ Bookmark Button -->
@@ -101,8 +104,8 @@ class CriterionActions {
                   <div class="tooltip-container" style="display: flex; justify-content: flex-end;">
                       <button id="add-todo-btn" class="small-btn">
                           <i class="fa fa-list-alt" aria-hidden="true"></i>
+                          <span class="tooltip-text">Add TODOs</span>
                       </button>
-                      <span class="tooltip-text">Add TODOs</span>
                   </div>                
             
                 </div>

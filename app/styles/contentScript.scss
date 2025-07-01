@@ -163,8 +163,8 @@ body[data-loading="true"] #loading-overlay {
   border-radius: 4px;
   position: absolute;
   bottom: 125%; /* Positions tooltip above the button */
-  right: 0; /* Align tooltip text to the right */
-  transform: translateX(0);
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Offset by half width to center */
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   white-space: nowrap;

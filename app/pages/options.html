@@ -27,6 +27,8 @@
           <select class="form-control" id="LLMDropdown">
             <option value="anthropic" selected="selected">Anthropic</option>
             <option value="openAI">OpenAI</option>
+            <option value="groq">Groq</option>
+            <option value="gemini">Gemini</option>
           </select>
         </div>
         <!-- Model Selection -->
@@ -45,6 +47,15 @@
           <input type="text" id="openAI-APIKey" />
           <button id="openAI-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
         </div>
+        <div id="groq-ApiKeyContainer" class="APIKey-Configuration">
+          <label>Paste here your Groq API key:</label>
+          <input type="text" id="groq-APIKey" />
+          <button id="groq-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+        </div>
+        <div id="gemini-ApiKeyContainer" class="APIKey-Configuration">
+          <label>Paste here your Gemini API key:</label>
+          <input type="text" id="gemini-APIKey" />
+          <button id="gemini-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
       </div >
     </div>
     <br/>

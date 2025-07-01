@@ -58,26 +58,31 @@ const Config = {
     concretize: {
       'name': 'Concretize',
       'description': 'Transform abstract concepts into tangible examples or precise definitions. Ensure that broad generalizations, specialized terminology, or vague claims are substantiated with concrete details. Provide specific cases, applications, or real-world instances that illustrate the claim in a clear and examinable manner.',
+      'shortDescription': 'Transform abstract concepts into tangible examples or precise definitions.',
       'icon': 'fa fa-check-circle'
     },
     elaborate: {
       'name': 'Elaborate',
       'description': 'Expand on initial insights by providing greater depth, nuance, or breadth of explanation. Break down key points, offer additional perspectives, and explore underlying complexities to enrich the argument. Extend observations by discussing their implications, variations, or supporting details.',
+      'shortDescription': 'Expand on initial insights by providing greater depth, nuance, or breadth of explanation.',
       'icon': 'fa fa-lightbulb'
     },
     deconstruct: {
       'name': 'Deconstruct',
       'description': 'Analyze complex ideas by breaking them down into their essential components. Identify distinct elements, compare relationships, and systematically examine each part to reveal underlying structures. Clarify broad assertions by separating them into detailed subpoints for a more precise and critical evaluation.',
+      'shortDescription': 'Analyze complex ideas by breaking them down into their essential components.',
       'icon': 'fa fa-tools'
     },
     contextualize: {
       'name': 'Contextualize',
       'description': 'Situate ideas within broader frameworks, alternative viewpoints, or disciplinary perspectives. Connect observations to historical, theoretical, or practical contexts to enhance understanding. Provide comparisons, contrasting perspectives, or situational relevance to demonstrate the significance of the claim in different scenarios.',
+      'shortDescription': 'Situate ideas within broader frameworks, alternative viewpoints, or disciplinary perspectives.',
       'icon': 'fa fa-book'
     },
     substantiate: {
       'name': 'Substantiate',
       'description': 'Support claims with appropriate evidence, reasoning, and validation. Justify assertions with credible data, logical arguments, or references to established research. Identify underlying assumptions, examine alternative explanations, and ensure that the provided reasoning is thorough and well-founded.',
+      'shortDescription': 'Support claims with appropriate evidence, reasoning, and validation.',
       'icon': 'fa fa-balance-scale'
     }
   },
@@ -93,15 +98,15 @@ const Config = {
       '{\n' +
       '  "suggestions": [\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
       '    },\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
       '    },\n' +
       '    ... more suggestions if applicable\n' +
       '  ]\n' +
       '}\n' +
-      'The number of suggestions should be 4 or less, but ensure the quality of suggestions not the quantity.',
+      'The number of suggestions should be 4 or less, but ensure the quality of suggestions not the quantity. The language of the suggestions must be the SAME as the content provided to review.',
     getSuggestionsFeedback: '-[CONTENT]\n' +
       'Given the provided content, you acted as an academic writer and you performed as [ROLE]. ' +
       'You provided a list of suggestions for the writer based on the role, and I have selected some of the that I want you to clarify. ' +
@@ -113,15 +118,15 @@ const Config = {
       '{\n' +
       '  "suggestions": [\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
       '    },\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion.",\n' +
+      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
       '    },\n' +
       '    ... more suggestions if applicable\n' +
       '  ]\n' +
       '}\n' +
-      'Please, your new suggestions have to be based on the previous suggestions. but applying the action you were required'
+      'Please, your new suggestions have to be based on the previous suggestions. but applying the action you were required. The language of the suggestions must be the SAME as the content provided to review.\','
   }
 }
 
