@@ -172,8 +172,33 @@ body[data-loading="true"] #loading-overlay {
   z-index: 9999;
 }
 
+/* ✅ Tooltip Text (Initially Hidden) */
+.tooltip-container #tooltip-text-addTODOButton {
+  visibility: hidden;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding: 6px;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 125%; /* Positions tooltip above the button */
+  right: 0; /* Center horizontally */
+  transform: translateX(0px);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 9999;
+}
+
 /* ✅ Show Tooltip on Hover */
 .tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ✅ Show Tooltip on Hover */
+.tooltip-container:hover #tooltip-text-addTODOButton {
   visibility: visible;
   opacity: 1;
 }

@@ -94,8 +94,10 @@ if (window.location.href.includes('pages/options.html')) {
   ]
 
   const geminiModels = [
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-    { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' }
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Free)' },
+    { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Free)' },
+    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Free)' },
+    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Free)' }
   ]
 
   const LLMDropdown = document.getElementById('LLMDropdown')

@@ -5,14 +5,11 @@ const LocalStorageManager = require('../storage/LocalStorageManager')
 const _ = require('lodash')
 const LatexUtils = require('./LatexUtils')
 const Config = require('../Config')
-const Utils = require('../utils/Utils')
 
 class OverleafManager {
   constructor () {
     this._project = null
-    this._sidebar = null
     this._readingDocument = false
-    this._standarized = true
   }
 
   init () {
@@ -501,33 +498,6 @@ class OverleafManager {
       }
       caretImprovementIcon.textContent = isHidden ? 'keyboard_arrow_down' : 'keyboard_arrow_right'
     })
-  }
-
-  // New method to display criterion details
-  showCriterionDetails (label, criterionElement) {
-    let info = ''
-    if (criterionElement && criterionElement.Assessment && criterionElement.AssessmentDescription) {
-      const assessmentFace = Utils.getColoredFace(criterionElement.Assessment)
-      info += '<b>Assessment</b> ' + assessmentFace + ': ' + criterionElement.AssessmentDescription + '<br><br>'
-    }
-
-    if (criterionElement && criterionElement.Suggestion) {
-      info += '<b>Suggestion:</b> ' + criterionElement.Suggestion + '<br><br>'
-
-      if (criterionElement.EffortValue && criterionElement.EffortDescription) {
-        const effortFace = Utils.getColoredFace(criterionElement.EffortValue)
-        info += '<b>Effort</b> ' + effortFace + ': ' + criterionElement.EffortDescription
-      }
-    }
-    if (criterionElement && criterionElement.Annotations) {
-      // Create an HTML list of the found excerpts with improved styling
-      const excerptList = criterionElement.Annotations
-        .map(excerpt => `<li style="margin-bottom: 8px; line-height: 1.5;">${excerpt}</li>`)
-        .join('')
-      info += `<h4>Excerpts:</h4><ul style="padding-left: 20px; list-style-type: disc;">${excerptList}</ul>`
-    }
-    // Show alert with the tooltip message
-    Alerts.infoAnswerAlert({ title: 'Criterion Information', text: info })
   }
 
   getProject () {

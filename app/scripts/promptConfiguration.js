@@ -22,62 +22,6 @@ class PromptConfiguration {
     this.setupDefinition('unityBuilderRhetorical')
   }
 
-  setupPrompt (type, validateFunction) {
-    // Extract the prompt from the config
-    const fullPrompt = Config.prompts[type]
-    const splitIndex = fullPrompt.indexOf('The format should be as follows (ensure no extra text is added before or after the JSON):')
-
-    // Split the prompt into editable and static parts
-    const editablePart = fullPrompt.substring(0, splitIndex)
-    const staticPart = fullPrompt.substring(splitIndex)
-
-    // Set up the textarea and static display div
-    const promptTextArea = document.querySelector(`#${type}`)
-    const staticPartDiv = document.querySelector(`#${type}Static`)
-
-    // Set initial values for the editable and static parts
-    promptTextArea.value = editablePart
-    staticPartDiv.innerHTML = this.formatWithLineBreaks(staticPart)
-
-    // Event listener for resetting to default
-    document.querySelector(`#${type}Button`).addEventListener('click', () => {
-      let messageLabel = document.querySelector(`#${type}Message`)
-      promptTextArea.value = editablePart // Reset only the editable part
-      this.setPrompt(type, editablePart + staticPart)
-      messageLabel.innerHTML = 'Prompt reset to default.'
-    })
-
-    // Event listener for saving the prompt
-    document.querySelector(`#${type}SaveButton`).addEventListener('click', () => {
-      let updatedEditablePart = promptTextArea.value
-      let messageLabel = document.querySelector(`#${type}Message`)
-
-      // Validate the prompt
-      if (validateFunction(updatedEditablePart)) {
-        const newFullPrompt = updatedEditablePart + staticPart
-        this.setPrompt(type, newFullPrompt)
-        messageLabel.innerHTML = 'Prompt saved.'
-      } else {
-        messageLabel.innerHTML = 'Invalid prompt. Please include the necessary placeholders.'
-      }
-    })
-
-    // Load existing saved prompt, if available
-    chrome.runtime.sendMessage({
-      scope: 'prompt',
-      cmd: 'getPrompt',
-      data: { type: type }
-    }, ({ prompt }) => {
-      if (prompt && prompt.includes('The format should be as follows:')) {
-        const existingEditablePart = prompt.substring(0, prompt.indexOf('The format should be as follows:'))
-        promptTextArea.value = existingEditablePart
-      } else {
-        promptTextArea.value = editablePart
-        this.setPrompt(type, editablePart + staticPart)
-      }
-    })
-  }
-
   setupDefinition (type) {
     // Extract the prompt from the config
     const fullDescription = Config.roles[type].description

@@ -104,8 +104,8 @@ class CriterionActions {
                   <div class="tooltip-container" style="display: flex; justify-content: flex-end;">
                       <button id="add-todo-btn" class="small-btn">
                           <i class="fa fa-list-alt" aria-hidden="true"></i>
-                          <span class="tooltip-text">Add TODOs</span>
                       </button>
+                      <span id="tooltip-text-addTODOButton">Add TODOs</span>
                   </div>                
             
                 </div>
@@ -254,7 +254,12 @@ class CriterionActions {
                           .replace('[ACTION]', action)
 
                         // ✅ Start the animated loading message
-                        let loadingMessages = ['Asking LLM', 'Asking LLM.', 'Asking LLM..', 'Asking LLM...']
+                        let loadingMessages = [
+                          `Asking ${llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)}`,
+                          `Asking ${llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)}.`,
+                          `Asking ${llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)}..`,
+                          `Asking ${llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)}...`
+                        ]
                         let loadingIndex = 0
                         messageContainer.innerHTML = `<span>${loadingMessages[loadingIndex]}</span>`
 
@@ -341,7 +346,7 @@ class CriterionActions {
                           })
 
                           let tooltipSpan = popup.ownerDocument.createElement('span')
-                          tooltipSpan.className = 'tooltip-text'
+                          tooltipSpan.id = 'tooltip-text-addTODOButton' // ✅ This ensures the tooltip text is unique
                           tooltipSpan.textContent = 'Add TODOs' // ✅ Tooltip text
 
                           let icon = popup.ownerDocument.createElement('i')
