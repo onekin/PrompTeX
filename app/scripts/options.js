@@ -3,7 +3,7 @@ const _ = require('lodash')
 window.$ = $
 
 if (window.location.href.includes('pages/options.html')) {
-  const defaultLLM = { modelType: 'openAI', model: 'gpt-4' }
+  const defaultLLM = { modelType: 'openAI', model: 'gpt-4o' }
   const openAIModels = [
     // Current GPT-4o family
     { value: 'gpt-4o', label: 'GPT-4o' },
@@ -109,6 +109,17 @@ if (window.location.href.includes('pages/options.html')) {
   const groqApiContainer = document.getElementById('groq-ApiKeyContainer')
   const geminiApiContainer = document.getElementById('gemini-ApiKeyContainer')
 
+  const openAIModelInfoContainer = document.getElementById('openAI-models')
+  const anthropicModelInfoContainer = document.getElementById('anthropic-models')
+  const groqModelInfoContainer = document.getElementById('groq-models')
+  const geminiModelInfoContainer = document.getElementById('gemini-models')
+
+  // Hide models info
+  openAIModelInfoContainer.style.display = 'none'
+  anthropicModelInfoContainer.style.display = 'none'
+  groqModelInfoContainer.style.display = 'none'
+  geminiModelInfoContainer.style.display = 'none'
+
   // Hide API key inputs initially
   openAIApiContainer.style.display = 'none'
   anthropicApiContainer.style.display = 'none'
@@ -166,6 +177,7 @@ if (window.location.href.includes('pages/options.html')) {
       console.debug('LLM selected ' + llm)
     })
     console.log('Selected LLM Provider: ' + llmProvider + ' Model: ' + model)
+    updateTokenUsage(model)
   }
 
   // Handle changes in the LLM provider (like openAI or Anthropic)
@@ -178,6 +190,11 @@ if (window.location.href.includes('pages/options.html')) {
       anthropicApiContainer.style.display = 'none'
       groqApiContainer.style.display = 'none'
       geminiApiContainer.style.display = 'none'
+      // Hide models info
+      openAIModelInfoContainer.style.display = 'block'
+      anthropicModelInfoContainer.style.display = 'none'
+      groqModelInfoContainer.style.display = 'none'
+      geminiModelInfoContainer.style.display = 'none'
       populateModelDropdown(openAIModels)
     } else if (selectedLLM === 'anthropic') {
       modelSelectionContainer.style.display = 'block'
@@ -185,6 +202,11 @@ if (window.location.href.includes('pages/options.html')) {
       anthropicApiContainer.style.display = 'block'
       groqApiContainer.style.display = 'none'
       geminiApiContainer.style.display = 'none'
+      // Hide models info
+      openAIModelInfoContainer.style.display = 'none'
+      anthropicModelInfoContainer.style.display = 'block'
+      groqModelInfoContainer.style.display = 'none'
+      geminiModelInfoContainer.style.display = 'none'
       populateModelDropdown(anthropicModels)
     } else if (selectedLLM === 'groq') {
       modelSelectionContainer.style.display = 'block'
@@ -192,6 +214,11 @@ if (window.location.href.includes('pages/options.html')) {
       anthropicApiContainer.style.display = 'none'
       groqApiContainer.style.display = 'block'
       geminiApiContainer.style.display = 'none'
+      // Hide models info
+      openAIModelInfoContainer.style.display = 'none'
+      anthropicModelInfoContainer.style.display = 'none'
+      groqModelInfoContainer.style.display = 'block'
+      geminiModelInfoContainer.style.display = 'none'
       populateModelDropdown(groqModels)
     } else if (selectedLLM === 'gemini') {
       modelSelectionContainer.style.display = 'block'
@@ -199,6 +226,11 @@ if (window.location.href.includes('pages/options.html')) {
       anthropicApiContainer.style.display = 'none'
       groqApiContainer.style.display = 'none'
       geminiApiContainer.style.display = 'block'
+      // Hide models info
+      openAIModelInfoContainer.style.display = 'none'
+      anthropicModelInfoContainer.style.display = 'none'
+      groqModelInfoContainer.style.display = 'none'
+      geminiModelInfoContainer.style.display = 'block'
       populateModelDropdown(geminiModels)
     } else {
       modelSelectionContainer.style.display = 'none'
@@ -229,6 +261,27 @@ if (window.location.href.includes('pages/options.html')) {
     if (_.isElement(selectedLLMConfiguration)) {
       selectedLLMConfiguration.setAttribute('aria-hidden', 'false')
     }
+  }
+
+  // eslint-disable-next-line no-inner-declarations
+  function updateTokenUsage (model) {
+    // Clear the dropdown before populating it
+    chrome.runtime.sendMessage({
+      scope: 'llm',
+      cmd: 'getTokenUsage',
+      data: { model: model }
+    }, ({ tokens }) => {
+      if (tokens) {
+        document.getElementById('completionTokens').textContent = tokens.completionTokens
+        document.getElementById('promptTokens').textContent = tokens.promptTokens
+        document.getElementById('totalTokens').textContent = tokens.totalTokens
+      } else {
+        document.getElementById('completionTokens').textContent = '0'
+        document.getElementById('promptTokens').textContent = '0'
+        document.getElementById('totalTokens').textContent = '0'
+        console.warn('Token usage display element not found.')
+      }
+    })
   }
 
   // eslint-disable-next-line no-inner-declarations

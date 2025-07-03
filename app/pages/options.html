@@ -20,47 +20,186 @@
     <br/>
     <br/>
     <div class="card">
-      <div class="card-header card-header bg-dark text-white">Large Language Model selection</div>
-      <div class="card-body">
-        <div class="form-check">
-          <label for="LLMDropdown">Select your Large Language Model</label>
-          <select class="form-control" id="LLMDropdown">
-            <option value="anthropic" selected="selected">Anthropic</option>
-            <option value="openAI">OpenAI</option>
-            <option value="groq">Groq</option>
-            <option value="gemini">Gemini</option>
-          </select>
+      <div class="card-header card-header bg-dark text-white">Large Language Model configuration</div>
+      <div class="form-check">
+        <!-- Split Layout Row -->
+        <div class="row">
+          <!-- Left Column - Model Selection -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="LLMDropdown">Select your Large Language Model</label>
+              <select class="form-control" id="LLMDropdown">
+                <option value="anthropic" selected="selected">Anthropic</option>
+                <option value="openAI">OpenAI</option>
+                <option value="groq">Groq</option>
+                <option value="gemini">Gemini</option>
+              </select>
+            </div>
+
+            <!-- Model Selection -->
+            <div id="modelSelectionContainer" class="mb-3">
+              <label for="modelDropdown">Select a Model:</label>
+              <select class="form-control" id="modelDropdown"></select>
+            </div>
+            <div class="mb-3">
+              <div id="anthropic-ApiKeyContainer" class="APIKey-Configuration">
+                <label>Paste here your Anthropic API key:</label>
+                <input type="text" id="anthropic-APIKey"/>
+                <button id="anthropic-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+              </div>
+              <div id="openAI-ApiKeyContainer" class="APIKey-Configuration">
+                <label>Paste here your OpenAI API Plus key:</label>
+                <input type="text" id="openAI-APIKey" />
+                <button id="openAI-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+              </div>
+              <div id="groq-ApiKeyContainer" class="APIKey-Configuration">
+                <label>Paste here your Groq API key:</label>
+                <input type="text" id="groq-APIKey" />
+                <button id="groq-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+              </div>
+              <div id="gemini-ApiKeyContainer" class="APIKey-Configuration">
+                <label>Paste here your Gemini API key:</label>
+                <input type="text" id="gemini-APIKey" />
+                <button id="gemini-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+              </div >
+            </div>
+          </div>
+            <!-- Model Configuration -->
+
+
+          <!-- Right Column - API Information -->
+          <div class="col-md-6">
+            <div id="anthropic-models" class="APIKey-Configuration mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h6 class="card-title">Anthropic API Information</h6>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Model Website:</strong><br>
+                    <a href="https://www.anthropic.com" target="_blank" class="text-decoration-none">
+                      https://www.anthropic.com
+                    </a>
+                  </p>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Get API Key:</strong><br>
+                    <a href="https://console.anthropic.com" target="_blank" class="text-decoration-none">
+                      https://console.anthropic.com
+                    </a>
+                  </p>
+                  <small class="text-muted">Visit the Anthropic Console to create your account and generate API keys.</small>
+                </div>
+              </div>
+            </div>
+
+            <div id="openAI-models" class="APIKey-Configuration mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h6 class="card-title">OpenAI API Information</h6>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Model Website:</strong><br>
+                    <a href="https://openai.com" target="_blank" class="text-decoration-none">
+                      https://openai.com
+                    </a>
+                  </p>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Get API Key:</strong><br>
+                    <a href="https://platform.openai.com/api-keys" target="_blank" class="text-decoration-none">
+                      https://platform.openai.com/api-keys
+                    </a>
+                  </p>
+                  <small class="text-muted">Sign up for OpenAI Platform and navigate to API Keys section to generate your key.</small>
+                </div>
+              </div>
+            </div>
+
+            <div id="groq-models" class="APIKey-Configuration mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h6 class="card-title">Groq API Information</h6>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Model Website:</strong><br>
+                    <a href="https://groq.com" target="_blank" class="text-decoration-none">
+                      https://groq.com
+                    </a>
+                  </p>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Get API Key:</strong><br>
+                    <a href="https://console.groq.com/keys" target="_blank" class="text-decoration-none">
+                      https://console.groq.com/keys
+                    </a>
+                  </p>
+                  <small class="text-muted">Create a Groq account and visit the API Keys section in the console.</small>
+                </div>
+              </div>
+            </div>
+
+            <div id="gemini-models" class="APIKey-Configuration mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h6 class="card-title">Gemini API Information</h6>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Model Website:</strong><br>
+                    <a href="https://ai.google.dev" target="_blank" class="text-decoration-none">
+                      https://ai.google.dev
+                    </a>
+                  </p>
+                  <p class="card-text" style="font-size: 17px">
+                    <strong>Get API Key:</strong><br>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-decoration-none">
+                      https://aistudio.google.com/app/apikey
+                    </a>
+                  </p>
+                  <small class="text-muted">Use Google AI Studio to generate your Gemini API key with your Google account.</small>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <!-- Model Selection -->
-        <div id="modelSelectionContainer" style="display:none;">
-          <label for="modelDropdown">Select a Model:</label>
-          <select class="form-control" id="modelDropdown"></select>
+        <div>
+          <label for="temperatureInput" class="form-label">Set model temperature</label>
+          <input
+                  type="number"
+                  class="form-control"
+                  id="temperatureInput"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value="0.7"
+                  placeholder="Enter temperature (0-2)"
+          >
+          <div class="form-text">
+            Temperature controls randomness: 0 = deterministic, 2 = very creative
+          </div>
         </div>
         <br>
-        <div id="anthropic-ApiKeyContainer" class="APIKey-Configuration">
-          <label>Paste here your Anthropic API key:</label>
-          <input type="text" id="anthropic-APIKey"/>
-          <button id="anthropic-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
+        <div class="mb-3">
+          <label class="form-label">Token Usage</label>
+          <div class="card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-3">
+                  <strong>Completion Tokens:</strong>
+                  <span id="completionTokens" class="text-primary">0</span>
+                </div>
+                <div class="col-md-3">
+                  <strong>Prompt Tokens:</strong>
+                  <span id="promptTokens" class="text-info">0</span>
+                </div>
+                <div class="col-md-3">
+                  <strong>Total Tokens:</strong>
+                  <span id="totalTokens" class="text-success">0</span>
+                </div>
+                <div class="col-md-3 text-end">
+                  <button type="button" class="btn2 btn-outline-danger btn-sm" id="resetTokens">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="openAI-ApiKeyContainer" class="APIKey-Configuration">
-          <label>Paste here your OpenAI API Plus key:</label>
-          <input type="text" id="openAI-APIKey" />
-          <button id="openAI-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
-        </div>
-        <div id="groq-ApiKeyContainer" class="APIKey-Configuration">
-          <label>Paste here your Groq API key:</label>
-          <input type="text" id="groq-APIKey" />
-          <button id="groq-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
-        </div>
-        <div id="gemini-ApiKeyContainer" class="APIKey-Configuration">
-          <label>Paste here your Gemini API key:</label>
-          <input type="text" id="gemini-APIKey" />
-          <button id="gemini-APIKeyValidationButton" class="APIKeyValidationButton">Save</button>
-      </div >
+      </div>
     </div>
     <br/>
   </div>
-   </div>
+</div>
 </div>
 </script>
 <script src="../scripts/options.js">
