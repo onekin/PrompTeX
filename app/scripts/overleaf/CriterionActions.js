@@ -409,6 +409,7 @@ class CriterionActions {
             callback: callback
           })
         } else {
+          Alerts.closeLoadingWindow()
           Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
         }
       })

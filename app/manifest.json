@@ -2,7 +2,7 @@
   "name": "__MSG_appName__",
   "short_name": "__MSG_appShortName__",
   "description": "__MSG_appDescription__",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "manifest_version": 3,
   "default_locale": "en",
   "icons": {
@@ -23,7 +23,6 @@
   "content_scripts": [
     {
       "matches": ["https://www.overleaf.com/project/*"],
-      "exclude_matches": ["https://www.mindmeister.com/oauth2/*","https://www.mindmeister.com/*account/login*","https://www.mindmeister.com/robots.txt*"],
       "js": ["scripts/content_script.js"],
       "css": ["styles/contentScript.css"],
       "run_at": "document_end"

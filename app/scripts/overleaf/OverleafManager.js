@@ -110,8 +110,16 @@ class OverleafManager {
               role = request.text
               modeInstructions = 'Please focus on the content of the text, not on the rhetorical aspects.'
             }
-            const selectedRole = Object.values(Config.roles).find(el => el.name === role)
-            let roleDescription = selectedRole.description
+            const [roleKey, selectedRole] = Object.entries(Config.roles).find(([key, value]) => value.name === role)
+            const roleDescription = await new Promise(resolve => {
+              chrome.runtime.sendMessage({
+                scope: 'definition',
+                cmd: 'getDefinition',
+                data: { type: roleKey }
+              }, ({ definition }) => {
+                resolve(definition || selectedRole.description)
+              })
+            })
             let prompt = Config.prompts.getFeedback
             prompt = prompt.replaceAll('[CONTENT]', scopedText)
             prompt = prompt.replaceAll('[ROLE]', roleDescription + ' ' + modeInstructions)

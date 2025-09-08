@@ -98,10 +98,10 @@ const Config = {
       '{\n' +
       '  "suggestions": [\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
+      '            "suggestion": "Provide the full response required by the TASK here, following the exact OUTPUT FORMAT defined in the TASK."\n' +
       '    },\n' +
       '    {\n' +
-      '      "suggestion": "Provide a specific and actionable suggestion."\n' +
+      '            "suggestion": "Provide the full response required by the TASK here, following the exact OUTPUT FORMAT defined in the TASK."\n' +
       '    },\n' +
       '    ... more suggestions if applicable\n' +
       '  ]\n' +

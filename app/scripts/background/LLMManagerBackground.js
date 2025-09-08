@@ -8,6 +8,8 @@ const { OpenAIEmbeddings } = require('langchain/embeddings/openai')
 const { MemoryVectorStore } = require('langchain/vectorstores/memory')
 const { PromptTemplate } = require('@langchain/core/prompts')
 const ChromeStorage = require('../utils/ChromeStorage')
+// const { Client } = require('langsmith')
+// const { LangChainTracer } = require('langchain/callbacks')
 
 class LLMManagerBackground {
   init () {
@@ -237,7 +239,13 @@ class LLMManagerBackground {
           handleLLMEnd: (output, runId, parentRunId, tags) => {
             this.saveLLMUsage(output, modelName)
           }
-        }
+        } /* To evaluate PrompTeX,
+        new LangChainTracer({
+          client: new Client({
+            apiUrl: "https://api.smith.langchain.com",
+            apiKey: "---",
+          }),
+        }) */
       ],
       modelName: modelName,
       openAIApiKey: apiKey,
