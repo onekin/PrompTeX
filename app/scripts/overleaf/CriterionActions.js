@@ -9,7 +9,7 @@ class CriterionActions {
   static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName, humanNote) {
     Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
-      if (llm === '') {
+      if (!llm || !llm.modelType || !llm.model) {
         llm = Config.review.defaultLLM
       }
       const llmProvider = llm.modelType

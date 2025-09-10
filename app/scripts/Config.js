@@ -3,7 +3,7 @@ const Config = {
     groupName: 'AnnotatorGPT',
     namespace: 'review',
     urlParamName: 'rag',
-    defaultLLM: { modelType: 'openAI', model: 'gpt-4' },
+    defaultLLM: { modelType: 'openAI', model: 'gpt-4o' },
     tags: { // Defined tags for the domain
       grouped: { // Grouped annotations
         group: 'criteria',
