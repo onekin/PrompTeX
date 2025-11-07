@@ -6,98 +6,32 @@ if (window.location.href.includes('pages/options.html')) {
   const defaultLLM = { modelType: 'openAI', model: 'gpt-4o' }
   const openAIModels = [
     // Current GPT-4o family
-    { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'gpt-4o-2024-11-20', label: 'GPT-4o (Nov 2024)' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-
-    // Latest GPT-4.1 family (January 2025)
-    { value: 'gpt-4.1', label: 'GPT-4.1' },
-    { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
-    { value: 'gpt-4.1-nano', label: 'GPT-4.1 Nano' },
-
-    // O-series reasoning models
-    { value: 'o3', label: 'o3 (Reasoning)' },
-    { value: 'o3-pro', label: 'o3-pro (Advanced Reasoning)' },
-    { value: 'o4-mini', label: 'o4-mini (Reasoning)' },
-    { value: 'o4-mini-high', label: 'o4-mini-high (Enhanced Reasoning)' },
-
-    // Research preview models
-    { value: 'gpt-4.5', label: 'GPT-4.5 (Preview - Deprecated July 2025)' },
-
-    // Image generation
-    { value: 'gpt-image-1', label: 'GPT Image 1' },
-
-    // Legacy models (still available but not recommended)
-    { value: 'gpt-4', label: 'GPT-4 (Legacy)' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Legacy)' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Legacy)' }
+    { value: 'gpt-5', label: 'GPT-5' },
+    { value: 'gpt-5-mini', label: 'GPT-5 mini' },
+    { value: 'gpt-4o', label: 'GPT-4o' }
   ]
 
   const anthropicModels = [
     // Latest Claude 4 family (May 2025)
-    { value: 'claude-4-opus-20250514', label: 'Claude 4 Opus' },
-    { value: 'claude-4-sonnet-20250514', label: 'Claude 4 Sonnet' },
-
-    // Claude 3.7 family (current generation before Claude 4)
-    { value: 'claude-3-7-sonnet-20241022', label: 'Claude 3.7 Sonnet' },
-
-    // Claude 3.5 family
-    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (New)' },
-    { value: 'claude-3-5-sonnet-20240620', label: 'Claude 3.5 Sonnet (Original)' },
-    { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' },
-
-    // Claude 3 family (legacy but still available)
-    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Legacy)' },
-    { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet (Legacy)' },
-    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Legacy)' }
+    { value: 'claude-sonnet-4-5', label: 'Claude 4.5 Sonnet' },
+    { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
+    { value: 'claude-opus-4-1', label: 'Claude Opus 4.1' }
   ]
 
   const groqModels = [
     // Alibaba Cloud
-    { value: 'qwen-qwq-32b', label: 'Qwen QWQ 32B' },
     { value: 'qwen/qwen3-32b', label: 'Qwen3 32B' },
-
-    // DeepSeek / Meta
-    { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 Distill Llama 70B' },
-
-    // Google
-    { value: 'gemma2-9b-it', label: 'Gemma2 9B IT' },
-
-    // Groq
-    { value: 'compound-beta', label: 'Compound Beta' },
-    { value: 'compound-beta-mini', label: 'Compound Beta Mini' },
-
-    // Hugging Face
-    { value: 'distil-whisper-large-v3-en', label: 'Distil Whisper Large v3 EN' },
-
     // Meta
     { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B Instant' },
     { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B Versatile' },
-    { value: 'llama3-70b-8192', label: 'Llama3 70B 8192' },
-    { value: 'llama3-8b-8192', label: 'Llama3 8B 8192' },
     { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', label: 'Llama 4 Maverick 17B 128E Instruct' },
-    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout 17B 16E Instruct' },
-    { value: 'meta-llama/llama-guard-4-12b', label: 'Llama Guard 4 12B' },
-    { value: 'meta-llama/llama-prompt-guard-2-22m', label: 'Llama Prompt Guard 2 22M' },
-    { value: 'meta-llama/llama-prompt-guard-2-86m', label: 'Llama Prompt Guard 2 86M' },
-
-    // Mistral AI
-    { value: 'mistral-saba-24b', label: 'Mistral Saba 24B' },
-
-    // OpenAI
-    { value: 'whisper-large-v3', label: 'Whisper Large v3' },
-    { value: 'whisper-large-v3-turbo', label: 'Whisper Large v3 Turbo' },
-
-    // PlayAI
-    { value: 'playai-tts', label: 'PlayAI TTS' },
-    { value: 'playai-tts-arabic', label: 'PlayAI TTS Arabic' }
+    { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout 17B 16E Instruct' }
   ]
 
   const geminiModels = [
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Free)' },
-    { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Free)' },
-    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Free)' },
-    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Free)' }
+    { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Free)' },
+    { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite (Free)' }
   ]
 
   const LLMDropdown = document.getElementById('LLMDropdown')

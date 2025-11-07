@@ -76,12 +76,12 @@ class LatexUtils {
 
     // Remove lines starting with '%'
     lines = lines.filter(line => !line.trim().startsWith('%'))
-    lines = lines.filter(line => !line.trim().startsWith('\\section{'))
-    lines = lines.filter(line => !line.trim().startsWith('\\subsection{'))
-    lines = lines.filter(line => !line.trim().startsWith('\\subsubsection{'))
-    lines = lines.filter(line => !line.trim().startsWith('\\begin{figure}'))
-    lines = lines.filter(line => !line.trim().startsWith('\\end{figure}'))
-    lines = lines.filter(line => !line.trim().includes('\\promptex{'))
+    // lines = lines.filter(line => !line.trim().startsWith('\\section{'))
+    // lines = lines.filter(line => !line.trim().startsWith('\\subsection{'))
+    // lines = lines.filter(line => !line.trim().startsWith('\\subsubsection{'))
+    // lines = lines.filter(line => !line.trim().startsWith('\\begin{figure}'))
+    // lines = lines.filter(line => !line.trim().startsWith('\\end{figure}'))
+    // lines = lines.filter(line => !line.trim().includes('\\promptex{'))
 
     // Join the lines back to form the document content without comments
     let processedContent = lines.join('\n')
@@ -103,7 +103,7 @@ class LatexUtils {
     }
 
     // Remove excessive newlines (keep at most one consecutive newline)
-    processedContent = processedContent.replace(/\n\s*\n/g, '\n')
+    // processedContent = processedContent.replace(/\n\s*\n/g, '\n')
 
     // Return the processed content trimmed
     return processedContent.trim()

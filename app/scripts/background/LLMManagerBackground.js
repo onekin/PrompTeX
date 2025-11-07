@@ -1,11 +1,7 @@
-const { loadQAStuffChain } = require('langchain/chains')
-const { ChatOpenAI } = require('langchain/chat_models/openai')
-const { ChatAnthropic } = require('langchain/chat_models/anthropic')
+const { ChatOpenAI } = require('@langchain/openai')
+const { ChatAnthropic } = require('@langchain/anthropic')
 const { ChatGoogleGenerativeAI } = require('@langchain/google-genai')
 const { ChatGroq } = require('@langchain/groq')
-const { TokenTextSplitter } = require('langchain/text_splitter')
-const { OpenAIEmbeddings } = require('langchain/embeddings/openai')
-const { MemoryVectorStore } = require('langchain/vectorstores/memory')
 const { PromptTemplate } = require('@langchain/core/prompts')
 const ChromeStorage = require('../utils/ChromeStorage')
 // const { Client } = require('langsmith')
@@ -124,136 +120,25 @@ class LLMManagerBackground {
     })
   }
 
-  async askLLMOpenAIWithDocuments (request) {
-    const apiKey = request.data.apiKey
-    const query = request.data.query
-    const documents = request.data.documents
-    let callback = async function (documents) {
-      // Create QA chain
-      console.log('QUERY: ' + query)
-      console.log('TRYING REMOVING LAST PAGE')
-      return chain.call({ // Make sure to return the promise here
-        input_documents: documents,
-        question: query
-      }).then(res => {
-        // if stored max pages nothing, else store max pages
-        return res // Return the result so it can be used in the next .then()
-      }).catch(async err => { // Handle the error properly
-        if (err.toString().startsWith('Error: 429')) {
-          documents.pop()
-          if (documents.length === 0) {
-            return { error: 'All documents removed, no results found.' }
-          }
-          return resolveWithEmbeddings(documents) // Return the callback promise
-        } else {
-          return { error: 'An error has occurred during callback' }
-        }
-      })
-    }
-
-    let resolveWithEmbeddings = async function (documents) {
-      let results
-      try {
-        const splitter = new TokenTextSplitter({
-          chunkSize: 500,
-          chunkOverlap: 20
-        })
-        const output = await splitter.splitDocuments(documents)
-        // Create LLM
-        const docsearch = await MemoryVectorStore.fromDocuments(
-          output, new OpenAIEmbeddings({ openAIApiKey: apiKey })
-        )
-        results = await docsearch.similaritySearch(query, 22)
-      } catch (err) {
-        return { error: 'An error has occurred loading embeddings' }
-      }
-      const chainA = loadQAStuffChain(model)
-      // Create QA chain
-      console.log('QUERY: ' + query)
-      console.log('TRYING WITH EMBEDDINGS')
-      return chainA.call({
-        input_documents: results,
-        question: query
-      }).then(res => {
-        // if stored max pages nothing, else store max pages
-        return res // Return the result so it can be used in the next .then()
-      }).catch(async err => {
-        console.log(err.toString())
-        // Handle the error properly
-        return { error: 'An error has occurred with embeddings' }
-      })
-    }
-    // create model
-    const modelName = request.data.llm.model
-    const model = new ChatOpenAI({
-      temperature: 0,
-      callbacks: [
-        {
-          handleLLMEnd: (output, runId, parentRunId, tags) => {
-            this.saveLLMUsage(output, modelName)
-          }
-        }
-      ],
-      modelName: modelName,
-      openAIApiKey: apiKey,
-      modelKwargs: {
-        'response_format': {
-          type: 'json_object'
-        }
-      }
-    })
-
-    // Create QA chain
-    const chain = loadQAStuffChain(model)
-    console.log('QUERY: ' + query)
-    return chain.call({ // Return the promise here as well
-      input_documents: documents,
-      question: query
-    }).then(res => {
-      return res // Return the result so it can be used in the next .then()
-    }).catch(async err => {
-      console.log(err.toString())
-      if (err.toString().startsWith('Error: 429')) {
-        documents.pop()
-        if (documents.length === 0) {
-          return { error: 'All documents removed, no results found.' }
-        }
-        return callback(documents)
-      } else if (err.toString().startsWith('Error: 401')) {
-        return { error: 'Incorrect API key provided.' }
-      } else {
-        return { error: 'An error has occurred trying first call.' }
-      }
-    })
-  }
-
   async askLLMOpenAI (request) {
     const apiKey = request.data.apiKey
     const query = request.data.query
     // create model
     const modelName = request.data.llm.model
     const model = new ChatOpenAI({
-      temperature: 0,
+      model: modelName,
+      apiKey, // use this (works in modern @langchain/openai)
+      useResponsesApi: true, // recommended for GPT-5
+      // callbacks still work; handleLLMEnd fires after a generation finishes
       callbacks: [
         {
-          handleLLMEnd: (output, runId, parentRunId, tags) => {
+          handleLLMEnd: (output) => {
+            // output contains generations + usage
+            // e.g., output.llmOutput?.tokenUsage
             this.saveLLMUsage(output, modelName)
           }
-        } /* To evaluate PrompTeX,
-        new LangChainTracer({
-          client: new Client({
-            apiUrl: "https://api.smith.langchain.com",
-            apiKey: "---",
-          }),
-        }) */
-      ],
-      modelName: modelName,
-      openAIApiKey: apiKey,
-      modelKwargs: {
-        'response_format': {
-          type: 'json_object'
         }
-      }
+      ]
     })
 
     const promptTemplate = PromptTemplate.fromTemplate(
