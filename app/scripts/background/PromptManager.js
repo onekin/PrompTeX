@@ -73,14 +73,60 @@ class PromptManager {
       }
     })
 
-    chrome.runtime.onInstalled.addListener(() => {
+    /* chrome.runtime.onInstalled.addListener(() => {
       // Create context menu items
       chrome.contextMenus.create({ id: 'Validate', title: 'Validate', contexts: ['selection'] })
       chrome.contextMenus.create({ id: 'Enhance', title: 'Enhance', contexts: ['selection'] })
       chrome.contextMenus.create({ id: 'Gap Filling', title: 'Gap Filling', contexts: ['selection'] })
       chrome.contextMenus.create({ id: 'Alternatives', title: 'Alternatives', contexts: ['selection'] })
       chrome.contextMenus.create({ id: 'Unify', title: 'Unify', contexts: ['selection'] })
+    }) */
+
+    chrome.runtime.onInstalled.addListener(() => {
+      chrome.storage.local.get({ mode: 'divergent' }, ({ mode }) => {
+        buildContextMenus(mode)
+      })
     })
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.mode) {
+        buildContextMenus(changes.mode.newValue)
+      }
+    })
+
+    function buildContextMenus (mode) {
+      chrome.contextMenus.removeAll(() => {
+        if (mode === 'divergent') {
+          chrome.contextMenus.create({
+            id: 'Alternatives',
+            title: 'Alternatives',
+            contexts: ['selection']
+          })
+          chrome.contextMenus.create({
+            id: 'Gap Filling',
+            title: 'Gap Filling',
+            contexts: ['selection']
+          })
+        } else {
+          // Default: Divergent
+          chrome.contextMenus.create({
+            id: 'Enhance',
+            title: 'Enhance',
+            contexts: ['selection']
+          })
+          chrome.contextMenus.create({
+            id: 'Validate',
+            title: 'Validate',
+            contexts: ['selection']
+          })
+          chrome.contextMenus.create({
+            id: 'Unify',
+            title: 'Unify',
+            contexts: ['selection']
+          })
+        }
+      })
+    }
 
     // Handle context menu clicks
     chrome.contextMenus.onClicked.addListener((info, tab) => {

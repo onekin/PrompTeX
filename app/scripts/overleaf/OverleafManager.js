@@ -100,10 +100,10 @@ class OverleafManager {
               numberOfExcerpts = 1
               scopedText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
             }
-            const spaceMode = document.getElementById('modeToggle').checked ? 'Rhetoric Mode' : 'Content Mode'
+            const spaceMode = document.getElementById('modeToggle').checked ? 'Convergence Mode' : 'Divergence Mode'
             let role
             let modeInstructions = ''
-            if (spaceMode === 'Rhetoric Mode') {
+            if (spaceMode === 'Divergence Mode') {
               role = request.text + 'Rhetorical'
               modeInstructions = 'Please focus on the rhetorical aspects of the text, not on the content.'
             } else {
@@ -238,7 +238,6 @@ class OverleafManager {
 
   isSelected (element) {
     const selection = window.getSelection()
-
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0) // Get the first range (caret position)
 
@@ -297,7 +296,7 @@ class OverleafManager {
         <input type="checkbox" id="modeToggle">
         <span class="slider"></span>
       </label>
-      <span id="modeLabel">Content Mode</span>
+      <span id="modeLabel">Divergence Mode</span>
     `
 
       // Insert the switch button **before** the "Review" button
@@ -376,11 +375,23 @@ class OverleafManager {
       document.head.appendChild(style)
 
       // Add event listener to toggle between Content Mode and Rhetoric Mode
-      document.getElementById('modeToggle').addEventListener('change', function () {
-        let modeLabel = document.getElementById('modeLabel')
-        modeLabel.textContent = this.checked ? 'Rhetoric Mode' : 'Content Mode'
+      document.getElementById('modeToggle').addEventListener('change', (e) => {
+        const checked = e.target.checked
+        document.getElementById('modeLabel').textContent =
+          checked ? 'Convergence Mode' : 'Divergence Mode'
+        this.setMode(checked ? 'convergent' : 'divergent')
       })
     }
+  }
+
+  setMode (mode) {
+    chrome.storage.local.set({ mode }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('storage.set error:', chrome.runtime.lastError)
+        return
+      }
+      console.log('mode saved:', mode)
+    })
   }
 
   addOutlineButton () {
