@@ -186,3 +186,115 @@ input:invalid {
 .promptTextArea {
   width: 100%;
 }
+
+/* make the <details> summary look like a card header */
+#createRoleToggle > summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* remove default marker */
+#createRoleToggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* add a chevron indicator */
+#createRoleToggle > summary::after {
+  content: "▾";
+  font-size: 1.1rem;
+  opacity: 0.85;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+
+#createRoleToggle[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+/* spacing between the create section and list */
+#createRoleToggle {
+  margin-bottom: 1.25rem;
+}
+
+/* Role list groups */
+.role-group {
+  margin-bottom: 1rem;
+  border-radius: 0.35rem;
+  overflow: hidden;
+}
+
+.role-group > .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.role-group-count {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+/* each role card (your wrapper uses class Prompt-Configuration) */
+.Prompt-Configuration {
+  padding: 0.75rem 0;
+}
+
+.Prompt-Configuration label {
+  margin-bottom: 0.35rem;
+}
+
+/* role action buttons row */
+.role-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.role-message {
+  margin-left: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* make textareas a bit nicer */
+textarea.form-control {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* optional: subtle separator */
+.role-separator {
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin: 0.75rem 0;
+}
+/* Group toggle styling (Convergence / Divergence) */
+.role-group-summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.role-group > summary::after {
+  content: "▾";
+  font-size: 1.1rem;
+  opacity: 0.85;
+  margin-left: 12px;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+
+.role-group[open] > summary::after {
+  transform: rotate(180deg);
+}

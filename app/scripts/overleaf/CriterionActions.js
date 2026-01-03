@@ -13,9 +13,9 @@ class CriterionActions {
         llm = Config.review.defaultLLM
       }
       const llmProvider = llm.modelType
-      Alerts.showLoadingWindowDuringProcess('Waiting ' + llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1) + ' to answer...')
       chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getAPIKEY', data: llmProvider }, ({ apiKey }) => {
         if (apiKey !== null && apiKey !== '') {
+          Alerts.showLoadingWindowDuringProcess('Waiting ' + llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1) + ' to answer...')
           let callback = (json) => {
             Alerts.closeLoadingWindow()
             console.log(json)
@@ -411,6 +411,7 @@ class CriterionActions {
         } else {
           Alerts.closeLoadingWindow()
           Alerts.showErrorToast('No API key found for ' + llmProvider + '. Please check your configuration.')
+          window.location.href = chrome.runtime.getURL('pages/options.html')
         }
       })
     })

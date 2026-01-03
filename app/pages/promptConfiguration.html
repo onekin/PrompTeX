@@ -1,159 +1,76 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script src="../scripts/promptConfiguration.js"></script>
     <link rel="stylesheet" type="text/css" href="../styles/options.css">
-
-    <title>PrompTeX Prompts definition</title>
 </head>
+
 <body>
-<div class="container">
-    <!-- Header -->
-    <header></header>
+    <div class="container">
+        <header></header>
 
-    <!-- Container -->
-    <div id="main-container" class="container">
+        <div id="main-container" class="container">
+            <div class="jumbotron">
+                <br><br>
+                <img alt="PrompTeX logo" class="logo" src="../images/32.png">
 
-        <div class="jumbotron">
-            </br></br>
-            <img alt="PrompTeX logo" title="Review and go logo" class="logo" src="../images/32.png">
-            <h2 class="title">Role Configuration for Content Space</h2>
-            <div class="card">
-                <div class="card-header card-header bg-dark text-white">Validate</div>
-                <div class="card-body">
-                    <div id="validatorContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Validate</b> definition here for the Content Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="validator" class="promptTextArea" rows="3"></textarea>
+                <h2 class="title">Role Configuration</h2>
 
-                            <br><br>
-                            <button id="validatorButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="validatorSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="validatorMessage"></label>
+                <!-- ADD ROLE -->
+                <details class="card" id="createRoleToggle">
+                    <summary class="card-header bg-dark text-white">
+                        Create new role
+                    </summary>
+
+                    <div class="card-body">
+                        <!-- row 1: name + mode -->
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+                            <div style="min-width:220px;">
+                                <label><b>Role name</b> (also used as ID)</label>
+                                <input id="newRoleName" class="form-control" placeholder="e.g., Summarize">
+                            </div>
+
+                            <div style="min-width:220px;">
+                                <label><b>Mode</b></label>
+                                <select id="newRoleValue" class="form-control">
+                                    <option value="divergence">divergence</option>
+                                    <option value="convergence">convergence</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <hr>
-                    <div id="enhancerContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Enhance</b> definition here for the Content Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="enhancer" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="enhancerButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="enhancerSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="enhancerMessage"></label>
+
+                        <!-- row 2: description -->
+                        <div style="margin-top:12px;">
+                            <label><b>Description</b></label>
+                            <textarea id="newRoleDescription" class="form-control" rows="3"
+                                placeholder="What should this role do?"></textarea>
                         </div>
+
+                        <br>
+                        <button id="addRoleBtn" class="btn btn-secondary">Add role</button>
+                        <label id="addRoleMessage" style="margin-left:10px;"></label>
                     </div>
-                    <hr>
-                    <div id="gapFillerContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Gap filling</b> definition here for the Content Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="gapFiller" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="gapFillerButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="gapFillerSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="gapFillerMessage"></label>
-                        </div>
+                </details>
+
+     
+
+                <!-- ROLES LIST -->
+                <div class="card">
+                    <div class="card-header bg-dark text-white">Role definitions</div>
+                    <div class="card-body">
+                        <div id="rolesList"></div>
+                        <hr>
+                        <button id="resetAllBtn" class="btn btn-secondary">Reset all to defaults</button>
+                        <label id="resetAllMessage" style="margin-left:10px;"></label>
                     </div>
-                    <hr>
-                    <div id="alternativeProviderContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Alternatives</b> definition here for the Content Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="alternativeProvider" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="alternativeProviderButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="alternativeProviderSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="alternativeProviderMessage"></label>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="unityBuilderContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Unify</b> definition here for the Content Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="unityBuilder" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="unityBuilderButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="unityBuilderSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="unityBuilderMessage"></label>
-                        </div>
-                    </div>
-                </div >
-            </div >
-            <h2 class="title">Role Configuration for Rhetorical Space</h2>
-            <div class="card">
-                <div class="card-header card-header bg-dark text-white">Validate</div>
-                <div class="card-body">
-                    <div id="validatorRhetoricalContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Validate</b> definition here for the Rhetorical Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="validatorRhetorical" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="validatorRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="validatorRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="validatorRhetoricalMessage"></label>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="enhancerRhetoricalContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Enhance</b> definition here for the Rhetorical Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="enhancerRhetorical" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="enhancerRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="enhancerRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="enhancerRhetoricalMessage"></label>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="gapFillerRhetoricalContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Gap filling</b> definition here for the Rhetorical Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="gapFillerRhetorical" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="gapFillerRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="gapFillerRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="gapFillerRhetoricalMessage"></label>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="alternativeProviderRhetoricalContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Alternatives</b> definition here for the Rhetorical Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="alternativeProviderRhetorical" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="alternativeProviderRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="alternativeProviderRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="alternativeProviderRhetoricalMessage"></label>
-                        </div>
-                    </div>
-                    <hr>
-                    <div id="unityBuilderRhetoricalContainer" class="Prompt-Configuration">
-                        <label>Configure your <b>Unify</b> definition here for the Rhetorical Space mode:</label>
-                        <div class="form-check">
-                            <br>
-                            <textarea id="unityBuilderRhetorical" class="promptTextArea" rows="3"></textarea>
-                            <br><br>
-                            <button id="unityBuilderRhetoricalButton" class="savePromptButtonClass btn btn-secondary">Get default definition</button>
-                            <button id="unityBuilderRhetoricalSaveButton" class="savePromptButtonClass btn btn-secondary">Save definition</button>
-                            <label id="unityBuilderRhetoricalMessage"></label>
-                        </div>
-                    </div>
-                </div >
-            </div >
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
-</div>
 </body>
+
 </html>

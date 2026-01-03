@@ -101,32 +101,56 @@ class OverleafManager {
               scopedText = 'RESEARCH_PAPER FRAGMENT: [' + selectedText + ']'
             }
             const spaceMode = document.getElementById('modeToggle').checked ? 'Convergence Mode' : 'Divergence Mode'
-            let role
+            let role = request.text
             let modeInstructions = ''
-            if (spaceMode === 'Divergence Mode') {
-              role = request.text + 'Rhetorical'
-              modeInstructions = 'Please focus on the rhetorical aspects of the text, not on the content.'
-            } else {
-              role = request.text
-              modeInstructions = 'Please focus on the content of the text, not on the rhetorical aspects.'
-            }
-            const [roleKey, selectedRole] = Object.entries(Config.roles).find(([key, value]) => value.name === role)
-            const roleDescription = await new Promise(resolve => {
-              chrome.runtime.sendMessage({
-                scope: 'definition',
-                cmd: 'getDefinition',
-                data: { type: roleKey }
-              }, ({ definition }) => {
-                resolve(definition || selectedRole.description)
+
+            // 1) Load roles from local storage (fallback to Config.roles if missing)
+            const roles = await new Promise((resolve) => {
+              chrome.storage.local.get({ roleDefinitions: Config.roles }, ({ roleDefinitions }) => {
+                resolve(Array.isArray(roleDefinitions) ? roleDefinitions : Config.roles)
               })
             })
+
+            // 2) Find selected role by name
+            const selectedRole = roles.find(r => r && r.name === role)
+
+            if (!selectedRole) {
+              console.warn('Selected role not found in storage:', role)
+              // fallback: try defaults
+              const fallback = Array.isArray(Config.roles) ? Config.roles.find(r => r && r.name === role) : null
+              if (!fallback) return
+              // use fallback as selectedRole
+            }
+
+            // pick final role object
+            const finalRole = selectedRole || (Array.isArray(Config.roles) ? Config.roles.find(r => r && r.name === role) : null)
+            if (!finalRole) return
+
+            // 3) Use the role description from storage (already editable)
+            // (no more "definition/getDefinition" by key)
+            const roleDescription = finalRole.description || ''
+
+            // 4) Build prompt
             let prompt = Config.prompts.getFeedback
             prompt = prompt.replaceAll('[CONTENT]', scopedText)
             prompt = prompt.replaceAll('[ROLE]', roleDescription + ' ' + modeInstructions)
             prompt = prompt.replaceAll('[NUMBER]', numberOfExcerpts)
             prompt = prompt.replaceAll('[NOTE]', 'Please, do this task considering that: ' + humanNote)
+
             console.log(prompt)
-            await CriterionActions.askForFeedback(documents, prompt, selectedRole.name, spaceMode, scopedText, roleDescription, modeInstructions, scope, firstSection, humanNote)
+
+            await CriterionActions.askForFeedback(
+              documents,
+              prompt,
+              finalRole.name,
+              spaceMode,
+              scopedText,
+              roleDescription,
+              modeInstructions,
+              scope,
+              firstSection,
+              humanNote
+            )
           }
         } else {
           console.log('Selection is outside the "panel-ide" element.')
@@ -174,9 +198,7 @@ class OverleafManager {
       this._project = project
       this.loadStorage(project, () => {
         // console.log(window.promptex.storageManager.client.getSchemas())
-        // that.addButton()
         that.addConfigurationButton()
-        // that.addStabilizeButton()
         that.addOutlineButton()
         that.monitorEditorContent()
       })
@@ -288,25 +310,34 @@ class OverleafManager {
     }
 
     if (!document.querySelector('.mode-switch-container')) {
-      // Create the switch button container
-      let modeSwitchContainer = document.createElement('div')
-      modeSwitchContainer.classList.add('toolbar-item', 'mode-switch-container')
-      modeSwitchContainer.innerHTML = `
-      <label class="switch">
-        <input type="checkbox" id="modeToggle">
-        <span class="slider"></span>
-      </label>
-      <span id="modeLabel">Divergence Mode</span>
-    `
+      let modeToggle, modeLabel, isDivergence, mode
+      // 1) Load saved mode from background and set the UI
+      chrome.runtime.sendMessage({ scope: 'mode', cmd: 'getMode' }, (res) => {
+        if (!res || res.err) return
 
-      // Insert the switch button **before** the "Review" button
-      if (toolbar) {
-        toolbar.insertBefore(modeSwitchContainer, toolbar.firstChild)
-      }
+        // Decide your mapping. Example: store mode as "divergence" | "convergence"
+        mode = res.mode || 'divergent'
+        isDivergence = mode === 'divergent'
+        modeLabel = isDivergence ? 'Divergence Mode' : 'Convergence Mode'
+        // Create the switch button container
+        let modeSwitchContainer = document.createElement('div')
+        modeSwitchContainer.classList.add('toolbar-item', 'mode-switch-container')
+        modeSwitchContainer.innerHTML = `
+        <label class="switch">
+          <input type="checkbox" id="modeToggle" ${isDivergence ? '' : 'checked'}>
+          <span class="slider"></span>
+        </label>
+        <span id="modeLabel">${modeLabel}</span>
+      `
 
-      // Add styles dynamically for the switch button
-      let style = document.createElement('style')
-      style.innerHTML = `
+        // Insert the switch button **before** the "Review" button
+        if (toolbar) {
+          toolbar.insertBefore(modeSwitchContainer, toolbar.firstChild)
+        }
+
+        // Add styles dynamically for the switch button
+        let style = document.createElement('style')
+        style.innerHTML = `
       .mode-switch-container {
           display: flex;
           align-items: center;
@@ -371,15 +402,15 @@ class OverleafManager {
       }
     `
 
-      // Append the styles to the document head
-      document.head.appendChild(style)
-
-      // Add event listener to toggle between Content Mode and Rhetoric Mode
-      document.getElementById('modeToggle').addEventListener('change', (e) => {
-        const checked = e.target.checked
-        document.getElementById('modeLabel').textContent =
+        // Append the styles to the document head
+        document.head.appendChild(style)
+        // Add event listener to toggle between Content Mode and Rhetoric Mode
+        document.getElementById('modeToggle').addEventListener('change', (e) => {
+          const checked = e.target.checked
+          document.getElementById('modeLabel').textContent =
           checked ? 'Convergence Mode' : 'Divergence Mode'
-        this.setMode(checked ? 'convergent' : 'divergent')
+          this.setMode(checked ? 'convergent' : 'divergent')
+        })
       })
     }
   }

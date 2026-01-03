@@ -126,12 +126,21 @@ class Alerts {
     })
   }
 
+  static loadingTimer = null
+
   static showLoadingWindowDuringProcess (content) {
-    if (swal.getPopup()) {
-      swal.close() // ✅ Ensure alert closes first
+    // cancel any previous pending show
+    if (Alerts.loadingTimer) {
+      clearTimeout(Alerts.loadingTimer)
+      Alerts.loadingTimer = null
     }
 
-    setTimeout(() => { // ✅ Delay prevents timing issues
+    // close any currently open popup
+    if (swal.isVisible()) {
+      swal.close()
+    }
+
+    Alerts.loadingTimer = setTimeout(() => {
       swal.fire({
         title: 'Loading',
         html: content,
@@ -139,17 +148,28 @@ class Alerts {
         position: 'center',
         showConfirmButton: false,
         showCancelButton: false,
-        customClass: 'custom-loading-toast',
-        didOpen: () => {
-          swal.showLoading()
-        }
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: { popup: 'custom-loading-toast' },
+        didOpen: () => swal.showLoading()
       })
-    }, 100) // ✅ Short delay ensures previous alert is closed
+
+      Alerts.loadingTimer = null
+    }, 100)
   }
 
   static closeLoadingWindow () {
-    swal.hideLoading()
-    swal.close()
+    // prevent a delayed "fire" from reopening it
+    if (Alerts.loadingTimer) {
+      clearTimeout(Alerts.loadingTimer)
+      Alerts.loadingTimer = null
+    }
+
+    // close if visible (hideLoading is optional)
+    if (swal.isVisible()) {
+      swal.hideLoading()
+      swal.close()
+    }
   }
 
   static closeWindow () {

@@ -62,7 +62,8 @@
       "resources": ["images/*",
                     "scripts/*",
                     "pages/*",
-                    "resources/*"],
+                    "resources/*",
+                    "styles/*"],
       "matches": [
         "*://*/*"
       ]

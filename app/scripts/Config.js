@@ -12,48 +12,38 @@ const Config = {
       }
     }
   },
-  roles: {
-    validator: {
+  roles: [
+    {
       name: 'Validate',
-      description: 'Critically assess the ideas for accuracy, validity, and logical coherence. Evaluate the correctness of claims, consistency of arguments, and soundness of conclusions without suggesting improvements or changes.'
+      mode: 'convergence',
+      description:
+        'Critically assess the ideas for accuracy, validity, and logical coherence. Evaluate the correctness of claims, consistency of arguments, and soundness of conclusions without suggesting improvements or changes. Also evaluate the effectiveness of language, tone, and structural clarity to ensure consistency and coherence without making changes.'
     },
-    enhancer: {
+    {
       name: 'Enhance',
-      description: 'Let me know HOW can I  improve the research content or ideas from the text. '
+      mode: 'convergence',
+      description:
+        'Let me know HOW can I improve the research content or ideas from the text. Also let me know HOW can I refine language, tone, and structural flow for clarity, readability, and rhetorical effectiveness while preserving the intended message.'
     },
-    gapFiller: {
+    {
       name: 'Gap Filling',
-      description: 'Identify and address missing components in the research content. Ensure all key elements—such as context, supporting evidence, or logical steps—are fully developed without altering existing content.'
+      mode: 'divergence',
+      description:
+        'Identify and address missing components in the research content. Ensure all key elements—such as context, supporting evidence, or logical steps—are fully developed without altering existing content. Also identify and fill rhetorical gaps, ensuring the argument or narrative is fully developed and persuasive without altering the core message.'
     },
-    alternativeProvider: {
+    {
       name: 'Alternatives',
-      description: 'Generate new theoretical perspectives, alternative interpretations of results, or different methodological approaches. Offer novel insights into the ideas.'
+      mode: 'divergence',
+      description:
+        'Generate new theoretical perspectives, alternative interpretations of results, or different methodological approaches. Offer novel insights into the ideas. Also suggest alternative rhetorical strategies, argumentation styles, or structural approaches without evaluating the original content.'
     },
-    unityBuilder: {
+    {
       name: 'Unify',
-      description: 'Ensure logical consistency and integration of research ideas. Strengthen the connection between hypotheses, methodology, results, and conclusions to create a cohesive and well-supported research narrative without modifying individual components'
-    },
-    validatorRhetorical: {
-      name: 'ValidateRhetorical',
-      description: 'Evaluate the effectiveness of language, tone, and structural clarity to ensure consistency and logical coherence without making changes'
-    },
-    enhancerRhetorical: {
-      name: 'EnhanceRhetorical',
-      description: 'Let me know HOW can I Refine language, tone, and structural flow for clarity, readability, and rhetorical effectiveness while preserving the intended message.'
-    },
-    gapFillerRhetorical: {
-      name: 'Gap FillingRhetorical',
-      description: 'Identify and fill rhetorical gaps, ensuring the argument or narrative is fully developed and persuasive without altering the core message'
-    },
-    alternativeProviderRhetorical: {
-      name: 'AlternativesRhetorical',
-      description: 'Suggest alternative rhetorical strategies, argumentation styles, or structural approaches without evaluating the original content.\''
-    },
-    unityBuilderRhetorical: {
-      name: 'UnifyRhetorical',
-      description: 'Improve the rhetorical flow by connecting ideas and arguments into a cohesive and persuasive whole without modifying individual components'
+      mode: 'convergence',
+      description:
+        'Ensure logical consistency and integration of research ideas. Strengthen the connection between hypotheses, methodology, results, and conclusions to create a cohesive and well-supported research narrative without modifying individual components. Also improve the rhetorical flow by connecting ideas and arguments into a cohesive and persuasive whole without modifying individual components.'
     }
-  },
+  ],
   actions: {
     concretize: {
       'name': 'Concretize',

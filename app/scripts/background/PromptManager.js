@@ -1,4 +1,5 @@
 const ChromeStorage = require('../utils/ChromeStorage')
+const Config = require('../Config')
 
 class PromptManager {
   init () {
@@ -73,6 +74,24 @@ class PromptManager {
       }
     })
 
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.scope === 'mode') {
+        if (request.cmd === 'getMode') {
+          chrome.storage.local.get({ mode: 'divergent' }, function (result) {
+            let err = chrome.runtime.lastError
+            if (err) {
+              sendResponse({ err: err.message })
+              return
+            }
+
+            let mode = result && result.mode ? result.mode : 'divergent'
+            sendResponse({ mode: mode })
+          })
+        }
+        return true
+      }
+    })
+
     /* chrome.runtime.onInstalled.addListener(() => {
       // Create context menu items
       chrome.contextMenus.create({ id: 'Validate', title: 'Validate', contexts: ['selection'] })
@@ -82,50 +101,68 @@ class PromptManager {
       chrome.contextMenus.create({ id: 'Unify', title: 'Unify', contexts: ['selection'] })
     }) */
 
-    chrome.runtime.onInstalled.addListener(() => {
-      chrome.storage.local.get({ mode: 'divergent' }, ({ mode }) => {
-        buildContextMenus(mode)
-      })
+    chrome.runtime.onInstalled.addListener((details) => {
+      chrome.storage.local.get(
+        {
+          mode: 'divergent',
+          roleDefinitions: null
+        },
+        ({ mode, roleDefinitions }) => {
+          // seed roleDefinitions if missing/empty
+          const missing = !Array.isArray(roleDefinitions) || roleDefinitions.length === 0
+
+          if (missing) {
+            chrome.storage.local.set({ roleDefinitions: Config.roles }, () => {
+              const err = chrome.runtime.lastError
+              if (err) console.error('Failed to set roleDefinitions:', err.message)
+
+              // build menus after seeding
+              buildContextMenus(mode)
+            })
+          } else {
+            buildContextMenus(mode)
+          }
+        }
+      )
     })
 
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.mode) {
-        buildContextMenus(changes.mode.newValue)
+      if (area !== 'local') return
+      if (changes.mode || changes.roleDefinitions) {
+        chrome.storage.local.get({ mode: 'divergent' }, ({ mode }) => {
+          buildContextMenus(mode)
+        })
       }
     })
 
     function buildContextMenus (mode) {
       chrome.contextMenus.removeAll(() => {
-        if (mode === 'divergent') {
-          chrome.contextMenus.create({
-            id: 'Alternatives',
-            title: 'Alternatives',
-            contexts: ['selection']
-          })
-          chrome.contextMenus.create({
-            id: 'Gap Filling',
-            title: 'Gap Filling',
-            contexts: ['selection']
-          })
-        } else {
-          // Default: Divergent
-          chrome.contextMenus.create({
-            id: 'Enhance',
-            title: 'Enhance',
-            contexts: ['selection']
-          })
-          chrome.contextMenus.create({
-            id: 'Validate',
-            title: 'Validate',
-            contexts: ['selection']
-          })
-          chrome.contextMenus.create({
-            id: 'Unify',
-            title: 'Unify',
-            contexts: ['selection']
-          })
-        }
+        chrome.storage.local.get(
+          { roleDefinitions: Config.roles },
+          ({ roleDefinitions }) => {
+            const roles = Array.isArray(roleDefinitions) ? roleDefinitions : Config.roles
+
+            // mode: 'divergent'|'convergent'  -> role.mode: 'divergence'|'convergence'
+            const target = mode === 'divergent' ? 'divergence' : 'convergence'
+
+            roles
+              .filter((role) => role && role.mode === target)
+              .forEach((role) => {
+                chrome.contextMenus.create({
+                  id: role.name, // must be unique + stable
+                  contexts: ['selection'],
+                  title: `${role.name}: ${short(role.description, 60)}`
+                })
+              })
+          }
+        )
       })
+    }
+
+    // helper
+    function short (text, n) {
+      const s = String(text || '')
+      return s.length > n ? s.slice(0, n - 1) + '…' : s
     }
 
     // Handle context menu clicks
