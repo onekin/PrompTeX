@@ -472,7 +472,7 @@ class OverleafManager {
       const span = document.createElement("span");
       span.className = "button-content";
       span.setAttribute("aria-hidden", "false");
-      span.innerHTML = `<i class="fa fa-book fa-fw" aria-hidden="true">Role Definition</i>`;
+      span.innerHTML = `<i aria-hidden="true">Role Definition</i>`;
 
       btn.appendChild(span);
 
@@ -516,7 +516,7 @@ class OverleafManager {
       <input type="checkbox" id="${SWITCH_ID}">
       <span class="mode-slider" aria-hidden="true"></span>
     </label>
-    <span class="mode-label fa fa-book fa-fw" id="modeLabel">Mode</span>
+    <span class="mode-label" id="modeLabel">Mode</span>
   `;
 
         // insert right after the dropdown
