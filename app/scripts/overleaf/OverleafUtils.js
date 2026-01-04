@@ -1,7 +1,7 @@
 const _ = require('lodash')
 
 class OverleafUtils {
-  static async getAllEditorContent () {
+  static async getAllEditorContent() {
     window.promptex._overleafManager._readingDocument = true
     let onTop = false
     const editorContainer = document.querySelector('.cm-scroller')
@@ -15,14 +15,14 @@ class OverleafUtils {
       return
     }
 
-    function scrollEditor (position) {
+    function scrollEditor(position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
         setTimeout(resolve, 120)
       })
     }
 
-    function extractVisibleText () {
+    function extractVisibleText() {
       const lineNumbers = Array.from(lineNumbersContainer.querySelectorAll('.cm-gutterElement')).slice(1)
       let lines = contentEditable.querySelectorAll('.cm-line, .cm-gap')
 
@@ -113,7 +113,7 @@ class OverleafUtils {
     return fullText
   }
 
-  static async scrollToImprovementContent (name, navigation) {
+  static async scrollToImprovementContent(name, navigation) {
     window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
@@ -133,14 +133,14 @@ class OverleafUtils {
       return
     }
 
-    function scrollEditor (position) {
+    function scrollEditor(position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
         setTimeout(resolve, 120)
       })
     }
 
-    function extractVisibleText () {
+    function extractVisibleText() {
       const lineNumbers = Array.from(lineNumbersContainer.querySelectorAll('.cm-gutterElement')).slice(1)
       let lines = contentEditable.querySelectorAll('.cm-line, .cm-gap')
 
@@ -242,7 +242,7 @@ class OverleafUtils {
     // OverleafUtils.toggleEditor()
   }
 
-  static async scrollToAnnotation (name) {
+  static async scrollToAnnotation(name) {
     window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
@@ -261,14 +261,14 @@ class OverleafUtils {
       return
     }
 
-    function scrollEditor (position) {
+    function scrollEditor(position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
         setTimeout(resolve, 120)
       })
     }
 
-    function extractVisibleText () {
+    function extractVisibleText() {
       const lineNumbers = Array.from(lineNumbersContainer.querySelectorAll('.cm-gutterElement')).slice(1)
       let lines = contentEditable.querySelectorAll('.cm-line, .cm-gap')
 
@@ -366,7 +366,7 @@ class OverleafUtils {
     // OverleafUtils.toggleEditor()
   }
 
-  static async scrollToConsolidateContent (name, number, type) {
+  static async scrollToConsolidateContent(name, number, type) {
     window.promptex._overleafManager._readingDocument = true
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
@@ -390,14 +390,14 @@ class OverleafUtils {
       return
     }
 
-    function scrollEditor (position) {
+    function scrollEditor(position) {
       return new Promise((resolve) => {
         editorContainer.scrollTo({ top: position })
         setTimeout(resolve, 120)
       })
     }
 
-    function extractVisibleText () {
+    function extractVisibleText() {
       const lineNumbers = Array.from(lineNumbersContainer.querySelectorAll('.cm-gutterElement')).slice(1)
       let lines = contentEditable.querySelectorAll('.cm-line, .cm-gap')
 
@@ -496,7 +496,7 @@ class OverleafUtils {
     // OverleafUtils.toggleEditor()
   }
 
-  static extractStructuralBlocks (level, latexContent) {
+  static extractStructuralBlocks(level, latexContent) {
     const levelsHierarchy = ['title', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
     const currentLevelIndex = levelsHierarchy.indexOf(level)
 
@@ -562,7 +562,7 @@ class OverleafUtils {
   }
 
   // Define a function to split sections based on \section command
-  static extractSections (latexContent) {
+  static extractSections(latexContent) {
     const lines = latexContent.split('\n')
     const sections = []
     let currentSection = null
@@ -597,7 +597,7 @@ class OverleafUtils {
     return sections
   }
 
-  static extractSectionsWithTodos (latexContent) {
+  static extractSectionsWithTodos(latexContent) {
     const lines = latexContent.split('\n')
     const sections = []
     let currentSection = {
@@ -649,22 +649,43 @@ class OverleafUtils {
     return sections
   }
 
-  static async removeContent (callback) {
-    const editorContent = document.querySelector('#panel-source-editor > div > div > div.cm-scroller > div.cm-content.cm-lineWrapping')
-    if (!editorContent) {
-      console.error('Editor content element not found')
+  static async removeContent(overleafVersion, callback) {
+    if (overleafVersion === 'old') {
+      const editorContent = document.querySelector('#panel-source-editor > div > div > div.cm-scroller > div.cm-content.cm-lineWrapping')
+      if (!editorContent) {
+        console.error('Editor content element not found')
+      } else {
+        while (editorContent.firstChild) {
+          editorContent.removeChild(editorContent.firstChild)
+        }
+        console.log('All child nodes removed from editor content.')
+        if (callback) {
+          callback()
+        }
+      }
     } else {
+
+      // New IDE: source editor panel + CM6 content node
+      const editorContent = document.querySelector('.cm-content[aria-label="Source Editor editing"]')
+
+      if (!editorContent) {
+        console.error("Editor content element not found");
+        return;
+      }
+
       while (editorContent.firstChild) {
-        editorContent.removeChild(editorContent.firstChild)
+        editorContent.removeChild(editorContent.firstChild);
       }
-      console.log('All child nodes removed from editor content.')
-      if (callback) {
-        callback()
-      }
+
+      console.log("All child nodes removed from editor content.");
+
+      if (callback) callback();
+
     }
+
   }
 
-  static async insertContent (content) {
+  static async insertContent(content) {
     window.promptex._overleafManager._readingDocument = true
     const editorContent = document.querySelector('.cm-content')
 
@@ -674,7 +695,7 @@ class OverleafUtils {
     }
 
     // Helper function to insert text at the current cursor position
-    function insertTextAtCursor (text) {
+    function insertTextAtCursor(text) {
       const range = document.getSelection().getRangeAt(0)
       const textNode = document.createTextNode(text)
       range.deleteContents()
@@ -688,7 +709,7 @@ class OverleafUtils {
     }
 
     // Focus the editor and place the cursor at the end or start
-    function focusEditor () {
+    function focusEditor() {
       editorContent.focus()
 
       const range = document.createRange()
@@ -702,7 +723,7 @@ class OverleafUtils {
     }
 
     // Write the text in parts, simulating a typing experience
-    async function writeText (text) {
+    async function writeText(text) {
       focusEditor()
 
       // Optionally, split the text into lines to insert gradually or simulate typing speed
@@ -717,7 +738,7 @@ class OverleafUtils {
     await writeText(content)
   }
 
-  static getActiveEditor () {
+  static getActiveEditor() {
     const codeEditor = document.getElementById('editor-switch-cm6')
     const visualEditor = document.getElementById('editor-switch-rich-text')
 
@@ -730,7 +751,7 @@ class OverleafUtils {
     }
   }
 
-  static toggleEditor () {
+  static toggleEditor() {
     const codeEditor = document.getElementById('editor-switch-cm6')
     const visualEditor = document.getElementById('editor-switch-rich-text')
 
@@ -742,7 +763,7 @@ class OverleafUtils {
       document.querySelector('label[for="editor-switch-cm6"]').click()
     }
   }
-  static async generateImprovementOutlineContent (callback) {
+  static async generateImprovementOutlineContent(callback) {
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()
@@ -826,7 +847,7 @@ class OverleafUtils {
     }
   }
 
-  static async generateConsolidateOutlineContent (callback) {
+  static async generateConsolidateOutlineContent(callback) {
     let editor = OverleafUtils.getActiveEditor()
     if (editor === 'Visual Editor') {
       OverleafUtils.toggleEditor()

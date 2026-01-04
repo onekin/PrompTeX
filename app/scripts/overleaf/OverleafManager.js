@@ -5,6 +5,7 @@ const LocalStorageManager = require('../storage/LocalStorageManager')
 const _ = require('lodash')
 const LatexUtils = require('./LatexUtils')
 const Config = require('../Config')
+let overleafVersion
 
 class OverleafManager {
   constructor() {
@@ -14,7 +15,7 @@ class OverleafManager {
 
   init() {
     let that = this
-    let overleafVersion = this.findHomeIcon()
+    overleafVersion = this.findHomeIcon()
     if (overleafVersion == null) {
       // If the icon is not found, retry after 500ms
       window.setTimeout(() => {
@@ -150,7 +151,8 @@ class OverleafManager {
               modeInstructions,
               scope,
               firstSection,
-              humanNote
+              humanNote,
+              overleafVersion
             )
           }
         } else {
@@ -210,6 +212,8 @@ class OverleafManager {
         that.monitorEditorContent()
       } else {
         that.addNewVersionConfigurationButton()
+        that.addOutlineButton()
+        that.monitorEditorContent()
       }
     }
   }
@@ -228,15 +232,29 @@ class OverleafManager {
   }
 
   isSelectionInsidePanel() {
-    const panel = document.getElementById('panel-ide') // Get the "panel-ide" element
-    const selection = window.getSelection() // Get the current selection
+    if (overleafVersion === 'old') {
+      const panel = document.getElementById('panel-ide') // Get the "panel-ide" element
+      const selection = window.getSelection() // Get the current selection
 
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0) // Get the first range of the selection
-      const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
-      return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+      if (selection.rangeCount > 0) {
+       const range = selection.getRangeAt(0) // Get the first range of the selection
+        const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
+       return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+      }
+      return false // No selection or not inside the panel
+    } else {
+      const panel = document.getElementById('ide-redesign-panel-source-editor') // Get the "panel-ide" element
+      const selection = window.getSelection() // Get the current selection
+
+      if (selection.rangeCount > 0) {
+       const range = selection.getRangeAt(0) // Get the first range of the selection
+        const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
+       return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+      }
+      return false // No selection or not inside the panel
     }
-    return false // No selection or not inside the panel
+  
+
   }
 
   monitorEditorContent() {

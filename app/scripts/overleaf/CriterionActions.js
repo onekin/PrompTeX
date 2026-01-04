@@ -6,7 +6,7 @@ const Utils = require('../utils/Utils')
 const LatexUtils = require('./LatexUtils')
 
 class CriterionActions {
-  static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName, humanNote) {
+  static async askForFeedback (document, prompt, roleName, spaceMode, scopedText, roleDescription, modeInstructions, scope, sectionName, humanNote, overleafVersion) {
     Alerts.showLoadingWindowDuringProcess('Retrieving API key...')
     chrome.runtime.sendMessage({ scope: 'llm', cmd: 'getSelectedLLM' }, async ({ llm }) => {
       if (!llm || !llm.modelType || !llm.model) {
@@ -229,7 +229,7 @@ class CriterionActions {
                           }
                         }
                         setTimeout(() => {
-                          OverleafUtils.removeContent(() => {
+                          OverleafUtils.removeContent(overleafVersion, () => {
                             setTimeout(() => {
                               console.log(updatedDocument)
                               updatedDocument = LatexUtils.ensureHumanNoteCommandExists(updatedDocument)
