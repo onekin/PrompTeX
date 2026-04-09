@@ -445,6 +445,7 @@ class OverleafManager {
   addNewVersionConfigurationButton() {
     // Locate the toolbar where the button should be added
     // let toolbar = document.querySelector('.toolbar-right')
+    const self = this;
     const ACTIONS_SELECTOR = ".ide-redesign-toolbar-actions";
     const BTN_ID = "roleDefinitionBtn";
     if (!document.getElementById('roleDefinitionBtn')) {
@@ -512,12 +513,12 @@ class OverleafManager {
 
         // basic markup (toggle + label)
         wrap.innerHTML = `
-    <label class="mode-switch">
-      <input type="checkbox" id="${SWITCH_ID}">
-      <span class="mode-slider" aria-hidden="true"></span>
-    </label>
-    <span class="mode-label" id="modeLabel">Mode</span>
-  `;
+          <label class="mode-switch">
+            <input type="checkbox" id="${SWITCH_ID}">
+            <span class="mode-slider" aria-hidden="true"></span>
+          </label>
+          <span class="mode-label" id="modeLabel">Mode</span>
+        `;
 
         // insert right after the dropdown
         parent.insertBefore(wrap, projectDropdown.nextSibling);
@@ -525,66 +526,66 @@ class OverleafManager {
         // style (kept minimal + aligned with toolbar height)
         const style = document.createElement("style");
         style.textContent = `
-    .${CONTAINER_CLASS}{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-left:12px;
-      padding: 0 10px;
-      height: 32px;            /* matches typical new toolbar button height */
-      border-radius: 8px;
-    }
+          .${CONTAINER_CLASS}{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-left:12px;
+            padding: 0 10px;
+            height: 32px;            /* matches typical new toolbar button height */
+            border-radius: 8px;
+          }
 
-    .mode-switch{
-      position:relative;
-      display:inline-block;
-      width:44px;
-      height:22px;
-      margin-top: 8px;
-    }
-    .mode-switch input{
-      opacity:0;
-      width:0;
-      height:0;
-    }
-    .mode-slider{
-           position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #2196F3;
-          transition: 0.4s;
-          border-radius: 25px;
-    }
-    .mode-slider:before{
-      position: absolute;
-          content: "";
-          height: 20px;
-          width: 20px;
-          left: 3px;
-          bottom: 2.5px;
-          background-color: white;
-          transition: 0.4s;
-          border-radius: 50%;
-    }
-    .mode-switch input:checked + .mode-slider{
-      background-color: #2196F3;
-    }
-    .mode-switch input:checked + .mode-slider:before{
-      transform: translateX(22px);
-    }
+          .mode-switch{
+            position:relative;
+            display:inline-block;
+            width:44px;
+            height:22px;
+            margin-top: 8px;
+          }
+          .mode-switch input{
+            opacity:0;
+            width:0;
+            height:0;
+          }
+          .mode-slider{
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #2196F3;
+                transition: 0.4s;
+                border-radius: 25px;
+          }
+          .mode-slider:before{
+            position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 3px;
+                bottom: 2.5px;
+                background-color: white;
+                transition: 0.4s;
+                border-radius: 50%;
+          }
+          .mode-switch input:checked + .mode-slider{
+            background-color: #2196F3;
+          }
+          .mode-switch input:checked + .mode-slider:before{
+            transform: translateX(22px);
+          }
 
-    .${CONTAINER_CLASS} .mode-label{
-      font-size: 14px;
-          font-weight: bold;
-          margin-top: 8px;
-          color: white; /* Ensures visibility */
-          white-space: nowrap; /* Prevents text wrapping */
-          font-style: italic;
-    }
-  `;
+          .${CONTAINER_CLASS} .mode-label{
+            font-size: 14px;
+                font-weight: bold;
+                margin-top: 8px;
+                color: white; /* Ensures visibility */
+                white-space: nowrap; /* Prevents text wrapping */
+                font-style: italic;
+          }
+        `;
         document.head.appendChild(style);
 
         // load saved mode and bind events
@@ -602,16 +603,10 @@ class OverleafManager {
           label.textContent = toggle.checked ? "Convergence Mode" : "Divergence Mode";
 
           toggle.addEventListener("change", (e) => {
-            const checked = e.target.checked;
-            label.textContent = checked ? "Convergence Mode" : "Divergence Mode";
+            const mode = e.target.checked ? "convergent" : "divergent";
+            label.textContent = e.target.checked ? "Convergence Mode" : "Divergence Mode";
 
-            // call your existing mode setter
-            // (replace this with whatever you actually use)
-            chrome.runtime.sendMessage({
-              scope: "mode",
-              cmd: "setMode",
-              mode: checked ? "convergent" : "divergent",
-            });
+            self.setMode(mode); // ✅ reaches the class method via captured reference
           });
         });
       }

@@ -739,28 +739,28 @@ class OverleafUtils {
   }
 
   static getActiveEditor() {
-    const codeEditor = document.getElementById('editor-switch-cm6')
-    const visualEditor = document.getElementById('editor-switch-rich-text')
+    const codeEditor = document.querySelector('input[name="editor"][value="cm6"]');
+    const visualEditor = document.querySelector('input[name="editor"][value="rich-text"]');
 
-    if (codeEditor.checked) {
-      return 'Code Editor'
-    } else if (visualEditor.checked) {
-      return 'Visual Editor'
+    if (codeEditor?.checked) {
+      return 'Code Editor';
+    } else if (visualEditor?.checked) {
+      return 'Visual Editor';
     } else {
-      return 'No editor selected'
+      return 'No editor selected';
     }
   }
 
   static toggleEditor() {
-    const codeEditor = document.getElementById('editor-switch-cm6')
-    const visualEditor = document.getElementById('editor-switch-rich-text')
+    const codeEditor = document.querySelector('input[name="editor"][value="cm6"]');
+    const visualEditor = document.querySelector('input[name="editor"][value="rich-text"]');
 
-    if (codeEditor.checked) {
+    if (codeEditor?.checked) {
       // Switch to Visual Editor
-      document.querySelector('label[for="editor-switch-rich-text"]').click()
-    } else if (visualEditor.checked) {
+      document.querySelector('label[for="' + visualEditor.id + '"]').click();
+    } else if (visualEditor?.checked) {
       // Switch to Code Editor
-      document.querySelector('label[for="editor-switch-cm6"]').click()
+      document.querySelector('label[for="' + codeEditor.id + '"]').click();
     }
   }
   static async generateImprovementOutlineContent(callback) {
