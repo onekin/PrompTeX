@@ -22,7 +22,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.overleaf.com/project/*"],
+      "matches": ["https://www.overleaf.com/project/*", "https://*.overleaf.com/project/*"],
       "js": ["scripts/content_script.js"],
       "css": ["styles/contentScript.css"],
       "run_at": "document_end"
@@ -52,6 +52,7 @@
   ],
   "host_permissions": [
     "https://www.overleaf.com/*",
+    "https://*.overleaf.com/*",
     "https://www.mindmeister.com/services/rest/oauth2/token",
     "https://api.openai.com/v1/chat/completions",
     "https://chat.openai.com/*",

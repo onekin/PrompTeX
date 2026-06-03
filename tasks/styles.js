@@ -3,7 +3,15 @@ import gulpif from 'gulp-if'
 import gutil from 'gulp-util'
 import sourcemaps from 'gulp-sourcemaps'
 import less from 'gulp-less'
-import sass from 'gulp-sass'
+import gulpSass from 'gulp-sass'
+import * as dartSass from 'sass'
+const sass = gulpSass(dartSass)
+
+const sassOptions = {
+  includePaths: ['./app'],
+  quietDeps: true,
+  silenceDeprecations: ['legacy-js-api', 'import', 'global-builtin', 'color-functions', 'if-function', 'abs-percent']
+}
 import cleanCSS from 'gulp-clean-css'
 import livereload from 'gulp-livereload'
 import args from './lib/args'
@@ -33,7 +41,7 @@ gulp.task('styles:less', function () {
 gulp.task('styles:sass', function () {
   return gulp.src('app/styles/*.scss')
     .pipe(gulpif(args.sourcemaps, sourcemaps.init()))
-    .pipe(sass({ includePaths: ['./app'] }).on('error', function (error) {
+    .pipe(sass(sassOptions).on('error', function (error) {
       gutil.log(gutil.colors.red('Error (' + error.plugin + '): ' + error.message))
       this.emit('end')
     }))

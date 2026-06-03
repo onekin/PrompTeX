@@ -31,8 +31,41 @@ gulp.task('scripts', () => {
           new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify(ENV),
             'process.env.VENDOR': JSON.stringify(args.vendor)
+          }),
+          new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+            resource.request = resource.request.replace(/^node:/, '')
           })
         ],
+        resolve: {
+          fallback: {
+            fs: false,
+            path: false,
+            'fs/promises': false,
+            worker_threads: false,
+            os: false,
+            crypto: false,
+            stream: false,
+            buffer: false,
+            util: false,
+            url: false,
+            http: false,
+            https: false,
+            net: false,
+            tls: false,
+            zlib: false,
+            assert: false,
+            querystring: false,
+            readline: false,
+            child_process: false,
+            v8: false,
+            process: false,
+            perf_hooks: false,
+            async_hooks: false,
+            events: false,
+            vm: false,
+            module: false
+          }
+        },
         module: {
           rules: [{
             test: /\.js$/,

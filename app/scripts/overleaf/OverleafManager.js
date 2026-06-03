@@ -8,12 +8,12 @@ const Config = require('../Config')
 let overleafVersion
 
 class OverleafManager {
-  constructor() {
+  constructor () {
     this._project = null
     this._readingDocument = false
   }
 
-  init() {
+  init () {
     let that = this
     overleafVersion = this.findHomeIcon()
     if (overleafVersion == null) {
@@ -162,7 +162,7 @@ class OverleafManager {
     })
   }
 
-  filterScopedContent(content, currentScope) {
+  filterScopedContent (content, currentScope) {
     const levels = ['title', 'section', 'subsection', 'subsubsection', 'paragraph', 'subparagraph']
     const currentLevelIndex = levels.indexOf(currentScope)
 
@@ -184,13 +184,12 @@ class OverleafManager {
     return filteredLines.join('\n')
   }
 
-  findHomeIcon() {
+  findHomeIcon () {
     // Check for Font Awesome icon
     let faIcon = document.querySelector('i.fa.fa-home.fa-fw')
     // Check for Material Symbols icon
     let materialIcon = Array.from(document.querySelectorAll("span.material-symbols.align-text-bottom[aria-hidden='true']"))
       .find(span => span.textContent.trim() === 'home')
-
 
     if (faIcon || materialIcon) {
       return 'old'
@@ -200,7 +199,7 @@ class OverleafManager {
     }
   }
 
-  projectManagement(overleafVersion) {
+  projectManagement (overleafVersion) {
     let that = this
     let project = that.getProject()
     if (project) {
@@ -218,28 +217,28 @@ class OverleafManager {
     }
   }
 
-  extractBlockTitlesFromText(level, text) {
+  extractBlockTitlesFromText (level, text) {
     const command = `\\\\${level}` // matches \\subsection
     const pattern = new RegExp(`${command}\\{(.*?)\\}`, 'g')
     const matches = [...text.matchAll(pattern)]
     return matches.map(match => match[1])
   }
 
-  extractHumanNote(text) {
+  extractHumanNote (text) {
     const sectionPattern = /\\humanNote{(.*?)}/g // RegEx pattern to capture content inside \section{}
     const matches = [...text.matchAll(sectionPattern)] // Extract all matches
     return matches.map(match => match[1]) // Return only the content inside {}
   }
 
-  isSelectionInsidePanel() {
+  isSelectionInsidePanel () {
     if (overleafVersion === 'old') {
       const panel = document.getElementById('panel-ide') // Get the "panel-ide" element
       const selection = window.getSelection() // Get the current selection
 
       if (selection.rangeCount > 0) {
-       const range = selection.getRangeAt(0) // Get the first range of the selection
+        const range = selection.getRangeAt(0) // Get the first range of the selection
         const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
-       return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+        return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
       }
       return false // No selection or not inside the panel
     } else {
@@ -247,17 +246,15 @@ class OverleafManager {
       const selection = window.getSelection() // Get the current selection
 
       if (selection.rangeCount > 0) {
-       const range = selection.getRangeAt(0) // Get the first range of the selection
+        const range = selection.getRangeAt(0) // Get the first range of the selection
         const selectedNode = range.commonAncestorContainer // Find the deepest common ancestor of the selection
-       return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
+        return panel.contains(selectedNode) // Check if the selected node is within "panel-ide"
       }
       return false // No selection or not inside the panel
     }
-  
-
   }
 
-  monitorEditorContent() {
+  monitorEditorContent () {
     // Use setInterval to check every second (1000ms)
     setInterval(() => {
       let codeElements = document.querySelectorAll('div.cm-line')
@@ -271,7 +268,7 @@ class OverleafManager {
     }, 500) // Every second
   }
 
-  monitorCodeEditorContentPromptex(elements) {
+  monitorCodeEditorContentPromptex (elements) {
     if (!window.promptex._overleafManager._readingDocument) {
       elements.forEach((element) => {
         // if (!this.isSelectedInCodeEditor(element)) {
@@ -285,7 +282,7 @@ class OverleafManager {
     }
   }
 
-  isSelected(element) {
+  isSelected (element) {
     const selection = window.getSelection()
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0) // Get the first range (caret position)
@@ -308,7 +305,7 @@ class OverleafManager {
     }
   }
 
-  addOldVersionConfigurationButton() {
+  addOldVersionConfigurationButton () {
     // Locate the toolbar where the button should be added
     let toolbar = document.querySelector('.toolbar-right')
     if (!document.getElementById('checkCriteriaBtn')) {
@@ -442,74 +439,74 @@ class OverleafManager {
     }
   }
 
-  addNewVersionConfigurationButton() {
+  addNewVersionConfigurationButton () {
     // Locate the toolbar where the button should be added
     // let toolbar = document.querySelector('.toolbar-right')
-    const self = this;
-    const ACTIONS_SELECTOR = ".ide-redesign-toolbar-actions";
-    const BTN_ID = "roleDefinitionBtn";
+    const self = this
+    const ACTIONS_SELECTOR = '.ide-redesign-toolbar-actions'
+    const BTN_ID = 'roleDefinitionBtn'
     if (!document.getElementById('roleDefinitionBtn')) {
-      const actions = document.querySelector(ACTIONS_SELECTOR);
+      const actions = document.querySelector(ACTIONS_SELECTOR)
       if (!actions) {
-        console.error("Toolbar actions not found:", ACTIONS_SELECTOR);
-        return;
+        console.error('Toolbar actions not found:', ACTIONS_SELECTOR)
+        return
       }
 
-      if (document.getElementById(BTN_ID)) return; // don't duplicate
+      if (document.getElementById(BTN_ID)) return // don't duplicate
 
       // Container like the History button container
-      const container = document.createElement("div");
-      container.className = "ide-redesign-toolbar-button-container";
+      const container = document.createElement('div')
+      container.className = 'ide-redesign-toolbar-button-container'
 
       // Button styled like the History button (same class list)
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.id = BTN_ID;
-      btn.setAttribute("aria-label", "Role definition");
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.id = BTN_ID
+      btn.setAttribute('aria-label', 'Role definition')
       btn.className =
-        "d-inline-grid ide-redesign-toolbar-button-subdued ide-redesign-toolbar-button-icon icon-button btn btn-primary";
+        'd-inline-grid ide-redesign-toolbar-button-subdued ide-redesign-toolbar-button-icon icon-button btn btn-primary'
 
       // Inner span like History button
-      const span = document.createElement("span");
-      span.className = "button-content";
-      span.setAttribute("aria-hidden", "false");
-      span.innerHTML = `<i aria-hidden="true">Role Definition</i>`;
+      const span = document.createElement('span')
+      span.className = 'button-content'
+      span.setAttribute('aria-hidden', 'false')
+      span.innerHTML = `<i aria-hidden="true">Role Definition</i>`
 
-      btn.appendChild(span);
+      btn.appendChild(span)
 
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.open(chrome.runtime.getURL("/pages/promptConfiguration.html"), "_blank");
-      });
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        window.open(chrome.runtime.getURL('/pages/promptConfiguration.html'), '_blank')
+      })
 
-      container.appendChild(btn);
-      actions.appendChild(container);
+      container.appendChild(btn)
+      actions.appendChild(container)
     }
 
     if (!document.querySelector('.mode-switch-container')) {
-      const SWITCH_ID = "modeToggle";
-      const CONTAINER_CLASS = "mode-switch-container-ide";
+      const SWITCH_ID = 'modeToggle'
+      const CONTAINER_CLASS = 'mode-switch-container-ide'
 
-      function injectModeSwitchNextToProjectDropdown() {
+      const injectModeSwitchNextToProjectDropdown = () => {
         // anchor: the project dropdown container
         const projectDropdown = document.querySelector(
-          ".ide-redesign-toolbar-project-dropdown.dropdown"
-        );
+          '.ide-redesign-toolbar-project-dropdown.dropdown'
+        )
         if (!projectDropdown) {
-          console.error("Project dropdown not found");
-          return;
+          console.error('Project dropdown not found')
+          return
         }
 
         // parent is the toolbar (or toolbar inner container)
-        const parent = projectDropdown.parentElement;
-        if (!parent) return;
+        const parent = projectDropdown.parentElement
+        if (!parent) return
 
         // don't duplicate
-        if (document.querySelector(`.${CONTAINER_CLASS}`)) return;
+        if (document.querySelector(`.${CONTAINER_CLASS}`)) return
 
         // container
-        const wrap = document.createElement("div");
-        wrap.className = CONTAINER_CLASS;
+        const wrap = document.createElement('div')
+        wrap.className = CONTAINER_CLASS
 
         // basic markup (toggle + label)
         wrap.innerHTML = `
@@ -518,13 +515,13 @@ class OverleafManager {
             <span class="mode-slider" aria-hidden="true"></span>
           </label>
           <span class="mode-label" id="modeLabel">Mode</span>
-        `;
+        `
 
         // insert right after the dropdown
-        parent.insertBefore(wrap, projectDropdown.nextSibling);
+        parent.insertBefore(wrap, projectDropdown.nextSibling)
 
         // style (kept minimal + aligned with toolbar height)
-        const style = document.createElement("style");
+        const style = document.createElement('style')
         style.textContent = `
           .${CONTAINER_CLASS}{
             display:flex;
@@ -585,37 +582,37 @@ class OverleafManager {
                 white-space: nowrap; /* Prevents text wrapping */
                 font-style: italic;
           }
-        `;
-        document.head.appendChild(style);
+        `
+        document.head.appendChild(style)
 
         // load saved mode and bind events
-        chrome.runtime.sendMessage({ scope: "mode", cmd: "getMode" }, (res) => {
-          if (!res || res.err) return;
+        chrome.runtime.sendMessage({ scope: 'mode', cmd: 'getMode' }, (res) => {
+          if (!res || res.err) return
 
-          const mode = res.mode || "divergent";
-          const isDivergent = mode === "divergent";
+          const mode = res.mode || 'divergent'
+          const isDivergent = mode === 'divergent'
 
-          const toggle = document.getElementById(SWITCH_ID);
-          const label = wrap.querySelector("#modeLabel");
+          const toggle = document.getElementById(SWITCH_ID)
+          const label = wrap.querySelector('#modeLabel')
 
           // mapping: unchecked = divergent, checked = convergent (same as your old code)
-          toggle.checked = !isDivergent;
-          label.textContent = toggle.checked ? "Convergence Mode" : "Divergence Mode";
+          toggle.checked = !isDivergent
+          label.textContent = toggle.checked ? 'Convergence Mode' : 'Divergence Mode'
 
-          toggle.addEventListener("change", (e) => {
-            const mode = e.target.checked ? "convergent" : "divergent";
-            label.textContent = e.target.checked ? "Convergence Mode" : "Divergence Mode";
+          toggle.addEventListener('change', (e) => {
+            const mode = e.target.checked ? 'convergent' : 'divergent'
+            label.textContent = e.target.checked ? 'Convergence Mode' : 'Divergence Mode'
 
-            self.setMode(mode); // ✅ reaches the class method via captured reference
-          });
-        });
+            self.setMode(mode) // ✅ reaches the class method via captured reference
+          })
+        })
       }
 
-      injectModeSwitchNextToProjectDropdown();
+      injectModeSwitchNextToProjectDropdown()
     }
   }
 
-  setMode(mode) {
+  setMode (mode) {
     chrome.storage.local.set({ mode }, () => {
       if (chrome.runtime.lastError) {
         console.error('storage.set error:', chrome.runtime.lastError)
@@ -625,7 +622,7 @@ class OverleafManager {
     })
   }
 
-  addOutlineButton() {
+  addOutlineButton () {
     // Check if the outline already exists
     if (document.querySelector('.newImprovementOutlinePane')) {
       return
@@ -750,7 +747,7 @@ class OverleafManager {
     })
   }
 
-  getProject() {
+  getProject () {
     // Get the current URL
     let currentURL = window.location.href
 
@@ -766,7 +763,7 @@ class OverleafManager {
     }
   }
 
-  loadStorage(projectId, callback) {
+  loadStorage (projectId, callback) {
     window.promptex.storageManager = new LocalStorageManager()
     window.promptex.storageManager.init(projectId, (err) => {
       if (err) {
