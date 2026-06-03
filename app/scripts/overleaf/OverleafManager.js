@@ -333,6 +333,25 @@ class OverleafManager {
       }
     }
 
+    if (!document.getElementById('llmConfigBtn')) {
+      let llmConfigBtn = document.createElement('div')
+      llmConfigBtn.classList.add('toolbar-item')
+      llmConfigBtn.innerHTML = `
+      <button type='button' class='btn btn-full-height' id='llmConfigBtn'>
+        <i class='fa fa-cog fa-fw' aria-hidden='true'></i>
+        <p class='toolbar-label'>LLM configuration</p>
+      </button>
+    `
+      llmConfigBtn.addEventListener('click', () => {
+        window.open(chrome.runtime.getURL('/pages/options.html'), '_blank')
+      })
+      if (toolbar) {
+        toolbar.appendChild(llmConfigBtn)
+      } else {
+        console.error('Toolbar not found')
+      }
+    }
+
     if (!document.querySelector('.mode-switch-container')) {
       let modeToggle, modeLabel, isDivergence, mode
       // 1) Load saved mode from background and set the UI
@@ -481,6 +500,36 @@ class OverleafManager {
 
       container.appendChild(btn)
       actions.appendChild(container)
+    }
+
+    if (!document.getElementById('llmConfigBtn')) {
+      const llmActions = document.querySelector(ACTIONS_SELECTOR)
+      if (llmActions) {
+        const llmContainer = document.createElement('div')
+        llmContainer.className = 'ide-redesign-toolbar-button-container'
+
+        const llmBtn = document.createElement('button')
+        llmBtn.type = 'button'
+        llmBtn.id = 'llmConfigBtn'
+        llmBtn.setAttribute('aria-label', 'LLM configuration')
+        llmBtn.className =
+          'd-inline-grid ide-redesign-toolbar-button-subdued ide-redesign-toolbar-button-icon icon-button btn btn-primary'
+
+        const llmSpan = document.createElement('span')
+        llmSpan.className = 'button-content'
+        llmSpan.setAttribute('aria-hidden', 'false')
+        llmSpan.innerHTML = `<i aria-hidden="true">LLM Configuration</i>`
+
+        llmBtn.appendChild(llmSpan)
+
+        llmBtn.addEventListener('click', (e) => {
+          e.preventDefault()
+          window.open(chrome.runtime.getURL('/pages/options.html'), '_blank')
+        })
+
+        llmContainer.appendChild(llmBtn)
+        llmActions.appendChild(llmContainer)
+      }
     }
 
     if (!document.querySelector('.mode-switch-container')) {
